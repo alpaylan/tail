@@ -1,0 +1,419 @@
+[
+  {
+    "type": "comma_trailing_key_value_pair",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "c",
+          "named": true
+        },
+        {
+          "type": "key_value_pair",
+          "named": true
+        },
+        {
+          "type": "sp",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "comma_trailing_kv_section",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "c",
+          "named": true
+        },
+        {
+          "type": "kv_section",
+          "named": true
+        },
+        {
+          "type": "sp",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "comma_trailing_text",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "c",
+          "named": true
+        },
+        {
+          "type": "sp",
+          "named": true
+        },
+        {
+          "type": "text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "content",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "section",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "enclosed_text",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "q",
+          "named": true
+        },
+        {
+          "type": "text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "info",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "phone",
+          "named": true
+        },
+        {
+          "type": "text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "key_value_pair",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "col",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "info",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "kv_section",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "cb",
+          "named": true
+        },
+        {
+          "type": "comma_trailing_key_value_pair",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "key_value_pair",
+          "named": true
+        },
+        {
+          "type": "lp",
+          "named": true
+        },
+        {
+          "type": "ob",
+          "named": true
+        },
+        {
+          "type": "rp",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "list_section",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "cb",
+          "named": true
+        },
+        {
+          "type": "comma_trailing_text",
+          "named": true
+        },
+        {
+          "type": "ob",
+          "named": true
+        },
+        {
+          "type": "text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "mkv_section",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "cb",
+          "named": true
+        },
+        {
+          "type": "comma_trailing_kv_section",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "kv_section",
+          "named": true
+        },
+        {
+          "type": "lb",
+          "named": true
+        },
+        {
+          "type": "ob",
+          "named": true
+        },
+        {
+          "type": "rb",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "section",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "section_content",
+          "named": true
+        },
+        {
+          "type": "section_header",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "section_content",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "kv_section",
+          "named": true
+        },
+        {
+          "type": "list_section",
+          "named": true
+        },
+        {
+          "type": "mkv_section",
+          "named": true
+        },
+        {
+          "type": "text_section",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "section_header",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "sp",
+          "named": true
+        },
+        {
+          "type": "text",
+          "named": true
+        },
+        {
+          "type": "tt",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "source_file",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "content",
+          "named": true
+        },
+        {
+          "type": "metadata",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "text_section",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "enclosed_text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "c",
+    "named": true
+  },
+  {
+    "type": "cb",
+    "named": true
+  },
+  {
+    "type": "col",
+    "named": true
+  },
+  {
+    "type": "identifier",
+    "named": true
+  },
+  {
+    "type": "lb",
+    "named": true
+  },
+  {
+    "type": "lp",
+    "named": true
+  },
+  {
+    "type": "metadata",
+    "named": true
+  },
+  {
+    "type": "ob",
+    "named": true
+  },
+  {
+    "type": "phone",
+    "named": true
+  },
+  {
+    "type": "q",
+    "named": true
+  },
+  {
+    "type": "rb",
+    "named": true
+  },
+  {
+    "type": "rp",
+    "named": true
+  },
+  {
+    "type": "sp",
+    "named": true
+  },
+  {
+    "type": "text",
+    "named": true
+  },
+  {
+    "type": "tt",
+    "named": true
+  }
+]

@@ -1,0 +1,42 @@
+# Info
+(personal-info)[
+    name: Alperen,
+    surname: Keles,
+    phonenumber: 05055055005
+]
+# Profile
+"Alperen Ksalkjdalskjdsa"
+# Interests
+[
+    music,
+    chess,
+    playing piano,
+    baking soda with love
+]
+# Education
+{schools}[
+    (metu)[
+        school : Middle East Technical University,
+        dep : Department of Computer Engineering,
+        gpa : 3.49
+    ],
+    (umd)[
+        school : University of Maryland College Park,
+        dep : Computer Science Department,
+        gpa : 3.4
+    ]
+]
+# Jobs
+{jobs}[
+    (havelsan)[
+        company: Havelsan AS,
+        division: Yeni Nesil Haberlesme,
+        job: Part Time Software Engineer
+    ],
+    (emproof)[
+        company: Emproof,
+        division: Main,
+        job: Software Engineering Intern
+    ]
+]
+metadata

@@ -1,0 +1,350 @@
+{
+  "name": "CVDL",
+  "rules": {
+    "source_file": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "content"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "metadata"
+        }
+      ]
+    },
+    "key_value_pair": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "identifier"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "col"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "info"
+        }
+      ]
+    },
+    "comma_trailing_key_value_pair": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "c"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "sp"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "key_value_pair"
+        }
+      ]
+    },
+    "identifier": {
+      "type": "PATTERN",
+      "value": "[a-zA-Z-\\d]+"
+    },
+    "info": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "identifier"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "phone"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "text"
+        }
+      ]
+    },
+    "phone": {
+      "type": "PATTERN",
+      "value": "\\d+"
+    },
+    "content": {
+      "type": "REPEAT1",
+      "content": {
+        "type": "SYMBOL",
+        "name": "section"
+      }
+    },
+    "section": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "section_header"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "section_content"
+        }
+      ]
+    },
+    "section_header": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "tt"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "sp"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "text"
+        }
+      ]
+    },
+    "section_content": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "text_section"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "list_section"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "kv_section"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "mkv_section"
+        }
+      ]
+    },
+    "text_section": {
+      "type": "SYMBOL",
+      "name": "enclosed_text"
+    },
+    "kv_section": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "lp"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "identifier"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "rp"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "ob"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "key_value_pair"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "comma_trailing_key_value_pair"
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "cb"
+        }
+      ]
+    },
+    "mkv_section": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "lb"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "identifier"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "rb"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "ob"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "kv_section"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "comma_trailing_kv_section"
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "cb"
+        }
+      ]
+    },
+    "comma_trailing_kv_section": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "c"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "sp"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "kv_section"
+        }
+      ]
+    },
+    "list_section": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "ob"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "text"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "comma_trailing_text"
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "cb"
+        }
+      ]
+    },
+    "comma_trailing_text": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "c"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "sp"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "text"
+        }
+      ]
+    },
+    "enclosed_text": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "q"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "text"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "q"
+        }
+      ]
+    },
+    "text": {
+      "type": "PATTERN",
+      "value": "[a-zA-Z-\\d.]+[\\sa-zA-Z-\\d.]*"
+    },
+    "sp": {
+      "type": "PATTERN",
+      "value": "[ ]*"
+    },
+    "tt": {
+      "type": "STRING",
+      "value": "#"
+    },
+    "ob": {
+      "type": "STRING",
+      "value": "["
+    },
+    "cb": {
+      "type": "STRING",
+      "value": "]"
+    },
+    "col": {
+      "type": "STRING",
+      "value": ":"
+    },
+    "q": {
+      "type": "STRING",
+      "value": "\""
+    },
+    "c": {
+      "type": "STRING",
+      "value": ","
+    },
+    "lp": {
+      "type": "STRING",
+      "value": "("
+    },
+    "rp": {
+      "type": "STRING",
+      "value": ")"
+    },
+    "lb": {
+      "type": "STRING",
+      "value": "{"
+    },
+    "rb": {
+      "type": "STRING",
+      "value": "}"
+    },
+    "metadata": {
+      "type": "STRING",
+      "value": "metadata"
+    }
+  },
+  "extras": [
+    {
+      "type": "PATTERN",
+      "value": "\\s"
+    }
+  ],
+  "conflicts": [],
+  "precedences": [],
+  "externals": [],
+  "inline": [],
+  "supertypes": []
+}
+
