@@ -1,0 +1,45 @@
+DIGEST 2c7b41b6e7c0c555f88bd94d79e848ca
+Ftemplate
+R16:21 Coq.Strings.String <> <> lib
+R23:26 Coq.Lists.List <> <> lib
+ind 40:50 <> Orientation
+constr 55:64 <> Horizontal
+constr 68:75 <> Vertical
+ind 89:96 <> Template
+constr 107:113 <> Literal
+constr 141:145 <> Stack
+constr 180:182 <> Row
+constr 217:225 <> Reference
+constr 253:256 <> Hole
+constr 289:294 <> Plural
+constr 336:339 <> Fill
+constr 386:390 <> Empty
+R122:125 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R116:121 Coq.Strings.String <> string ind
+R126:133 template <> Template:3 ind
+R161:164 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R148:151 Coq.Init.Datatypes <> list ind
+R153:160 template <> Template:3 ind
+R165:172 template <> Template:3 ind
+R198:201 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R185:188 Coq.Init.Datatypes <> list ind
+R190:197 template <> Template:3 ind
+R202:209 template <> Template:3 ind
+R234:237 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R228:233 Coq.Strings.String <> string ind
+R238:245 template <> Template:3 ind
+R270:273 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R259:269 template <> Orientation ind
+R274:281 template <> Template:3 ind
+R305:308 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R297:304 template <> Template:3 ind
+R317:320 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R309:316 template <> Template:3 ind
+R321:328 template <> Template:3 ind
+R355:358 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R342:345 Coq.Init.Datatypes <> list ind
+R347:354 template <> Template:3 ind
+R367:370 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R359:366 template <> Template:3 ind
+R371:378 template <> Template:3 ind
+R393:400 template <> Template:3 ind
