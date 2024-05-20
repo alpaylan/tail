@@ -1,0 +1,247 @@
+{
+    "layout": "SingleColumnSchema",
+    "sections": [
+        {
+            "section_name": "Profile",
+            "data_schema": "Profile",
+            "layout_schema": "Profile-Compact",
+            "data": {
+                "Name": "Alperen",
+                "Surname": "Keles",
+                "Linkedin": "https://linkedin.com/in/alpkeles",
+                "Github": "https://github.com/alpaylan",
+                "Email": "mailto:alpkeles99@gmail.com",
+                "Google Scholar": "https://scholar.google.com/citations?user=5T4PvEAAAAAJ&hl=tr"
+            },
+            "items": [
+                {
+                    "Text": "Linkedin",
+                    "URL": "https://linkedin.com/in/alpkeles"
+                },
+                {
+                    "Text": "Github",
+                    "URL": "https://github.com/alpaylan"
+                },
+                {
+                    "Text": "alpkeles99@gmail.com",
+                    "URL": "mailto:alpkeles99@gmail.com"
+                },
+                {
+                    "Text": "Google Scholar",
+                    "URL": "https://scholar.google.com/citations?user=5T4PvEAAAAAJ&hl=tr"
+                }
+            ]
+        },
+        {
+            "section_name": "Education",
+            "data_schema": "Education",
+            "layout_schema": "Education",
+            "data": {
+                "Title": "Education"
+            },
+            "items": [
+                {
+                    "School": "University of Maryland, College Park",
+                    "Degree": "Doctorate of Philosophy",
+                    "Department": "Computer Science",
+                    "Date-Started": "2021",
+                    "Date-Finished": "2026(Expected)",
+                    "Location": "Maryland, USA"
+                },
+                {
+                    "School": "Middle East Technical University",
+                    "Degree": "Bachelor of Engineering",
+                    "Department": "Computer Engineering",
+                    "Date-Started": "2017",
+                    "Date-Finished": "2021",
+                    "Location": "Ankara, Turkey",
+                    "Text": "GPA: 3.66/4.0 ***(top 5% in class of 229)***"
+                }
+            ]
+        },
+        {
+            "section_name": "Publications",
+            "data_schema": "Publications",
+            "layout_schema": "Publications",
+            "data": {
+                "Title": "Publications"
+            },
+            "items": [
+                {
+                    "Publication-Title": "Etna: An Evaluation Platform for Property-Based Testing (Experience Report)",
+                    "Publication-URL": "",
+                    "Venue-Title": "ICFP 23",
+                    "Venue-URL": "",
+                    "Authors": [
+                        "Jessica Shi",
+                        "Alperen Keles",
+                        "Harrison Goldstein",
+                        "Benjamin C. Pierce",
+                        "Leonidas Lampropoulos"
+                    ]
+                },
+                {
+                    "Publication-Title": "Protocol Verification Language(Poster Submission)",
+                    "Publication-URL": "",
+                    "Venue-Title": "CGO 2020 SRC",
+                    "Venue-URL": "",
+                    "Authors": [
+                        "Alperen Keles",
+                        "Ozan Akin",
+                        "Ozan Sazak",
+                        "Umut Sahin"
+                    ]
+                },
+                {
+                    "Publication-Title": "DroPPPP: A P4 Approach to Mitigating DoS Attacks in SDN",
+                    "Publication-URL": "",
+                    "Venue-Title": "WISA 2019",
+                    "Venue-URL": "",
+                    "Authors": [
+                        "Goksel Simsek",
+                        "Hakan Bostan",
+                        "Alper Kaan Sarica",
+                        "Egemen Sarikaya",
+                        "Alperen Keles",
+                        "Pelin Angin",
+                        "Hande Alemdar",
+                        "Ertan Onur"
+                    ]
+                }
+            ]
+        },
+        {
+            "section_name": "Projects",
+            "data_schema": "Projects",
+            "layout_schema": "Projects",
+            "data": {
+                "Title": "Projects"
+            },
+            "items": [
+                {
+                    "Title": "Enhancing Coq Extraction",
+                    "Subtitle": "Graduate Level Research",
+                    "Text": "Designing and implementing a set of tooling around Coq Extraction capabilities for improving user experience for working with hybrid Coq-OCaml code bases.",
+                    "Skills": [
+                        "Coq",
+                        "OCaml",
+                        "Extraction"
+                    ],
+                    "Date-Started": "March 2023",
+                    "Date-Finished": "Present"
+                }
+            ]
+        },
+        {
+            "section_name": "Community-Service",
+            "data_schema": "Community-Service",
+            "layout_schema": "Community-Service",
+            "data": {
+                "Title": "Community-Service"
+            },
+            "items": [
+                {
+                    "Title": "26th Annual ICFP  Programming Contest",
+                    "Subtitle": "Co-Organizer",
+                    "URL": "icfpcontest2023.github.io",
+                    "Skills": [
+                        "TypeScript",
+                        "React",
+                        "Next.js",
+                        "Rust"
+                    ],
+                    "Date-Started": "Sep 2022",
+                    "Date-Finished": "Jul 2023"
+                },
+                {
+                    "Title": "25th Annual ICFP  Programming Contest",
+                    "Subtitle": "Organizer",
+                    "URL": "icfpcontest2022.github.io",
+                    "Skills": [
+                        "TypeScript",
+                        "React",
+                        "Property-Based Testing"
+                    ],
+                    "Date-Started": "Jun 2022",
+                    "Date-Finished": "Step 2022"
+                }
+            ]
+        },
+        {
+            "section_name": "Work-Experience",
+            "data_schema": "Work-Experience",
+            "layout_schema": "Work-Experience",
+            "data": {
+                "Title": "Work-Experience"
+            },
+            "items": [
+                {
+                    "Company": "University of Maryland - PLUM",
+                    "Position": "Graduate Research Assistant",
+                    "Date-Started": "Aug 2022",
+                    "Date-Finished": "Present",
+                    "Text": "Working with Leonidas Lampropoulos on the intersection of Property Based Testing, Fuzzing, and Formal Verification."
+                },
+                {
+                    "Company": "Amazon Web Services Privacy Engineering Team - Automated Reasoning",
+                    "Position": "Applied Science Intern",
+                    "Date-Started": "May 2023",
+                    "Date-Finished": "Aug 2023",
+                    "Text": "Developed a dataflow analysis method for a state machine based DSL.",
+                    "Skills": [
+                        "Python",
+                        "Java",
+                        "Dataflow Analysis",
+                        "Symbolic Execution"
+                    ]
+                },
+                {
+                    "Company": "Amazon Web Services Privacy Engineering Team - Automated Reasoning",
+                    "Position": "Applied Science Intern",
+                    "Date-Started": "May 2022",
+                    "Date-Finished": "Aug 2022",
+                    "Text": "Implemented of a novel encryption scheme on top of the AWS Encryption SDK.",
+                    "Skills": [
+                        "Python",
+                        "Dafny",
+                        "AWS Encryption SDK"
+                    ]
+                },
+                {
+                    "Company": "University of Maryland - Maryland Cybersecurity Center(MC2)",
+                    "Position": "Research Intern",
+                    "Date-Started": "Jul 2020",
+                    "Date-Finished": "Dec 2020",
+                    "Skills": [
+                        "Program Synthesis",
+                        "Automatic Exploit Generation"
+                    ]
+                },
+                {
+                    "Company": "Havelsan",
+                    "Position": "Part-Time Engineer",
+                    "Date-Started": "Jul 2020",
+                    "Date-Finished": "Apr 2020",
+                    "Text": "Designed and implemented a novel bandwidth detection and optimization algorithm for a video-conference application.",
+                    "Skills": [
+                        "Javascript",
+                        "React"
+                    ]
+                },
+                {
+                    "Company": "Emproof",
+                    "Position": "Embedded Security Engineering Intern",
+                    "Date-Started": "Jun 2019",
+                    "Date-Finished": "Sep 2019",
+                    "Text": "Worked on translation validation of binary obfuscation techniques.",
+                    "Skills": [
+                        "C++",
+                        "Z3 SMT Solver",
+                        "ARM Assembly",
+                        "Symbolic Execution"
+                    ]
+                }
+            ]
+        }
+    ]
+}

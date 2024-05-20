@@ -1,0 +1,434 @@
+{
+    "$schema": "https://raw.githubusercontent.com/anthonyjdella/customized-resume-schema/main/schema.json",
+    "basics": {
+        "name": "Anthony Dellavecchia",
+        "label": "Software Engineer, passionate about Developer Advocacy and Experience",
+        "image": "https://www.anthonydellavecchia.com/images/contact/profile-pic.png",
+        "email": "hireme@anthonydellavecchia.com",
+        "phone": "(940) 242-1288",
+        "summary": "I write code on stage in front of a crowd. With 5+ years of experience in full-stack software development, I aim to teach and inspire thousands of developers to change the world with code. I enjoy sparking the imagination of developers and helping them build deep experiences with technology. I'm interested in applying creativity to software engineering, public speaking, advocating for the developer community, creating technical content and storytelling, improving developer experiences, contributing to open-source software, and influencing teams to build great products.",
+        "location": {
+            "countryCode": "US",
+            "address": "Seattle, Washington"
+        },
+        "profiles": [
+            {
+                "network": "LinkedIn",
+                "username": "anthonydellavecchia",
+                "url": "https://www.linkedin.com/in/anthonydellavecchia/"
+            },
+            {
+                "network": "Twitter",
+                "username": "anthonyjdella",
+                "url": "https://twitter.com/anthonyjdella"
+            },
+            {
+                "network": "GitHub",
+                "username": "anthonyjdella",
+                "url": "https://github.com/anthonyjdella"
+            }
+        ],
+        "website": "https://www.anthonydellavecchia.com"
+    },
+    "work": [
+        {
+            "name": "Twilio",
+            "position": "Staff Developer Evangelist",
+            "startDate": "2022-04-11",
+            "endDate": "present",
+            "highlights": [
+                "Inspire: Designed and implemented innovative Python applications utilizing Twilio APIs, and provided hands-on training to hundreds of developers through 8 comprehensive workshops.",
+                "Public Speaking: Delivered a keynote talk at a premier tech conference, engaged with enterprise developers through webinar Q&A sessions, and provided mentorship to hundreds of student developers at multiple national hackathons.",
+                "Community: Established the first meetup group for Twilio developers in the Pacific Northwest, successfully expanding the community to over 130 members and reached a total Net Promotor Score of 77.",
+                "Leadership: Represented the Developer Network organization in meetings with senior leadership and marketing stakeholders, effectively communicating its initiatives and objectives.",
+                "Engagement: Built the TwilioQuest Booth Extension, a unique level in our educational video game that attracts, engages, and educates developers about Twilio APIs at conferences and events.",
+                "Keynote: Programmed the front end of Twilio's Silent Network Authentication iOS demo application, which was highlighted during the Developer Keynote at Twilio Signal 2022.",
+                "Collaborate: Facilitated internal cross-collaboration between product, marketing, sales, and development teams, as well as with external partners such as Stripe, Box, and 1Password.",
+                "Story Telling: Authored and published technical blog posts and videos that guide, inspire, and spark the interest of thousands of developers to create solutions using Twilio."
+            ],
+            "summary": "",
+            "url": "https://www.linkedin.com/company/twilio-inc-/",
+            "location": "Seattle, WA"
+        },
+        {
+            "name": "State Farm \u00ae",
+            "position": "Software Engineer",
+            "startDate": "2018-02-28",
+            "endDate": "2022-03-25",
+            "highlights": [
+                "Backend: Developed, tested, deployed, and maintained business-critical RESTful APIs that serves data and handles 100,000+ requests to our insurance policy platform, mitigating the risk of millions in monetary loss.",
+                "Integration Layer: Designed and implemented a microservice integration layer utilizing Java & Spring Boot to abstract components between our core application and outbound calls to high-impact business data, which help calculate insurance rates.",
+                "DevOps: Optimized software release efficiency up to 50% by creating CI/CD pipelines that automatically build, scan, test, and deploy software, which improves time-to-market.",
+                "Community: Conducted developer talks, technical presentations, and tutorials for hundreds of internal software developers, as well as other non-technical audiences (such as analysts and management).",
+                "Marketing: Created and managed the marketing content for our annual department-wide IT conference which is open to over 50,000 employees.",
+                "Chaos Engineering: Reduced web service unplanned downtime by implementing Chaos Engineering tools to determine potential failure points, which saves time and costs.",
+                "Automation: Performed BDD using Agile methodology by writing automated E2E UI tests in CodeceptJS and Gherkin to quickly and effectively validate business scenarios."
+            ],
+            "summary": "",
+            "url": "https://www.linkedin.com/company/state_farm/",
+            "location": "Dallas, TX"
+        },
+        {
+            "name": "Bank of America",
+            "position": "Applications Programmer",
+            "startDate": "2017-01-31",
+            "endDate": "2018-02-28",
+            "highlights": [
+                "Leadership: Conducted in-depth analysis of internal hiring data, presenting weekly reports to senior management to support hiring decisions.",
+                "Frontend: Developed a frontend web application written in TypeScript, which manages customer banking appointments and 20,000+ associate schedules.",
+                "Troubleshooting: Collaborated with stakeholders and product teams to implement business requirements and resolve technical defects and bugs."
+            ],
+            "summary": "",
+            "url": "https://www.linkedin.com/company/bank-of-america/",
+            "location": "Dallas, TX"
+        },
+        {
+            "name": "GM Financial",
+            "position": "ETL Developer Intern",
+            "startDate": "2016-06-30",
+            "endDate": "2016-12-31",
+            "highlights": [
+                "ETL: Built data mapping transformations using ETL tools to extract, transform, and load data for various data warehouse projects.",
+                "Database: Executed SQL search queries to filter data subsets needed for staging and transformation.",
+                "Monitoring: Scheduled, monitored, and configured automatic failure notifications for 700+ ETL workflows in production."
+            ],
+            "summary": "",
+            "url": "https://www.linkedin.com/company/gm-financial/",
+            "location": "Dallas, TX"
+        }
+    ],
+    "volunteer": [],
+    "community": [
+        {
+            "name": "Code and Coffee",
+            "location": "Seattle, WA",
+            "description": "Software community for developers by developers",
+            "position": "Founder & Organizer",
+            "url": "https://www.meetup.com/seattle-code-and-coffee/",
+            "startDate": "2022-10",
+            "endDate": "present",
+            "summary": "",
+            "highlights": [
+                "Organized Seattle's Code and Coffee chapter, a community for developers by developers."
+            ],
+            "skills": ["Community Management", "Public Speaking"]
+        },
+        {
+            "name": "Twilo Seattle Meetup",
+            "location": "Seattle, WA",
+            "description": "Twilio Seattle Meetup Group",
+            "position": "Founder & Organizer",
+            "url": "https://www.meetup.com/twilio-seattle-meetup-group/",
+            "startDate": "2022-07",
+            "endDate": "present",
+            "summary": "",
+            "highlights": [
+                "Organized Twilio's first meetup group in Seattle.",
+                "Teach hundreds of developers how to build projects with Twilio."
+            ],
+            "skills": ["Community Management", "Public Speaking"]
+        }
+    ],
+    "speaking": [
+        {
+            "event": "Twilio Webinar",
+            "location": "Online",
+            "topic": "Level Up with Twilio Studio",
+            "reference": "https://interactive.twilio.com/level-up-with-studio-prototype-enhance-and-share-your-workflows-webinar",
+            "date": "2023-01-26"
+        },
+        {
+            "event": "Stack Overflow Podcast",
+            "location": "Online",
+            "topic": "Let’s talk about our favorite terminal tools",
+            "reference": "https://stackoverflow.blog/2022/12/20/lets-talk-about-our-favorite-terminal-tools/",
+            "date": "2022-12-20"
+        },
+        {
+            "event": "Twilio Meetup",
+            "location": "Seattle, WA",
+            "topic": "Do You Like Scary Movies?",
+            "reference": "https://noti.st/anthonyjdella/YEMatV/do-you-like-scary-movies",
+            "date": "2022-10-24"
+        },
+        {
+            "event": "Spiceworld",
+            "location": "Austin, TX",
+            "topic": "Summarize Text from Images Using Twilio",
+            "reference": "https://noti.st/anthonyjdella/L6gFMA/summarize-text-from-images-using-ai-and-twilio",
+            "date": "2022-09-28"
+        },
+        {
+            "event": "PennApps",
+            "location": "Philadelphia, PA",
+            "topic": "Summarize Text from Images Using Twilio",
+            "reference": "https://noti.st/anthonyjdella/imxRTl/summarize-text-from-images-using-ai-and-twilio",
+            "date": "2022-09-03"
+        },
+        {
+            "event": "Twilio Meetup",
+            "location": "Seattle, WA",
+            "topic": "Learning to Code?",
+            "reference": "https://noti.st/anthonyjdella/U9Vpix/learning-to-code-lets-send-texts-by-writing-code",
+            "date": "2022-08-18"
+        },
+        {
+            "event": "API Days",
+            "location": "New York City, NY",
+            "topic": "Gaining Trust in APIs and What to Look For",
+            "reference": "https://www.youtube.com/watch?v=elgcCqnNeEs",
+            "date": "2022-07-28"
+        },
+        {
+            "event": "API Days",
+            "location": "New York City, NY",
+            "topic": "Live Code an App that Texts NBA News",
+            "reference": "https://www.youtube.com/watch?v=LnfYf6baTQs",
+            "date": "2022-07-28"
+        },
+        {
+            "event": "Transform Together",
+            "location": "Chicago, IL",
+            "topic": "Mars Rover Emails with Twilio Sendgrid",
+            "reference": "https://noti.st/anthonyjdella/6TEdbM/mars-rover-emails-with-twilio-sendgrid",
+            "date": "2022-06-16"
+        }
+    ],
+    "writing": [
+        {
+            "name": "Use Your Fingerprint with 1Password to Authenticate the Twilio CLI",
+            "reference": "https://www.twilio.com/blog/use-your-fingerprint-with-1password-to-authenticate-twilio-cli",
+            "date": "2022-12"
+        },
+        {
+            "name": "AI Wrote this Blog Post About Taking Over Your Job",
+            "reference": "https://anthonydellavecchia.com/blog/this-blog-post-is-written-by-ai/",
+            "date": "2022-12"
+        },
+        {
+            "name": "Gaining Trust in APIs",
+            "reference": "https://anthonydellavecchia.com/blog/gaining_trust_in_apis/",
+            "date": "2022-11"
+        },
+        {
+            "name": "Do You Like Scary Movies?",
+            "reference": "https://www.twilio.com/blog/do-you-like-scary-movies-build-a-halloween-project-with-twilio",
+            "date": "2022-10"
+        },
+        {
+            "name": "Summarize Text from Images using AI and Twilio",
+            "reference": "https://www.twilio.com/blog/summarize-text-from-images-using-ai-and-twilio",
+            "date": "2022-09"
+        },
+        {
+            "name": "Get the Latest NBA Sent to Your Phone via SMS",
+            "reference": "https://www.twilio.com/blog/get-the-latest-nba-news-sent-to-your-phone-via-sms",
+            "date": "2022-07"
+        },
+        {
+            "name": "Introducing Developer Evangelist Anthony",
+            "reference": "https://www.twilio.com/blog/introducing-twilio-developer-evangelist-anthony-dellavecchia",
+            "date": "2022-06"
+        },
+        {
+            "name": "What Are APIs Part 2",
+            "reference": "https://anthonydellavecchia.com/blog/what-are-apis-2/",
+            "date": "2022-03"
+        },
+        {
+            "name": "What Are APIs Part 1",
+            "reference": "https://anthonydellavecchia.com/blog/what-are-apis-1/",
+            "date": "2022-02"
+        },
+        {
+            "name": "Fonts For Programmers",
+            "reference": "https://anthonydellavecchia.com/blog/fonts-for-programmers/",
+            "date": "2022-01"
+        },
+        {
+            "name": "Updating My Avatar",
+            "reference": "https://anthonydellavecchia.com/blog/updating-my-avatar/",
+            "date": "2022-01"
+        },
+        {
+            "name": "MongoDB Atlas Hackathon",
+            "reference": "https://anthonydellavecchia.com/blog/mongodb-atlas-hackathon/",
+            "date": "2022-01"
+        },
+        {
+            "name": "Rogue Dev Purposely Breaks Software",
+            "reference": "https://anthonydellavecchia.com/blog/rogue-dev-purposely-breaks-software/",
+            "date": "2022-01"
+        },
+        {
+            "name": "How to Add Search to Your Hugo Site",
+            "reference": "https://anthonydellavecchia.com/blog/how-to-add-search-to-your-hugo-static-site/",
+            "date": "2022-01"
+        },
+        {
+            "name": "Is 99% Good?",
+            "reference": "https://anthonydellavecchia.com/blog/is-99-good/",
+            "date": "2022-01"
+        },
+        {
+            "name": "How to Forward Emails to Your Domain",
+            "reference": "https://anthonydellavecchia.com/blog/how-to-forward-emails-to-your-domain/",
+            "date": "2021-12"
+        },
+        {
+            "name": "Launch Insights",
+            "reference": "https://anthonydellavecchia.com/blog/launch-insights/",
+            "date": "2021-12"
+        },
+        {
+            "name": "How to Check your Websites Users",
+            "reference": "https://anthonydellavecchia.com/blog/how-to-check-your-website-users/",
+            "date": "2021-12"
+        },
+        {
+            "name": "How to Animate an Emoji with CSS",
+            "reference": "https://anthonydellavecchia.com/blog/how-to-animate-an-emoji-with-css/",
+            "date": "2021-12"
+        },
+        {
+            "name": "Designing an Animated Logo",
+            "reference": "https://anthonydellavecchia.com/blog/designing-an-animated-logo/",
+            "date": "2021-10"
+        },
+        {
+            "name": "Magic Numbers",
+            "reference": "https://anthonydellavecchia.com/blog/magic-numbers/",
+            "date": "2021-04"
+        },
+        {
+            "name": "How to Never Miss Out on a Job Opportunity",
+            "reference": "https://anthonydellavecchia.com/blog/how-to-never-miss-out-on-a-job-opening/",
+            "date": "2018-03"
+        }
+    ],
+    "education": [
+        {
+            "institution": "University of California, Los Angeles",
+            "area": "Engineering Management",
+            "studyType": "Master of Science",
+            "startDate": "2019-12-31",
+            "endDate": "2022-12-31",
+            "score": "3.74 GPA"
+        },
+        {
+            "institution": "The University of Texas at Dallas",
+            "area": "Information Technology and Systems",
+            "studyType": "Bachelor of Science",
+            "startDate": "2014-12-31",
+            "endDate": "2016-12-31",
+            "score": "Cum Laude, 3.66 GPA"
+        }
+    ],
+    "awards": [
+        {
+            "title": "Cum Laude Honors",
+            "date": "2016-12-31",
+            "awarder": "The University of Texas at Dallas",
+            "summary": "Awarded to students with a GPA between 3.533 and 3.72, which also represents the top 15 percent of students, in Naveen Jindal School of Management."
+        },
+        {
+            "title": "Dean's List",
+            "date": "2014-12-31",
+            "awarder": "The University of Texas at Dallas",
+            "summary": "Achieved a 4.0 GPA during the semester. This award is for students with a GPA among the Top 10% in the Naveen Jindal School of Management.\n"
+        },
+        {
+            "title": "Comet Scholarship",
+            "date": "2014-09-30",
+            "awarder": "The University of Texas at Dallas",
+            "summary": "University scholarship awarded to select transfer students."
+        }
+    ],
+    "certificates": [],
+    "publications": [],
+    "leadership": [],
+    "skills": [
+        {
+            "name": "Developer Relations",
+            "level": "",
+            "keywords": [
+                "Public Speaking",
+                "Technical Content Creation",
+                "Writing",
+                "Video Production",
+                "Social Media",
+                "Empathy"
+            ]
+        },
+        {
+            "name": "Software Development",
+            "level": "",
+            "keywords": [
+                "Python",
+                "Java",
+                "Git",
+                "CI/CD",
+                "HTML/CSS/JavaScript",
+                "DevOps"
+            ]
+        }
+    ],
+    "languages": [],
+    "interests": [],
+    "references": [],
+    "projects": [
+        {
+            "name": "Daily Sit-Down",
+            "startDate": "2023-01-26",
+            "summary": "Developed an application using Python and Airtable, enhancing the experience of daily stand-up meetings.",
+            "url": "https://github.com/anthonyjdella/level-up-with-twilio-studio"
+        },
+        {
+            "name": "TwilioQuest Extension",
+            "startDate": "2022-10-14",
+            "summary": "Built a mission in TwilioQuest, Twilio's educational video game, to attract and teach developers how to use Twilio at tech events. The mission includes coding challenges for players, conversations with NPCs, Twilio API missions, and more. It was built with Phaser.js and Tiled.",
+            "url": "https://github.com/anthonyjdella/twilio-quest-booth-mission"
+        },
+        {
+            "name": "Summarize Text from Images",
+            "startDate": "2022-09-02",
+            "summary": "Developed a Python app that performs text recognition on photos then sends you a message with a summary. It uses the Google Cloud Vision API to detect text in images, OpenAI to generate a summary of the text, and the Twilio SMS API to alert users.",
+            "url": "https://github.com/anthonyjdella/summarize-text"
+        },
+        {
+            "name": "Do You Like Scary Movies?",
+            "startDate": "2022-10-28",
+            "summary": "Created a serverless web app that spooks users by re-creating a famous scene from the movie Scream. Built with low-code tools and serverless functions, it's a fun application to share during Halloween.",
+            "url": "https://www.twilio.com/blog/do-you-like-scary-movies-build-a-halloween-project-with-twilio"
+        },
+        {
+            "name": "NBA News on Demand",
+            "startDate": "2022-07-25",
+            "summary": "Built a demo app in Python using the Twilio SMS API to send users on-demand NBA news. It's meant to guide beginners to send and receive incoming messages using Twilio.",
+            "url": "https://github.com/anthonyjdella/nba-news"
+        },
+        {
+            "name": "JSON Resume using LinkedIn",
+            "startDate": "2021-09-30",
+            "summary": "Customized a chrome extension to parse data from a LinkedIn profile, generate a custom JSON file, transform the data using a Python script, and build an online resume (hosted on Firebase). Developed and packaged multiple themes on NPM and GitHub Registry. Also created a subdomain name to point to this Firebase function.",
+            "url": "https://github.com/anthonyjdella/customized-linkedin-to-jsonresume"
+        },
+        {
+            "name": "www.AnthonyDellavecchia.com",
+            "startDate": "2022-01-19",
+            "summary": "Developed a website to showcase my person brand, portfolio, and speaking engagements. It's built with Hugo, a static-site generator, and has a custom domain name hosted on Firebase & GitHub. It's integrated with my JSON resume project, so users can view my resume in a variety of styles.",
+            "url": "https://www.anthonydellavecchia.com"
+        },
+        {
+            "name": "Automated Job Scraping",
+            "startDate": "2018-03-21",
+            "summary": "Developed a server-side script with Node.js that automatically searches and scrapes data of job postings from select company websites, then sends a notification to the user.",
+            "url": "https://github.com/anthonyjdella/automated-job-web-scraping"
+        }
+    ],
+    "meta": {
+        "version": "v1.0.0",
+        "canonical": "https://github.com/anthonyjdella/customized-resume-schema/blob/main/schema.json",
+        "theme": "caffeine"
+    }
+}

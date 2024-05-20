@@ -1,0 +1,199 @@
+{
+    "basics": {
+        "name": "Pablo Bourdelas",
+        "picture": "https://avatars2.githubusercontent.com/u/14805127?v=4",
+        "label": "Developer",
+        "summary": "Passionate about new technologies and games, I like to explore both through the lens of IT. Curious and polyvalent I'm always looking for a new thing to learn.",
+        "website": null,
+        "yearsOfExperience": 2,
+        "id": "ff6054c1-630d-46c9-9243-7d0567c79058",
+        "username": "94810",
+        "karma": 10,
+        "email": "pablo.bourdelas@gmail.com",
+        "phone": "+33601799386",
+        "profiles": [
+            {
+                "network": "Linkedin",
+                "username": "94810",
+                "url": "https://www.linkedin.com/in/pbourdelas/"
+            },
+            {
+                "network": "GitHub",
+                "username": "94810",
+                "url": "https://github.com/94810"
+            },
+            {
+                "network": "Thingiverse",
+                "username": "Basolur",
+                "url": "https://www.thingiverse.com/basolur/designs"
+            }
+        ]
+    },
+    "skills": [
+        {
+            "name": "Coding",
+            "level": "Advanced",
+            "keywords": [
+                "C#",
+                "Javascript/Typescript",
+                "C++",
+                "HTML/CSS",
+                "Python"
+            ]
+        },
+        {
+            "name": "Tooling",
+            "level": "Advanced",
+            "keywords": [
+                "Git",
+                "Perforce",
+                "Gitlab",
+                "Gnu Utils"
+            ]
+        },
+        {
+            "name": "System",
+            "level": "Intermediate",
+            "keywords": [
+                "Windows",
+                "OSX",
+                "Linux (install and setup)"
+            ]
+        },
+        {
+            "name": "Graphics",
+            "level": "Beginner",
+            "keywords": [
+                "Blender",
+                "Inkscape",
+                "Gimp"
+            ]
+        },
+        {
+            "name": "Other",
+            "level": "Intermediate",
+            "keywords": [
+                "OpenSCAD",
+                "FreeCAD",
+                "Slic3r/Chitubox"
+            ]
+        }
+    ],
+    "work": [
+        {
+            "company": "NeoFacto",
+            "position": "Consultant",
+            "website": "https://neofacto.com/",
+            "startDate": "2018-09-01",
+            "summary": "Through the role of developer and software architect, I was mainly working on full stack solution around the Ethereum blockchain technology."
+        },
+        {
+            "company": "Centre de Recherche Interdisciplinaire",
+            "position": "Unity Developer",
+            "startDate": "2017-07-01",
+            "endDate": "2017-08-20",
+            "summary": "I was part of a five person team developping a POC serious game for android in VR. The project was built using Unity, the Google cardboard librairy and the movuino board."
+        }
+    ],
+    "publications": [],
+    "education": [
+        {
+            "institution": "Université du Québec à Chicoutimi",
+            "area": "Informatique concentration développement de jeux vidéo",
+            "studyType": "Maîtrise",
+            "startDate": "2017-09-01",
+            "endDate": "2018-08-01",
+            "gpa": "3.51"
+        },
+        {
+            "institution": "Institut des Sciences et Techniques des Yvelines",
+            "area": "Ingénierie des Architectures Technologiques de l'Information et de la Communication",
+            "studyType": "Diplôme d'Ingénieur",
+            "startDate": "2013-09-01",
+            "endDate": "2019-01-01"
+        },
+        {
+            "institution": "Lycée Marceau",
+            "area": "Fillière S spé Informatique et Sciences du Numérique",
+            "studyType": "Baccalauréat",
+            "startDate": "2012-09-01",
+            "endDate": "2013-08-01"
+        }
+    ],
+    "volunteer": [
+        {
+            "organization": "Association des Élèves de l'ISTY",
+            "position": "Président",
+            "startDate": "2015-06-22",
+            "endDate": "2016-05-30",
+            "summary": "Gestion de l'association, négociation de financement avec l'Université, organisation d'événements, infographiste occasionnel"
+        }
+    ],
+    "awards": [],
+    "languages": [
+        {
+            "language": "French",
+            "fluency": "Native speaker"
+        },
+        {
+            "language": "English",
+            "fluency": "Fluent"
+        }
+    ],
+    "interests": [
+        {
+            "name": "Video Game"
+        },
+        {
+            "name": "3D Printing"
+        },
+        {
+            "name": "Historical European martial arts",
+            "keywords": [
+                "Viking period",
+                "Estern and western style"
+            ]
+        },
+        {
+            "name": "Cooking"
+        },
+        {
+            "name": "Tabletop/role playing game"
+        },
+        {
+            "name": "Vintage Car"
+        }
+    ],
+    "projects": [
+        {
+            "name": "SweetSpine",
+            "website": "https://94810.github.io/project/sweetspine.html",
+            "summary": "A prototype of a serious game for Android combining VR and motion gaming developped under Unity 3D.",
+            "media": "someUrl"
+        },
+        {
+            "name": "Doreimi",
+            "website": "https://94810.github.io/project/doreimi.html",
+            "summary": "Prototype of puzzle game using Unity 3D.",
+            "media": "someUrl"
+        },
+        {
+            "name": "PoutinePhysics",
+            "website": "https://94810.github.io/project/doreimi.html",
+            "summary": "A small physics library developped in C++.",
+            "media": "someUrl"
+        },
+        {
+            "name": "Dario Arena",
+            "website": "https://94810.github.io/project/doreimi.html",
+            "summary": "A multiplayer arena game inspired by Super Mario War : Stomp Arena. Use JavaScript, Canvas and Websocket.",
+            "media": "someUrl"
+        },
+        {
+            "name": "Cruxxade-2600",
+            "website": "https://94810.github.io/project/doreimi.html",
+            "summary": "C implementation of the Hexxagon game using SDL.",
+            "media": "someUrl"
+        }
+    ]
+}

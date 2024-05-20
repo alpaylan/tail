@@ -1,0 +1,14 @@
+[
+    {
+        "schema_name": "SingleColumnSchema",
+        "column_type": "SingleColumn",
+        "width": 612,
+        "height": 792,
+        "margin": {
+            "top": 25,
+            "bottom": 25,
+            "left": 15,
+            "right": 15
+        }
+    }
+]

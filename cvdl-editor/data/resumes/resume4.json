@@ -1,0 +1,104 @@
+{
+  "layout": "SingleColumnSchema",
+  "sections": [
+    {
+      "section_name": "Work-Experience",
+      "data_schema": "Work-Experience",
+      "layout_schema": "Work-Experience",
+      "data": {
+        "Title": "Work Experience"
+      },
+      "items": [
+        {
+          "Date-Finished": "Present",
+          "Date-Started": "Aug 2022",
+          "Company": {
+            "url": "http://metu.edu.tr",
+            "text": "University of X"
+          },
+          "Text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+          "Position": "Graduate Research Assistant"
+        },
+        {
+          "Skills": [
+            "Python",
+            "Javascript",
+            "Go"
+          ],
+          "Company": "Software Company Y",
+          "Date-Started": "May 2022",
+          "Position": "Applied Science Intern",
+          "Text": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
+          "Date-Finished": "Aug 2022"
+        },
+        {
+          "Date-Finished": "Dec 2020",
+          "Skills": [
+            "ABC",
+            "XYZ",
+            "https://www.google.com"
+          ],
+          "Company": "University of Z",
+          "Position": "Research Intern",
+          "Date-Started": "Jul 2020"
+        },
+        {
+          "Position": "Part-Time Engineer",
+          "Skills": [
+            "Javascript",
+            "React"
+          ],
+          "Date-Finished": "Apr 2020",
+          "Date-Started": "Jul 2020",
+          "Text": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.",
+          "Company": "TCrop"
+        },
+        {
+          "Date-Finished": "Sep 2019",
+          "Company": "Unnamed Startup",
+          "Skills": [
+            "C++",
+            "Unix"
+          ],
+          "Date-Started": "Jun 2019",
+          "Text": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          "Position": "Engineering Intern"
+        }
+      ]
+    },
+    {
+      "section_name": "Education",
+      "data_schema": "Education",
+      "layout_schema": "Education",
+      "data": {
+        "Title": "Education"
+      },
+      "items": [
+        {
+          "Department": "Computer Science",
+          "Location": "Maryland, USA",
+          "Degree": "Doctorate of Philosophy",
+          "Date-Finished": "2026(Expected)",
+          "Date-Started": "2021",
+          "School": "University of Maryland, College Park"
+        },
+        {
+          "Text": "GPA: 3.66/4.0 ***(top 5% in class of 229)***",
+          "Date-Started": "2017",
+          "Degree": "Bachelor of Engineering",
+          "Department": "Computer Engineering",
+          "Location": "Ankara, Turkey",
+          "Date-Finished": "2021",
+          "School": "Middle East Technical University"
+        }
+      ]
+    },
+    {
+      "section_name": "Education",
+      "data_schema": "Education",
+      "layout_schema": "Test",
+      "data": {},
+      "items": []
+    }
+  ]
+}

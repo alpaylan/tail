@@ -1,0 +1,30 @@
+[package]
+name = "cvdl"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "cli"
+path = "src/cli.rs"
+
+[[bin]]
+name = "storage"
+path = "src/main.rs"
+
+[dependencies]
+directories = "5.0.1"
+env_logger = "0.10.0"
+font-kit = "0.11.0"
+image = "0.24.7"
+log = "0.4.20"
+printpdf = { git = "https://github.com/alpaylan/printpdf.git" }
+rusttype = "0.9.3"
+serde = { version = "1.0.171", features = ["derive"] }
+serde_json = "1.0.103"
+serde_with = "3.1.0"
+uuid = { version = "1.4.1", features = ["v4"] }
+
+[dev-dependencies]
+expect-test = "1.4.1"

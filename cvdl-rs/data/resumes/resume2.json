@@ -1,0 +1,97 @@
+{
+    "layout": "SingleColumnSchema",
+    "sections": [
+        {
+            "section_name": "Work-Experience",
+            "data_schema": "Work-Experience",
+            "layout_schema": "Work-Experience",
+            "data": {
+                "Title": "Work Experience"
+            },
+            "items": [
+                {
+                    "Company": {
+                        "url": "http://metu.edu.tr",
+                        "text": "University of X"
+                    },
+                    "Position": "Graduate Research Assistant",
+                    "Date-Started": "Aug 2022",
+                    "Date-Finished": "Present",
+                    "Text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+                },
+                {
+                    "Company": "Software Company Y",
+                    "Position": "Applied Science Intern",
+                    "Date-Started": "May 2022",
+                    "Date-Finished": "Aug 2022",
+                    "Text": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
+                    "Skills": [
+                        "Python",
+                        "Javascript",
+                        "Go"
+                    ]
+                },
+                {
+                    "Company": "University of Z",
+                    "Position": "Research Intern",
+                    "Date-Started": "Jul 2020",
+                    "Date-Finished": "Dec 2020",
+                    "Skills": [
+                        "ABC",
+                        "XYZ",
+                        "https://www.google.com"
+                    ]
+                },
+                {
+                    "Company": "TCrop",
+                    "Position": "Part-Time Engineer",
+                    "Date-Started": "Jul 2020",
+                    "Date-Finished": "Apr 2020",
+                    "Text": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.",
+                    "Skills": [
+                        "Javascript",
+                        "React"
+                    ]
+                },
+                {
+                    "Company": "Unnamed Startup",
+                    "Position": "Engineering Intern",
+                    "Date-Started": "Jun 2019",
+                    "Date-Finished": "Sep 2019",
+                    "Text": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                    "Skills": [
+                        "C++",
+                        "Unix"
+                    ]
+                }
+            ]
+        },
+        {
+            "section_name": "Education",
+            "data_schema": "Education",
+            "layout_schema": "Education",
+            "data": {
+                "Title": "Education"
+            },
+            "items": [
+                {
+                    "School": "University of Maryland, College Park",
+                    "Degree": "Doctorate of Philosophy",
+                    "Department": "Computer Science",
+                    "Date-Started": "2021",
+                    "Date-Finished": "2026(Expected)",
+                    "Location": "Maryland, USA"
+                },
+                {
+                    "School": "Middle East Technical University",
+                    "Degree": "Bachelor of Engineering",
+                    "Department": "Computer Engineering",
+                    "Date-Started": "2017",
+                    "Date-Finished": "2021",
+                    "Location": "Ankara, Turkey",
+                    "Text": "GPA: 3.66/4.0 ***(top 5% in class of 229)***"
+                }
+            ]
+        }
+    ]
+}

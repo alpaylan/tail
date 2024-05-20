@@ -1,0 +1,114 @@
+[
+    {
+        "schema_name": "Work-Experience",
+        "header_layout_schema": {
+            "Ref": {
+                "item": "Title",
+                "width": "70%",
+                "font": {
+                    "name": "Exo",
+                    "size": 14.0,
+                    "weight": "Bold",
+                    "source": "Local"
+                }
+            }
+        },
+        "item_layout_schema": {
+            "Stack": {
+                "elements": [
+                    {
+                        "FlexRow": {
+                            "elements": [
+                                {
+                                    "Ref": {
+                                        "item": "Company",
+                                        "font": {
+                                            "name": "Arial",
+                                            "size": 12.0,
+                                            "weight": "Bold",
+                                            "source": "System"
+                                        },
+                                        "width": "70%"
+                                    }
+                                },
+                                {
+                                    "FrozenRow": {
+                                        "elements": [
+                                            {
+                                                "Ref": {
+                                                    "item": "Date-Started",
+                                                    "font": {
+                                                        "name": "Exo",
+                                                        "size": 12.0,
+                                                        "source": "Local"
+                                                    }
+
+                                                }
+                                            },
+                                            {
+                                                "Text": {
+                                                    "item": "-",
+                                                    "font": {
+                                                        "name": "Exo",
+                                                        "size": 12.0,
+                                                        "source": "Local"
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "Ref": {
+                                                    "item": "Date-Finished",
+                                                    "font": {
+                                                        "name": "Exo",
+                                                        "size": 12.0,
+                                                        "source": "Local"
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "width": "30%",
+                                        "alignment": "Right"
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "Ref": {
+                            "item": "Position",
+                            "width": "70%",
+                            "font": {
+                                "name": "Exo",
+                                "size": 12.0,
+                                "source": "Local"
+                            }
+                        }
+                    },
+                    {
+                        "Ref": {
+                            "item": "Text",
+                            "width": "70%",
+                            "font": {
+                                "name": "Exo",
+                                "size": 12.0,
+                                "source": "Local"
+                            }
+                        }
+                    },
+                    {
+                        "Ref": {
+                            "item": "Skills",
+                            "width": "70%",
+                            "font": {
+                                "name": "Exo",
+                                "size": 12.0,
+                                "source": "Local"
+                            }
+                        }
+                    }
+                ],
+                "width": "100%"
+            }
+        }
+    }
+]

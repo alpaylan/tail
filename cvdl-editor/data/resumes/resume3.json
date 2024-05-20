@@ -1,0 +1,157 @@
+{
+  "sections": [
+    {
+      "section_name": "Work-Experience",
+      "data_schema": "Work-Experience",
+      "layout_schema": "Work-Experience",
+      "data": {
+        "Title": "Work Experience"
+      },
+      "items": [
+        {
+          "Company": {
+            "url": "http://metu.edu.tr",
+            "text": "University of X"
+          },
+          "Position": "Graduate Research Assistant",
+          "Date-Finished": "Present",
+          "Date-Started": "Aug 2022",
+          "Text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+        },
+        {
+          "Skills": [
+            "Python",
+            "Javascript",
+            "Go"
+          ],
+          "Date-Started": "May 2022",
+          "Date-Finished": "Aug 2022",
+          "Position": "Applied Science Intern",
+          "Text": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
+          "Company": "Software Company Y"
+        },
+        {
+          "Company": "University of Z",
+          "Position": "Research Intern",
+          "Date-Finished": "Dec 2020",
+          "Skills": [
+            "ABC",
+            "XYZ",
+            "https://www.google.com"
+          ],
+          "Date-Started": "Jul 2020"
+        },
+        {
+          "Company": "TCrop",
+          "Position": "Part-Time Engineer",
+          "Text": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.",
+          "Skills": [
+            "Javascript",
+            "React"
+          ],
+          "Date-Started": "Jul 2020",
+          "Date-Finished": "Apr 2020"
+        },
+        {
+          "Text": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          "Skills": [
+            "C++",
+            "Unix"
+          ],
+          "Company": "Unnamed Startup",
+          "Position": "Engineering Intern",
+          "Date-Started": "Jun 2019",
+          "Date-Finished": "Sep 2019"
+        },
+        {
+          "Date-Finished": "Sep 2019",
+          "Text": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          "Date-Started": "Jun 2019",
+          "Skills": [
+            "C++",
+            "Unix"
+          ],
+          "Position": "Engineering Intern",
+          "Company": "Unnamed Startup1"
+        },
+        {
+          "Company": "Unnamed Startup2",
+          "Text": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          "Date-Started": "Jun 2019",
+          "Position": "Engineering Intern",
+          "Skills": [
+            "C++",
+            "Unix"
+          ],
+          "Date-Finished": "Sep 2019"
+        },
+        {
+          "Date-Finished": "Sep 2019",
+          "Position": "Engineering Intern",
+          "Text": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          "Date-Started": "Jun 2019",
+          "Skills": [
+            "C++",
+            "Unix"
+          ],
+          "Company": "Unnamed Startup3"
+        },
+        {
+          "Company": "Unnamed Startup4",
+          "Date-Finished": "Sep 2019",
+          "Date-Started": "Jun 2019",
+          "Text": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          "Skills": [
+            "C++",
+            "Unix"
+          ],
+          "Position": "Engineering Intern"
+        },
+        {
+          "Skills": [
+            "C++",
+            "Unix"
+          ],
+          "Date-Finished": "Sep 2019",
+          "Date-Started": "Jun 2019",
+          "Position": "Engineering Intern",
+          "Company": "Unnamed Startup1",
+          "Text": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        },
+        {
+          "Skills": [
+            "C++",
+            "Unix"
+          ],
+          "Company": "Unnamed Startup2",
+          "Date-Started": "Jun 2019",
+          "Date-Finished": "Sep 2019",
+          "Text": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          "Position": "Engineering Intern"
+        },
+        {
+          "Company": "Unnamed Startup3",
+          "Date-Started": "Jun 2019",
+          "Date-Finished": "Sep 2019",
+          "Text": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          "Skills": [
+            "C++",
+            "Unix"
+          ],
+          "Position": "Engineering Intern"
+        },
+        {
+          "Text": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          "Skills": [
+            "C++",
+            "Unix"
+          ],
+          "Company": "Unnamed Startup4",
+          "Position": "Engineering Intern",
+          "Date-Started": "Jun 2019",
+          "Date-Finished": "Sep 2019"
+        }
+      ]
+    }
+  ]
+}

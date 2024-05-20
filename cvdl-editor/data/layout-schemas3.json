@@ -1,0 +1,870 @@
+[
+  {
+    "schema_name": "Work-Experience",
+    "data_schema_name": "Work-Experience",
+    "header_layout_schema": {
+      "Ref": {
+        "item": "Title",
+        "margin": {
+          "top": 0.0,
+          "bottom": 0.0,
+          "left": 0.0,
+          "right": 0.0
+        },
+        "alignment": "Left",
+        "width": "70%",
+        "text_width": "fill",
+        "font": {
+          "name": "Roboto",
+          "size": 14.0,
+          "weight": "Bold",
+          "style": "Normal",
+          "source": "Remote"
+        }
+      }
+    },
+    "item_layout_schema": {
+      "Stack": {
+        "elements": [
+          {
+            "FlexRow": {
+              "elements": [
+                {
+                  "Ref": {
+                    "item": "Company",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "70%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Roboto",
+                      "size": 12.0,
+                      "weight": "Bold",
+                      "style": "Normal",
+                      "source": "Remote"
+                    }
+                  }
+                },
+                {
+                  "FrozenRow": {
+                    "elements": [
+                      {
+                        "Ref": {
+                          "item": "Date-Started",
+                          "margin": {
+                            "top": 0.0,
+                            "bottom": 0.0,
+                            "left": 0.0,
+                            "right": 0.0
+                          },
+                          "alignment": "Left",
+                          "width": "fill",
+                          "text_width": "fill",
+                          "font": {
+                            "name": "Exo",
+                            "size": 12.0,
+                            "weight": "Medium",
+                            "style": "Normal",
+                            "source": "Local"
+                          }
+                        }
+                      },
+                      {
+                        "Text": {
+                          "item": "-",
+                          "margin": {
+                            "top": 0.0,
+                            "bottom": 0.0,
+                            "left": 0.0,
+                            "right": 0.0
+                          },
+                          "alignment": "Left",
+                          "width": "fill",
+                          "text_width": "fill",
+                          "font": {
+                            "name": "Exo",
+                            "size": 12.0,
+                            "weight": "Medium",
+                            "style": "Normal",
+                            "source": "Local"
+                          }
+                        }
+                      },
+                      {
+                        "Ref": {
+                          "item": "Date-Finished",
+                          "margin": {
+                            "top": 0.0,
+                            "bottom": 0.0,
+                            "left": 0.0,
+                            "right": 0.0
+                          },
+                          "alignment": "Left",
+                          "width": "fill",
+                          "text_width": "fill",
+                          "font": {
+                            "name": "Exo",
+                            "size": 12.0,
+                            "weight": "Medium",
+                            "style": "Normal",
+                            "source": "Local"
+                          }
+                        }
+                      }
+                    ],
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Right",
+                    "width": "30%"
+                  }
+                }
+              ],
+              "margin": {
+                "top": 0.0,
+                "bottom": 0.0,
+                "left": 0.0,
+                "right": 0.0
+              },
+              "alignment": "Left",
+              "width": "fill"
+            }
+          },
+          {
+            "Ref": {
+              "item": "Position",
+              "margin": {
+                "top": 0.0,
+                "bottom": 0.0,
+                "left": 0.0,
+                "right": 0.0
+              },
+              "alignment": "Left",
+              "width": "70%",
+              "text_width": "fill",
+              "font": {
+                "name": "Exo",
+                "size": 12.0,
+                "weight": "Medium",
+                "style": "Normal",
+                "source": "Local"
+              }
+            }
+          },
+          {
+            "Ref": {
+              "item": "Text",
+              "margin": {
+                "top": 0.0,
+                "bottom": 0.0,
+                "left": 0.0,
+                "right": 0.0
+              },
+              "alignment": "Left",
+              "width": "70%",
+              "text_width": "fill",
+              "font": {
+                "name": "Exo",
+                "size": 12.0,
+                "weight": "Medium",
+                "style": "Normal",
+                "source": "Local"
+              }
+            }
+          },
+          {
+            "Ref": {
+              "item": "Skills",
+              "margin": {
+                "top": 0.0,
+                "bottom": 0.0,
+                "left": 0.0,
+                "right": 0.0
+              },
+              "alignment": "Left",
+              "width": "70%",
+              "text_width": "fill",
+              "font": {
+                "name": "Exo",
+                "size": 12.0,
+                "weight": "Medium",
+                "style": "Normal",
+                "source": "Local"
+              }
+            }
+          }
+        ],
+        "margin": {
+          "top": 0.0,
+          "bottom": 0.0,
+          "left": 0.0,
+          "right": 0.0
+        },
+        "alignment": "Left",
+        "width": "100%"
+      }
+    }
+  },
+  {
+    "schema_name": "Work-Experience2",
+    "data_schema_name": "Work-Experience",
+    "header_layout_schema": {
+      "Ref": {
+        "item": "Title",
+        "margin": {
+          "top": 0.0,
+          "bottom": 0.0,
+          "left": 0.0,
+          "right": 0.0
+        },
+        "alignment": "Left",
+        "width": "70%",
+        "text_width": "fill",
+        "font": {
+          "name": "Exo",
+          "size": 14.0,
+          "weight": "Bold",
+          "style": "Normal",
+          "source": "Local"
+        }
+      }
+    },
+    "item_layout_schema": {
+      "Stack": {
+        "elements": [
+          {
+            "FlexRow": {
+              "elements": [
+                {
+                  "Ref": {
+                    "item": "Company",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "60%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Exo",
+                      "size": 12.0,
+                      "weight": "Bold",
+                      "style": "Normal",
+                      "source": "Local"
+                    }
+                  }
+                },
+                {
+                  "FrozenRow": {
+                    "elements": [
+                      {
+                        "Ref": {
+                          "item": "Date-Started",
+                          "margin": {
+                            "top": 0.0,
+                            "bottom": 0.0,
+                            "left": 0.0,
+                            "right": 0.0
+                          },
+                          "alignment": "Left",
+                          "width": "fill",
+                          "text_width": "fill",
+                          "font": {
+                            "name": "Exo",
+                            "size": 12.0,
+                            "weight": "Medium",
+                            "style": "Normal",
+                            "source": "Local"
+                          }
+                        }
+                      },
+                      {
+                        "Text": {
+                          "item": "-",
+                          "margin": {
+                            "top": 0.0,
+                            "bottom": 0.0,
+                            "left": 0.0,
+                            "right": 0.0
+                          },
+                          "alignment": "Left",
+                          "width": "fill",
+                          "text_width": "fill",
+                          "font": {
+                            "name": "Exo",
+                            "size": 12.0,
+                            "weight": "Medium",
+                            "style": "Normal",
+                            "source": "Local"
+                          }
+                        }
+                      },
+                      {
+                        "Ref": {
+                          "item": "Date-Finished",
+                          "margin": {
+                            "top": 0.0,
+                            "bottom": 0.0,
+                            "left": 0.0,
+                            "right": 0.0
+                          },
+                          "alignment": "Left",
+                          "width": "fill",
+                          "text_width": "fill",
+                          "font": {
+                            "name": "Exo",
+                            "size": 12.0,
+                            "weight": "Medium",
+                            "style": "Normal",
+                            "source": "Local"
+                          }
+                        }
+                      }
+                    ],
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Right",
+                    "width": "40%"
+                  }
+                }
+              ],
+              "margin": {
+                "top": 0.0,
+                "bottom": 0.0,
+                "left": 0.0,
+                "right": 0.0
+              },
+              "alignment": "Left",
+              "width": "fill"
+            }
+          },
+          {
+            "Ref": {
+              "item": "Position",
+              "margin": {
+                "top": 0.0,
+                "bottom": 0.0,
+                "left": 0.0,
+                "right": 0.0
+              },
+              "alignment": "Left",
+              "width": "70%",
+              "text_width": "fill",
+              "font": {
+                "name": "Exo",
+                "size": 12.0,
+                "weight": "Medium",
+                "style": "Normal",
+                "source": "Local"
+              }
+            }
+          },
+          {
+            "Ref": {
+              "item": "Text",
+              "margin": {
+                "top": 0.0,
+                "bottom": 0.0,
+                "left": 0.0,
+                "right": 0.0
+              },
+              "alignment": "Left",
+              "width": "50%",
+              "text_width": "fill",
+              "font": {
+                "name": "Exo",
+                "size": 12.0,
+                "weight": "Medium",
+                "style": "Normal",
+                "source": "Local"
+              }
+            }
+          },
+          {
+            "Ref": {
+              "item": "Skills",
+              "margin": {
+                "top": 0.0,
+                "bottom": 0.0,
+                "left": 0.0,
+                "right": 0.0
+              },
+              "alignment": "Left",
+              "width": "70%",
+              "text_width": "fill",
+              "font": {
+                "name": "Exo",
+                "size": 12.0,
+                "weight": "Medium",
+                "style": "Normal",
+                "source": "Local"
+              }
+            }
+          }
+        ],
+        "margin": {
+          "top": 0.0,
+          "bottom": 0.0,
+          "left": 0.0,
+          "right": 0.0
+        },
+        "alignment": "Left",
+        "width": "100%"
+      }
+    }
+  },
+  {
+    "schema_name": "General",
+    "data_schema_name": "General",
+    "header_layout_schema": {
+      "Stack": {
+        "elements": [],
+        "margin": {
+          "top": 0.0,
+          "bottom": 0.0,
+          "left": 0.0,
+          "right": 0.0
+        },
+        "alignment": "Left",
+        "width": "fill"
+      }
+    },
+    "item_layout_schema": {
+      "Stack": {
+        "elements": [
+          {
+            "FlexRow": {
+              "elements": [
+                {
+                  "Ref": {
+                    "item": "Title",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "60%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Exo",
+                      "size": 14.0,
+                      "weight": "Bold",
+                      "style": "Normal",
+                      "source": "Local"
+                    }
+                  }
+                },
+                {
+                  "Ref": {
+                    "item": "Date-Started",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "24%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Exo",
+                      "size": 12.0,
+                      "weight": "Medium",
+                      "style": "Normal",
+                      "source": "Local"
+                    }
+                  }
+                },
+                {
+                  "Ref": {
+                    "item": "Date-Finished",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "16%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Exo",
+                      "size": 12.0,
+                      "weight": "Medium",
+                      "style": "Normal",
+                      "source": "Local"
+                    }
+                  }
+                }
+              ],
+              "margin": {
+                "top": 0.0,
+                "bottom": 0.0,
+                "left": 0.0,
+                "right": 0.0
+              },
+              "alignment": "Left",
+              "width": "fill"
+            }
+          },
+          {
+            "FlexRow": {
+              "elements": [
+                {
+                  "Ref": {
+                    "item": "Subtitle",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "60%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Exo",
+                      "size": 12.0,
+                      "weight": "Medium",
+                      "style": "Italic",
+                      "source": "Local"
+                    }
+                  }
+                },
+                {
+                  "Ref": {
+                    "item": "Location",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "40%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Exo",
+                      "size": 12.0,
+                      "weight": "Medium",
+                      "style": "Normal",
+                      "source": "Local"
+                    }
+                  }
+                }
+              ],
+              "margin": {
+                "top": 0.0,
+                "bottom": 0.0,
+                "left": 0.0,
+                "right": 0.0
+              },
+              "alignment": "Left",
+              "width": "fill"
+            }
+          },
+          {
+            "FlexRow": {
+              "elements": [
+                {
+                  "Ref": {
+                    "item": "Text",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "100%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Exo",
+                      "size": 12.0,
+                      "weight": "Medium",
+                      "style": "Normal",
+                      "source": "Local"
+                    }
+                  }
+                }
+              ],
+              "margin": {
+                "top": 0.0,
+                "bottom": 0.0,
+                "left": 0.0,
+                "right": 0.0
+              },
+              "alignment": "Left",
+              "width": "fill"
+            }
+          }
+        ],
+        "margin": {
+          "top": 0.0,
+          "bottom": 0.0,
+          "left": 0.0,
+          "right": 0.0
+        },
+        "alignment": "Left",
+        "width": "fill"
+      }
+    }
+  },
+  {
+    "schema_name": "Education",
+    "data_schema_name": "Education",
+    "header_layout_schema": {
+      "Stack": {
+        "elements": [],
+        "margin": {
+          "top": 0.0,
+          "bottom": 0.0,
+          "left": 0.0,
+          "right": 0.0
+        },
+        "alignment": "Left",
+        "width": "fill"
+      }
+    },
+    "item_layout_schema": {
+      "Stack": {
+        "elements": [
+          {
+            "FlexRow": {
+              "elements": [
+                {
+                  "Ref": {
+                    "item": "School",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "40%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Exo",
+                      "size": 14.0,
+                      "weight": "Bold",
+                      "style": "Normal",
+                      "source": "Local"
+                    }
+                  }
+                },
+                {
+                  "Text": {
+                    "item": ",",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "3%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Exo",
+                      "size": 14.0,
+                      "weight": "Medium",
+                      "style": "Normal",
+                      "source": "Local"
+                    }
+                  }
+                },
+                {
+                  "Ref": {
+                    "item": "Department",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "37%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Exo",
+                      "size": 14.0,
+                      "weight": "Medium",
+                      "style": "Normal",
+                      "source": "Local"
+                    }
+                  }
+                },
+                {
+                  "Ref": {
+                    "item": "Date-Started",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "10%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Exo",
+                      "size": 12.0,
+                      "weight": "Medium",
+                      "style": "Normal",
+                      "source": "Local"
+                    }
+                  }
+                },
+                {
+                  "Ref": {
+                    "item": "Date-Finished",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "10%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Exo",
+                      "size": 12.0,
+                      "weight": "Medium",
+                      "style": "Normal",
+                      "source": "Local"
+                    }
+                  }
+                }
+              ],
+              "margin": {
+                "top": 0.0,
+                "bottom": 0.0,
+                "left": 0.0,
+                "right": 0.0
+              },
+              "alignment": "Left",
+              "width": "fill"
+            }
+          },
+          {
+            "FlexRow": {
+              "elements": [
+                {
+                  "Ref": {
+                    "item": "Degree",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "60%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Exo",
+                      "size": 12.0,
+                      "weight": "Medium",
+                      "style": "Italic",
+                      "source": "Local"
+                    }
+                  }
+                },
+                {
+                  "Ref": {
+                    "item": "Location",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "40%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Exo",
+                      "size": 12.0,
+                      "weight": "Medium",
+                      "style": "Normal",
+                      "source": "Local"
+                    }
+                  }
+                }
+              ],
+              "margin": {
+                "top": 0.0,
+                "bottom": 0.0,
+                "left": 0.0,
+                "right": 0.0
+              },
+              "alignment": "Left",
+              "width": "fill"
+            }
+          },
+          {
+            "FlexRow": {
+              "elements": [
+                {
+                  "Ref": {
+                    "item": "Text",
+                    "margin": {
+                      "top": 0.0,
+                      "bottom": 0.0,
+                      "left": 0.0,
+                      "right": 0.0
+                    },
+                    "alignment": "Left",
+                    "width": "100%",
+                    "text_width": "fill",
+                    "font": {
+                      "name": "Exo",
+                      "size": 12.0,
+                      "weight": "Medium",
+                      "style": "Normal",
+                      "source": "Local"
+                    }
+                  }
+                }
+              ],
+              "margin": {
+                "top": 0.0,
+                "bottom": 0.0,
+                "left": 0.0,
+                "right": 0.0
+              },
+              "alignment": "Left",
+              "width": "fill"
+            }
+          }
+        ],
+        "margin": {
+          "top": 0.0,
+          "bottom": 0.0,
+          "left": 0.0,
+          "right": 0.0
+        },
+        "alignment": "Left",
+        "width": "fill"
+      }
+    }
+  }
+]
