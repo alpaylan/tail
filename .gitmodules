@@ -1,9 +1,0 @@
-[submodule "cvdl-editor"]
-	path = cvdl-editor
-	url = https://github.com/alpaylan/cvdl-editor.git
-[submodule "cvdl-ts"]
-	path = cvdl-ts
-	url = https://github.com/alpaylan/cvdl-ts.git
-[submodule "cvdl-rs"]
-	path = cvdl-rs
-	url = https://github.com/alpaylan/cvdl-rs.git

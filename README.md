@@ -1,6 +1,6 @@
 # Tail
 
-This is the main repository for Tail, a typed and structured document editor. Tail
+This is the monorepo for Tail, a typed and structured document editor. Tail
 builds on the idea of documents with nested substructures, and provides a way to
 derive editors based on a given document template.
 
