@@ -571,7 +571,7 @@ export class Row {
 
 
 export type Color = 
-    "Transparent"
+    "Transparent" // transparent
     | "Light Yellow" // "#FFC96F" 
     | "Light Brown" // "#ECB176" 
     | "Light Green" // "#F6FAB9" 
@@ -580,7 +580,7 @@ export type Color =
     | "Blue" // "#4793AF" 
 
 export const ColorMap = {
-    "Transparent": "Transparent",
+    "Transparent": "transparent",
     "Light Yellow": "#FFC96F",
     "Light Brown": "#ECB176",
     "Light Green": "#F6FAB9",

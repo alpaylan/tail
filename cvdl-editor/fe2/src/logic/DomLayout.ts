@@ -131,12 +131,9 @@ export const render = async (
                     font-size: ${element.font.size}px;
                     font-style: ${element.font.style};
                     font-weight: ${element.font.weight};
+                    background-color: ${ColorMap[element.background_color]};
                     ${debug ? "outline: 1px solid black;" : ""}
                 `;
-
-                if (element.background_color !== "Transparent") {
-                    elem.style.backgroundColor = ColorMap[element.background_color]
-                }
 
                 if (JSON.stringify(state.editorPath) === JSON.stringify(box.path)) {
                     console.error("Highlighting element");
@@ -153,7 +150,7 @@ export const render = async (
                 });
 
                 elem.addEventListener("mouseout", () => {
-                    elem.style.backgroundColor = element.background_color === "Transparent" ? "white" : ColorMap[element.background_color];
+                    elem.style.backgroundColor = ColorMap[element.background_color];
                     elem.style.animation = "none";
                 });
 

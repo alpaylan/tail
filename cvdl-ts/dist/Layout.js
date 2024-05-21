@@ -452,7 +452,7 @@ class Row {
 }
 exports.Row = Row;
 exports.ColorMap = {
-    "Transparent": "Transparent",
+    "Transparent": "transparent",
     "Light Yellow": "#FFC96F",
     "Light Brown": "#ECB176",
     "Light Green": "#F6FAB9",
