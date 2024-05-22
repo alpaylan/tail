@@ -105,6 +105,16 @@ class SectionLayout {
     is_container() {
         return this.inner.tag === "Stack" || this.inner.tag === "Row";
     }
+    is_fill() {
+        switch (this.type_()) {
+            case "Stack":
+                return this.inner.is_fill && this.inner.elements.map(e => e.is_fill()).reduce((a, b) => a && b, true);
+            case "Row":
+                return this.inner.is_fill && this.inner.elements.map(e => e.is_fill()).reduce((a, b) => a && b, true);
+            case "Elem":
+                return this.inner.is_fill;
+        }
+    }
     is_ref() {
         return this.inner.tag === "Elem" && this.inner.is_ref;
     }
@@ -142,6 +152,14 @@ class SectionLayout {
     with_width(width) {
         this.inner = this.inner.with_width(width);
         return this;
+    }
+    total_elements_width() {
+        if (this.is_container()) {
+            return this.inner.elements.map(e => e.total_elements_width()).reduce((a, b) => a + b, 0.0);
+        }
+        else {
+            return Width_1.Width.get_fixed_unchecked(this.width());
+        }
     }
     is_instantiated() {
         if (this.is_container()) {
@@ -189,7 +207,7 @@ class SectionLayout {
         if (this.inner.tag === "Elem" && this.inner.is_ref) {
             throw new Error("Cannot propagate widths of uninstantiated layout");
         }
-        this.inner = this.inner.bound_width(bound);
+        this.inner = this.inner.bound_width(bound - this.inner.margin.left - this.inner.margin.right);
         return this;
     }
     scale_width(document_width) {
@@ -222,6 +240,17 @@ class SectionLayout {
             case "Stack":
             case "Row":
                 this.inner.elements = this.inner.elements.map(e => e.fill_fonts(font_dict));
+                console.error(this, this.is_fill());
+                if (this.is_fill()) {
+                    const total_width = this.total_elements_width();
+                    console.error(this);
+                    console.error(total_width);
+                    console.error(this.inner.elements);
+                    if (total_width <= Width_1.Width.get_fixed_unchecked(this.width())) {
+                        // throw `Cannot fill fonts of row with width ${JSON.stringify(this.width())} and total width ${total_width}`
+                        this.inner = this.inner.with_width(Width_1.Width.absolute(total_width));
+                    }
+                }
                 break;
             case "Elem":
                 this.inner = this.inner.fill_fonts(font_dict);
@@ -262,6 +291,11 @@ class SectionLayout {
                 }
                 const elem = this.inner;
                 const lines = elem.break_lines(font_dict).map(l => new SectionLayout(l));
+                // Make last line left if it's justified
+                if (lines[lines.length - 1].inner.alignment === "Justified") {
+                    console.error(lines[lines.length - 1]);
+                    lines[lines.length - 1] = lines[lines.length - 1].with_alignment("Left");
+                }
                 return new SectionLayout(new Stack(lines, elem.margin, elem.alignment, elem.width));
             }
         }
@@ -278,6 +312,7 @@ class SectionLayout {
         switch (this.type_()) {
             case "Stack": {
                 const stack = this.inner;
+                top_left = top_left.move_y_by(stack.margin.top).move_x_by(stack.margin.left);
                 for (const element of stack.elements) {
                     depth = element.compute_textbox_positions(textbox_positions, top_left, font_dict);
                     top_left = top_left.move_y_to(depth);
@@ -286,6 +321,7 @@ class SectionLayout {
             }
             case "Row": {
                 const row = this.inner;
+                top_left = top_left.move_y_by(row.margin.top).move_x_by(row.margin.left);
                 let per_elem_space = 0.0;
                 switch (row.alignment) {
                     case "Center":
@@ -315,6 +351,7 @@ class SectionLayout {
                 }
                 const height = elem.font.get_height(font_dict);
                 const width = Width_1.Width.get_fixed_unchecked(elem.text_width);
+                top_left = top_left.move_y_by(elem.margin.top).move_x_by(elem.margin.left);
                 switch (elem.alignment) {
                     case "Center":
                         top_left = top_left.move_x_by((Width_1.Width.get_fixed_unchecked(elem.width) - width) / 2.0);
@@ -322,11 +359,25 @@ class SectionLayout {
                     case "Right":
                         top_left = top_left.move_x_by(Width_1.Width.get_fixed_unchecked(elem.width) - width);
                         break;
-                    case "Justified":
-                        throw new Error("Cannot compute textbox positions of justified element");
                 }
-                const textbox = new Box_1.Box(top_left, top_left.move_x_by(width).move_y_by(height));
-                textbox_positions.push([textbox, elem]);
+                if (elem.alignment === "Justified") {
+                    const words = elem.item.split(/\s+/);
+                    const word_elems = words.map((word) => {
+                        const word_width = elem.font.get_width(word, font_dict);
+                        const word_elem = new Elem(word, null, false, false, Width_1.Width.absolute(word_width), elem.font, Margin_1.Margin.default_(), Alignment_1.Alignment.default_(), Width_1.Width.absolute(word_width), elem.background_color);
+                        return word_elem;
+                    });
+                    const per_elem_space = (Width_1.Width.get_fixed_unchecked(elem.width) - (word_elems.reduce((w, elem) => w + Width_1.Width.get_fixed_unchecked(elem.width), 0.0))) / (words.length);
+                    for (const word_elem of word_elems) {
+                        const textbox = new Box_1.Box(top_left, top_left.move_x_by(width).move_y_by(height));
+                        textbox_positions.push([textbox, word_elem]);
+                        top_left = top_left.move_x_by(Width_1.Width.get_fixed_unchecked(word_elem.width) + per_elem_space);
+                    }
+                }
+                else {
+                    const textbox = new Box_1.Box(top_left, top_left.move_x_by(width).move_y_by(height));
+                    textbox_positions.push([textbox, elem]);
+                }
                 return top_left.y + height;
             }
         }
@@ -334,15 +385,16 @@ class SectionLayout {
 }
 exports.SectionLayout = SectionLayout;
 class Stack {
-    constructor(elements, margin, alignment, width) {
+    constructor(elements, margin, alignment, width, is_fill) {
         this.tag = "Stack";
         this.elements = elements;
         this.margin = margin !== null && margin !== void 0 ? margin : Margin_1.Margin.default_();
         this.alignment = alignment !== null && alignment !== void 0 ? alignment : Alignment_1.Alignment.default_();
         this.width = width !== null && width !== void 0 ? width : Width_1.Width.default_();
+        this.is_fill = is_fill !== null && is_fill !== void 0 ? is_fill : false;
     }
-    static stack(elements, margin, alignment, width) {
-        return new SectionLayout(new Stack(elements, margin, alignment, width));
+    static stack(elements, margin, alignment, width, is_fill) {
+        return new SectionLayout(new Stack(elements, margin, alignment, width, is_fill));
     }
     copy() {
         return new Stack(this.elements.map((e) => e.copy()), this.margin.copy(), this.alignment, Width_1.Width.copy(this.width));
@@ -351,19 +403,19 @@ class Stack {
         return new Stack([]);
     }
     instantiate(section) {
-        return new Stack(this.elements.map(e => e.instantiate(section)), this.margin, this.alignment, this.width);
+        return new Stack(this.elements.map(e => e.instantiate(section)), this.margin, this.alignment, this.width, this.is_fill);
     }
     with_elements(elements) {
-        return new Stack(elements, this.margin, this.alignment, this.width);
+        return new Stack(elements, this.margin, this.alignment, this.width, this.is_fill);
     }
     with_margin(margin) {
-        return new Stack(this.elements, margin, this.alignment, this.width);
+        return new Stack(this.elements, margin, this.alignment, this.width, this.is_fill);
     }
     with_alignment(alignment) {
-        return new Stack(this.elements, this.margin, alignment, this.width);
+        return new Stack(this.elements, this.margin, alignment, this.width, this.is_fill);
     }
     with_width(width) {
-        return new Stack(this.elements, this.margin, this.alignment, width);
+        return new Stack(this.elements, this.margin, this.alignment, width, this.is_fill);
     }
     bound_width(width) {
         const bound = this.width.tag === "Absolute" ? Math.min(this.width.value, width)
@@ -372,7 +424,7 @@ class Stack {
         if (bound === null) {
             throw new Error("Cannot bound width of non-unitized widths!");
         }
-        return new Stack(this.elements.map(e => e.bound_width(bound)), this.margin, this.alignment, Width_1.Width.absolute(bound));
+        return new Stack(this.elements.map(e => e.bound_width(bound)), this.margin, this.alignment, Width_1.Width.absolute(bound), Width_1.Width.is_fill(this.width));
     }
     scale_width(w) {
         return this.with_elements(this.elements.map(e => e.scale_width(w))).with_width(Width_1.Width.scale(this.width, w));
@@ -380,37 +432,38 @@ class Stack {
 }
 exports.Stack = Stack;
 class Row {
-    constructor(elements, is_frozen, margin, alignment, width) {
+    constructor(elements, is_frozen, margin, alignment, width, is_fill) {
         this.tag = "Row";
         this.elements = elements;
         this.is_frozen = is_frozen !== null && is_frozen !== void 0 ? is_frozen : false;
         this.margin = margin !== null && margin !== void 0 ? margin : Margin_1.Margin.default_();
         this.alignment = alignment !== null && alignment !== void 0 ? alignment : Alignment_1.Alignment.default_();
         this.width = width !== null && width !== void 0 ? width : Width_1.Width.default_();
+        this.is_fill = is_fill !== null && is_fill !== void 0 ? is_fill : false;
     }
-    static row(elements, is_frozen, margin, alignment, width) {
-        return new SectionLayout(new Row(elements, is_frozen, margin, alignment, width));
+    static row(elements, is_frozen, margin, alignment, width, is_fill) {
+        return new SectionLayout(new Row(elements, is_frozen, margin, alignment, width, is_fill));
     }
     copy() {
-        return new Row(this.elements.map((e) => e.copy()), this.is_frozen, this.margin.copy(), this.alignment, Width_1.Width.copy(this.width));
+        return new Row(this.elements.map((e) => e.copy()), this.is_frozen, this.margin.copy(), this.alignment, Width_1.Width.copy(this.width), this.is_fill);
     }
     static default_() {
         return new Row([]);
     }
     instantiate(section) {
-        return new Row(this.elements.map(e => e.instantiate(section)), this.is_frozen, this.margin, this.alignment, this.width);
+        return new Row(this.elements.map(e => e.instantiate(section)), this.is_frozen, this.margin, this.alignment, this.width, this.is_fill);
     }
     with_elements(elements) {
-        return new Row(elements, this.is_frozen, this.margin, this.alignment, this.width);
+        return new Row(elements, this.is_frozen, this.margin, this.alignment, this.width, this.is_fill);
     }
     with_margin(margin) {
-        return new Row(this.elements, this.is_frozen, margin, this.alignment, this.width);
+        return new Row(this.elements, this.is_frozen, margin, this.alignment, this.width, this.is_fill);
     }
     with_alignment(alignment) {
-        return new Row(this.elements, this.is_frozen, this.margin, alignment, this.width);
+        return new Row(this.elements, this.is_frozen, this.margin, alignment, this.width, this.is_fill);
     }
     with_width(width) {
-        return new Row(this.elements, this.is_frozen, this.margin, this.alignment, width);
+        return new Row(this.elements, this.is_frozen, this.margin, this.alignment, width, this.is_fill);
     }
     elements_width() {
         return this.elements.map(e => Width_1.Width.get_fixed_unchecked(e.width())).reduce((a, b) => a + b, 0.0);
@@ -422,7 +475,7 @@ class Row {
         if (bound === null) {
             throw new Error("Cannot bound width of non-unitized widths!");
         }
-        return new Row(this.elements.map(e => e.bound_width(bound)), this.is_frozen, this.margin, this.alignment, Width_1.Width.absolute(bound));
+        return new Row(this.elements.map(e => e.bound_width(bound)), this.is_frozen, this.margin, this.alignment, Width_1.Width.absolute(bound), Width_1.Width.is_fill(this.width));
     }
     scale_width(w) {
         return this.with_elements(this.elements.map(e => e.scale_width(w))).with_width(Width_1.Width.scale(this.width, w));
@@ -526,7 +579,7 @@ class Elem {
     }
     justified_lines(lines, font_dict) {
         const rowLines = [];
-        for (const line of lines) {
+        for (const line of lines.slice(0, -1)) {
             const words = line.item.split(/\s+/);
             const row = new Row([], false, line.margin, line.alignment, line.width);
             words.forEach(word => {
@@ -535,6 +588,7 @@ class Elem {
             });
             rowLines.push(row);
         }
+        rowLines.push(new Row([new SectionLayout(lines[lines.length - 1]).with_alignment("Left")], false, lines[0].margin, "Left", lines[0].width));
         return rowLines;
     }
     break_lines(font_dict) {

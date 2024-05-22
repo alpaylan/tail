@@ -123,16 +123,17 @@ export const render = async (
                 doc.appendChild(elem);
 
                 elem.innerText = element.item;
+                console.error(element.item, element.margin);
                 elem.style.cssText = `
                     position: absolute;
-                    left: ${box_.top_left.x}px;
-                    top: ${box_.top_left.y}px;
+                    left: ${box_.top_left.x - element.margin.left}px;
+                    top: ${box_.top_left.y - element.margin.top}px;
                     font-family: "${element.font.full_name()}", sans-serif;
                     font-size: ${element.font.size}px;
                     font-style: ${element.font.style};
                     font-weight: ${element.font.weight};
                     background-color: ${ColorMap[element.background_color]};
-                    ${debug ? "outline: 1px solid black;" : ""}
+                    ${debug ? "border: 1px solid black;" : ""}
                 `;
 
                 if (JSON.stringify(state.editorPath) === JSON.stringify(box.path)) {

@@ -18,6 +18,7 @@ export declare class SectionLayout {
     toJson(): any;
     width(): Width;
     is_container(): boolean;
+    is_fill(): boolean;
     is_ref(): boolean;
     type_(): "Stack" | "Row" | "Elem";
     tag_(): "Stack" | "FlexRow" | "FrozenRow" | "Ref" | "Text";
@@ -25,6 +26,7 @@ export declare class SectionLayout {
     with_margin(margin: Margin): SectionLayout;
     with_alignment(alignment: Alignment): SectionLayout;
     with_width(width: Width): SectionLayout;
+    total_elements_width(): number;
     is_instantiated(): boolean;
     instantiate(section: Map<string, ItemContent>): SectionLayout;
     static instantiate_ref_element(element: Elem, section: Map<string, ItemContent>): SectionLayout;
@@ -42,8 +44,9 @@ export declare class Stack {
     margin: Margin;
     alignment: Alignment;
     width: Width;
-    constructor(elements: SectionLayout[], margin?: Margin, alignment?: Alignment, width?: Width);
-    static stack(elements: SectionLayout[], margin?: Margin, alignment?: Alignment, width?: Width): SectionLayout;
+    is_fill: boolean;
+    constructor(elements: SectionLayout[], margin?: Margin, alignment?: Alignment, width?: Width, is_fill?: boolean);
+    static stack(elements: SectionLayout[], margin?: Margin, alignment?: Alignment, width?: Width, is_fill?: boolean): SectionLayout;
     copy(): Stack;
     static default_(): Stack;
     instantiate(section: Map<string, ItemContent>): Stack;
@@ -61,8 +64,9 @@ export declare class Row {
     alignment: Alignment;
     width: Width;
     is_frozen: boolean;
-    constructor(elements: SectionLayout[], is_frozen?: boolean, margin?: Margin, alignment?: Alignment, width?: Width);
-    static row(elements: SectionLayout[], is_frozen?: boolean, margin?: Margin, alignment?: Alignment, width?: Width): SectionLayout;
+    is_fill: boolean;
+    constructor(elements: SectionLayout[], is_frozen?: boolean, margin?: Margin, alignment?: Alignment, width?: Width, is_fill?: boolean);
+    static row(elements: SectionLayout[], is_frozen?: boolean, margin?: Margin, alignment?: Alignment, width?: Width, is_fill?: boolean): SectionLayout;
     copy(): Row;
     static default_(): Row;
     instantiate(section: Map<string, ItemContent>): Row;

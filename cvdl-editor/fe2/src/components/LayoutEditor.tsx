@@ -102,7 +102,11 @@ const ControlPanel = (props: { layout: SectionLayout, layoutSchema: LayoutSchema
 const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionLayout, layoutSchema: LayoutSchema, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
     const [newElement, setNewElement] = useState<string>("");
     const container = props.current.inner as Stack | Row;
-    // const randomKey = Math.random().toString(36).substring(7);
+    const [marginLeft, setMarginLeft] = useState(container.margin.left);
+    const [marginRight, setMarginRight] = useState(container.margin.right);
+    const [marginTop, setMarginTop] = useState(container.margin.top);
+    const [marginBottom, setMarginBottom] = useState(container.margin.bottom);
+    
     return (
         <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="panel" style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
@@ -120,7 +124,7 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
                         <option value="Left">Left</option>
                         <option value="Right">Right</option>
                         <option value="Center">Center</option>
-                        <option value="Justify">Justify</option>
+                        <option value="Justified">Justify</option>
                     </select>
                 </div>
                 <div className="panel-item">
@@ -207,6 +211,53 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
                         }
                     </div>
                 </div>
+                <div className="panel-item">
+                    <label>Margins</label>
+                    <div>
+                        <label>Left</label>
+                        <input type="number" style={{ width: "80px" }} value={marginLeft} onChange={(e) => {
+                            let value = parseInt(e.target.value);
+                            setMarginLeft(value);
+                            if (value >= 0) {
+                                container.margin.left = parseInt(e.target.value);
+                                props.setLayout(props.layout)
+                            }
+                        }} />
+                    </div>
+                    <div>
+                        <label>Right</label>
+                        <input type="number" style={{ width: "80px" }} value={marginRight} onChange={(e) => {
+                            let value = parseInt(e.target.value);
+                            setMarginRight(value);
+                            if (value >= 0) {
+                                container.margin.right = parseInt(e.target.value);
+                                props.setLayout(props.layout)
+                            }
+                        }} />
+                    </div>
+                    <div>
+                        <label>Top</label>
+                        <input type="number" style={{ width: "80px" }} value={marginTop} onChange={(e) => {
+                            let value = parseInt(e.target.value);
+                            setMarginTop(value);
+                            if (value >= 0) {
+                                container.margin.top = parseInt(e.target.value);
+                                props.setLayout(props.layout)
+                            }
+                        }} />
+                    </div>
+                    <div>
+                        <label>Bottom</label>
+                        <input type="number" style={{ width: "80px" }} value={marginBottom} onChange={(e) => {
+                            let value = parseInt(e.target.value);
+                            setMarginBottom(value);
+                            if (value >= 0) {
+                                container.margin.bottom = parseInt(e.target.value);
+                                props.setLayout(props.layout)
+                            }
+                        }} />
+                    </div>
+                </div>
                 <div className="panel-item-elements">
                     <label>Add New Text Element</label>
                     <input type="text" onChange={(e) => {
@@ -229,6 +280,10 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
 const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout, layoutSchema: LayoutSchema, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
     const elem = props.current.inner as Elem;
     const [fontSize, setFontSize] = useState(elem.font.size);
+    const [marginLeft, setMarginLeft] = useState(elem.margin.left);
+    const [marginRight, setMarginRight] = useState(elem.margin.right);  
+    const [marginTop, setMarginTop] = useState(elem.margin.top);
+    const [marginBottom, setMarginBottom] = useState(elem.margin.bottom);
     return (
         <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="panel">
@@ -286,7 +341,7 @@ const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout
                         <option value="Left">Left</option>
                         <option value="Right">Right</option>
                         <option value="Center">Center</option>
-                        <option value="Justify">Justify</option>
+                        <option value="Justified">Justify</option>
                     </select>
                 </div>
                 <div className="panel-item">
@@ -344,6 +399,53 @@ const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout
                         }} />
                     </div>
                 }
+                <div className="panel-item">
+                    <label>Margins</label>
+                    <div>
+                        <label>Left</label>
+                        <input type="number" style={{ width: "80px" }} value={marginLeft} onChange={(e) => {
+                            let value = parseInt(e.target.value);
+                            setMarginLeft(value);
+                            if (value >= 0) {
+                                elem.margin.left = parseInt(e.target.value);
+                                props.setLayout(props.layout)
+                            }
+                        }} />
+                    </div>
+                    <div>
+                        <label>Right</label>
+                        <input type="number" style={{ width: "80px" }} value={marginRight} onChange={(e) => {
+                            let value = parseInt(e.target.value);
+                            setMarginRight(value);
+                            if (value >= 0) {
+                                elem.margin.right = parseInt(e.target.value);
+                                props.setLayout(props.layout)
+                            }
+                        }} />
+                    </div>
+                    <div>
+                        <label>Top</label>
+                        <input type="number" style={{ width: "80px" }} value={marginTop} onChange={(e) => {
+                            let value = parseInt(e.target.value);
+                            setMarginTop(value);
+                            if (value >= 0) {
+                                elem.margin.top = parseInt(e.target.value);
+                                props.setLayout(props.layout)
+                            }
+                        }} />
+                    </div>
+                    <div>
+                        <label>Bottom</label>
+                        <input type="number" style={{ width: "80px" }} value={marginBottom} onChange={(e) => {
+                            let value = parseInt(e.target.value);
+                            setMarginBottom(value);
+                            if (value >= 0) {
+                                elem.margin.bottom = parseInt(e.target.value);
+                                props.setLayout(props.layout)
+                            }
+                        }} />
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -365,7 +467,7 @@ const RowEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
                 e.stopPropagation();
             }}
         >
-             <legend>Row</legend>
+            <legend>Row</legend>
             {
                 props.layout.inner.elements.map((item: any, index: number) => {
                     return <LayoutEditWindow key={index} layout={item} lens={[...props.lens, { 'index': index }]} setLens={props.setLens} />
