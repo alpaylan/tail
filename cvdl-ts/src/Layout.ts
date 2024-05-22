@@ -92,7 +92,6 @@ export class SectionLayout {
             }
             case "Elem": {
                 const elem = this.inner as Elem;
-                console.error(elem.background_color);
                 return {
                     [this.tag_()]: {
                         item: elem.item,
@@ -287,12 +286,8 @@ export class SectionLayout {
             case "Stack":
             case "Row":
                 (this.inner as ContainerType).elements = (this.inner as ContainerType).elements.map(e => e.fill_fonts(font_dict));
-                console.error(this, this.is_fill())
                 if (this.is_fill()) {
                     const total_width = this.total_elements_width();
-                    console.error(this)
-                    console.error(total_width);
-                    console.error((this.inner as ContainerType).elements);
                     if (total_width <= Width.get_fixed_unchecked(this.width())) {
                         // throw `Cannot fill fonts of row with width ${JSON.stringify(this.width())} and total width ${total_width}`
                         this.inner = this.inner.with_width(Width.absolute(total_width));
@@ -342,7 +337,6 @@ export class SectionLayout {
                 const lines = elem.break_lines(font_dict).map(l => new SectionLayout(l));
                 // Make last line left if it's justified
                 if (lines[lines.length - 1].inner.alignment === "Justified") {
-                    console.error(lines[lines.length - 1]);
                     lines[lines.length - 1] = lines[lines.length - 1].with_alignment("Left");
                 }
 
@@ -682,7 +676,6 @@ export class Elem {
     }
 
     copy() {
-        console.error(this.background_color);
         return new Elem(
             this.item,
             this.url,

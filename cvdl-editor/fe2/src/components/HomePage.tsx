@@ -123,8 +123,6 @@ function App() {
     if (!storageInitiated) {
       return;
     }
-
-    console.error(state.resume!)
     domRender({
       resume_name: resume,
       resume: state.resume!,
