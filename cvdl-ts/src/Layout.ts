@@ -423,24 +423,9 @@ export class SectionLayout {
                         top_left = top_left.move_x_by(Width.get_fixed_unchecked(elem.width) - width);
                         break;
                 }
-                if (elem.alignment === "Justified") {
-                    const words = elem.item.split(/\s+/);
-                    const word_elems = words.map((word) => {
-                        const word_width = elem.font.get_width(word, font_dict);
-                        const word_elem = new Elem(word, null, false, false, Width.absolute(word_width), elem.font, Margin.default_(), Alignment.default_(), Width.absolute(word_width), elem.background_color);
-                        return word_elem;
-                    })
-                    const per_elem_space = (Width.get_fixed_unchecked(elem.width) - (word_elems.reduce((w, elem) => w + Width.get_fixed_unchecked(elem.width), 0.0))) / (words.length);
 
-                    for (const word_elem of word_elems) {
-                        const textbox = new Box(top_left, top_left.move_x_by(width).move_y_by(height));
-                        textbox_positions.push([textbox, word_elem]);
-                        top_left = top_left.move_x_by(Width.get_fixed_unchecked(word_elem.width) + per_elem_space);
-                    }
-                } else {
-                    const textbox = new Box(top_left, top_left.move_x_by(width).move_y_by(height));
-                    textbox_positions.push([textbox, elem]);
-                }
+                const textbox = new Box(top_left, top_left.move_x_by(width).move_y_by(height));
+                textbox_positions.push([textbox, elem]);
 
                 return top_left.y + height;
             }
