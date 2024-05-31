@@ -13,6 +13,7 @@ export type ContainerType = Stack | Row;
 export type LayoutType = Stack | Row | Elem;
 export class SectionLayout {
     inner: Stack | Row | Elem;
+    bounding_box: Box | null = null;
 
     constructor(inner: Stack | Row | Elem) {
         this.inner = inner;
@@ -376,6 +377,11 @@ export class SectionLayout {
                     depth = element.compute_textbox_positions(textbox_positions, top_left, font_dict);
                     top_left = top_left.move_y_to(depth);
                 }
+                this.bounding_box = new Box(
+                    top_left,
+                    top_left.move_y_by(depth).move_x_by(Width.get_fixed_unchecked(stack.width)),
+                );
+
                 return depth;
             }
             case "Row": {
@@ -401,6 +407,12 @@ export class SectionLayout {
                     top_left =
                         top_left.move_x_by(Width.get_fixed_unchecked(element.width()) + per_elem_space);
                 }
+
+                this.bounding_box = new Box(
+                    top_left,
+                    top_left.move_y_by(depth).move_x_by(Width.get_fixed_unchecked(row.width)),
+                );
+
                 return depth;
             }
 
@@ -427,6 +439,7 @@ export class SectionLayout {
                 const textbox = new Box(top_left, top_left.move_x_by(width).move_y_by(height));
                 textbox_positions.push([textbox, elem]);
 
+                this.bounding_box = textbox;
                 return top_left.y + height;
             }
         }
