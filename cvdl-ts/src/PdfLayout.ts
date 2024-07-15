@@ -1,17 +1,21 @@
 import blobStream from "blob-stream";
-import { ElementBox, FontDict, render as anyRender } from "./AnyLayout";
+import { FontDict, render as anyRender } from "./AnyLayout";
 import PdfDocument from 'pdfkit';
 import { Resume } from "./Resume";
 import { DataSchema } from "./DataSchema";
 import { LayoutSchema } from "./LayoutSchema";
 import { ResumeLayout } from "./ResumeLayout";
-import { LocalStorage } from "./LocalStorage";
-import { ColorMap } from "./Layout";
+// import { LocalStorage } from "./LocalStorage";
+import { Storage } from "./Storage";
+
+import * as Elem from "./Elem";
+import { Font, Layout } from ".";
+
+
 
 export type RenderResult = {
     blob: Blob,
     fontDict: FontDict,
-    pages: ElementBox[][]
 }
 
 export type RenderProps = {
@@ -20,7 +24,7 @@ export type RenderProps = {
     data_schemas?: DataSchema[],
     layout_schemas?: LayoutSchema[],
     resume_layout?: ResumeLayout,
-    storage: LocalStorage,
+    storage: Storage,
     fontDict?: FontDict,
     debug: boolean,
 }
@@ -58,7 +62,7 @@ export const render = async (
     }
 
 
-    
+
     let end_time = Date.now();
 
     console.info(`Loading time: ${end_time - start_time}ms`);
@@ -68,7 +72,7 @@ export const render = async (
     const stream = doc.pipe(blobStream());
 
     start_time = Date.now();
-    const [font_dict, pages] = await
+    const [font_dict, layouts] = await
         anyRender({ layout_schemas, resume, data_schemas, resume_layout, storage, fontDict });
     end_time = Date.now();
     console.info(`Rendering time: ${end_time - start_time}ms`);
@@ -90,37 +94,45 @@ export const render = async (
     }
     console.log("Rendering the document...");
     // Render the boxes
-    for (const [index, boxes] of pages.entries()) {
-        if (index > 0) {
-            doc.addPage();
-        }
+    // for (const [index, boxes] of pages.entries()) {
+    //     if (index > 0) {
+    //         doc.addPage();
+    //     }
 
-        boxes.forEach((box) => {
-            const elements = box.elements;
-            if (debug) {
-                doc.rect(box.bounding_box.top_left.x, box.bounding_box.top_left.y, box.bounding_box.width(), box.bounding_box.height()).stroke();
-            }
-            for (const [box_, element] of elements) {
-                console.log(
-                    `(${box_.top_left.x}, ${box_.top_left.y})(${box_.bottom_right.x}, ${box_.bottom_right.y}): ${element.item}`
-                );
-                if (element.background_color !== "Transparent") {
-                    doc.rect(box_.top_left.x, box_.top_left.y, box_.width(), box_.height()).fillAndStroke(ColorMap[element.background_color], ColorMap[element.background_color]);   
-                }
-                // Make this more generic
-                doc.fillColor("black");
+    //     boxes.forEach((box) => {
+    //         const elements = box.elements;
+    //         // if (debug) {
+    //         //     doc.rect(box.bounding_box.top_left.x, box.bounding_box.top_left.y, box.bounding_box.width(), box.bounding_box.height()).stroke();
+    //         // }
+    //         for (const [box_, element] of elements) {
+    //             console.log(
+    //                 `(${box_.top_left.x}, ${box_.top_left.y})(${box_.bottom_right.x}, ${box_.bottom_right.y}): ${element.item}`
+    //             );
+    //             if (element.background_color !== "Transparent") {
+    //                 doc.rect(box_.top_left.x, box_.top_left.y, box_.width(), box_.height()).fillAndStroke(ColorMap[element.background_color], ColorMap[element.background_color]);
+    //             }
+    //             // Make this more generic
+    //             doc.fillColor("black");
 
-                doc.
-                    font(element.font.full_name()).
-                    fontSize(element.font.size).
-                    text(element.item, box_.top_left.x, box_.top_left.y, { lineBreak: false });
-                
-                if (debug) {
-                    // doc.rect(box_.top_left.x, box_.top_left.y, box_.width(), box_.height()).stroke();
-                }
-            }
-        });
+    //             doc.
+    //                 font(element.font.full_name()).
+    //                 fontSize(element.font.size).
+    //                 text(element.item, box_.top_left.x, box_.top_left.y, { lineBreak: false });
+
+    //             if (debug) {
+    //                 // doc.rect(box_.top_left.x, box_.top_left.y, box_.width(), box_.height()).stroke();
+    //             }
+    //         }
+    //     });
+    // }
+
+
+    let current_height = 0;
+    for (const layout of layouts) {
+        renderSectionLayout(layout, resume_layout, current_height, doc);
+        current_height += layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;        
     }
+
     console.log("Rendering is completed. Saving the document...");
 
     console.log("Document is saved to output.pdf");
@@ -131,12 +143,37 @@ export const render = async (
             resolve(
                 {
                     blob: stream.toBlob("application/pdf"),
-                    // @ts-ignore
                     fontDict: fontDict,
-                    pages: pages
                 }
             )
         });
     });
 
+}
+
+export const renderSectionLayout = (layout: Layout.RenderedLayout, resume_layout: ResumeLayout, current_height: number, doc: PDFKit.PDFDocument) => {
+    switch (layout.tag) {
+        case "Stack": {
+            const stack = layout as Layout.RenderedStack;
+            for (const elem of stack.elements) {
+                renderSectionLayout(elem, resume_layout, current_height, doc);
+            }
+            break;
+        }
+        case "Row": {
+            const row = layout as Layout.RenderedRow;
+            for (const elem of row.elements) {
+                renderSectionLayout(elem, resume_layout, current_height, doc);
+            }
+            break;
+        }
+        case "Elem": {
+            const elem = layout as Elem.t;
+            doc.
+                font(Font.full_name(elem.font)).
+                fontSize(elem.font.size).
+                text(elem.item, layout.bounding_box.top_left.x + resume_layout.margin.left, layout.bounding_box.top_left.y + resume_layout.margin.top + current_height, { lineBreak: false });
+            break;
+        }
+    }
 }

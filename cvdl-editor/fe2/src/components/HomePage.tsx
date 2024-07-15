@@ -1,16 +1,12 @@
 "use client"
 
-
-import { createContext, useContext, useEffect, useReducer, useRef, useState } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
+import { useEffect, useReducer, useState } from 'react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { ElementPath, FontDict } from 'cvdl-ts/dist/AnyLayout';
 import { render as pdfRender } from 'cvdl-ts/dist/PdfLayout';
-import { RemoteStorage } from 'cvdl-ts/dist/RemoteStorage';
 import { LocalStorage } from 'cvdl-ts/dist/LocalStorage';
-import { Storage } from 'cvdl-ts/dist/Storage';
-import { Item, ItemContent, ItemName, Resume, ResumeSection } from 'cvdl-ts/dist/Resume';
+import { Resume} from 'cvdl-ts/dist/Resume';
 import { LayoutSchema } from 'cvdl-ts/dist/LayoutSchema';
 import { ResumeLayout } from 'cvdl-ts/dist/ResumeLayout';
 import { DataSchema } from 'cvdl-ts/dist/DataSchema';
@@ -32,14 +28,14 @@ import FreeFormLayoutEditor from './FreeFormLayoutEditor';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
+const storage = new LocalStorage();
+
 function App() {
   console.log = () => { };
   console.warn = () => { };
   console.info = () => { };
 
   const [state, dispatch] = useReducer(DocumentReducer, { resume: new Resume("SingleColumnSchema", []), editorPath: { tag: 'none' }, resumeName: "Default", editHistory: [] });
-
-  const [storage, setStorage] = useState<LocalStorage>(new LocalStorage());
   const [resume, setResume] = useState<string>("Default");
   const [resumes, setResumes] = useState<string[] | null>(null);
   // const [resumeData, setResumeData] = useState<Resume | null>(state)
@@ -53,7 +49,7 @@ function App() {
 
   useEffect(() => {
     require('../registerStaticFiles.js');
-    storage.initiate_storage().then(() => {
+    new LocalStorage().initiate_storage().then(() => {
       setStorageInitiated(true);
     });
 
@@ -81,40 +77,53 @@ function App() {
       return;
     }
 
-    const data = storage.load_resume(resume);
-    dispatch({ type: "load", value: data });
-
-
-  }, [resume, storage, storageInitiated]);
+    new LocalStorage().load_resume(resume).then((data: Resume) => {
+      dispatch({ type: "load", value: data });
+    });
+  }, [resume, storageInitiated]);
 
   useEffect(() => {
     if (!storageInitiated) {
       return;
     }
     const data_schema_loader = () => {
-      const dataSchemaNames = storage.list_data_schemas();
-      return dataSchemaNames.map((schema) => storage.load_data_schema(schema));
+      console.error(storage);
+      storage.list_data_schemas().then((dataSchemaNames: string[]) => {
+        Promise.all(dataSchemaNames.map((schema) => new LocalStorage().load_data_schema(schema))).then((dataSchemas: DataSchema[]) => {
+          setDataSchemas(dataSchemas);
+        });
+      });
     }
 
     const layout_schema_loader = () => {
-      const layoutSchemaNames = storage.list_layout_schemas();
-      return layoutSchemaNames.map((schema) => storage.load_layout_schema(schema));
+      storage.list_layout_schemas().then((layoutSchemaNames: string[]) => {
+        Promise.all(layoutSchemaNames.map((schema) => new LocalStorage().load_layout_schema(schema))).then((layoutSchemas: LayoutSchema[]) => {
+          setLayoutSchemas(layoutSchemas);
+        });
+      });      
     }
 
     const resume_layout_loader = () => {
       if (!state.resume) {
         throw "No resume layout";
       }
-      return storage.load_resume_layout(state.resume.resume_layout());
+      storage.load_resume_layout(state.resume.layout).then((layout: ResumeLayout) => {
+        setResumeLayout(layout);
+      });
+
     }
 
-    const resumes = storage.list_resumes();
+    const resumes_loader = () => {
+      storage.list_resumes().then((resumes: string[]) => {
+        setResumes(resumes);
+      });
+    }
 
-    setDataSchemas(data_schema_loader())
-    setLayoutSchemas(layout_schema_loader())
-    setResumeLayout(resume_layout_loader())
-    setResumes(resumes);
-  }, [state.resume, storage, storageInitiated]);
+    data_schema_loader();
+    layout_schema_loader();
+    resume_layout_loader();
+    resumes_loader();
+  }, [state.resume, storageInitiated]);
 
 
 
@@ -126,13 +135,13 @@ function App() {
     domRender({
       resume_name: resume,
       resume: state.resume!,
-      storage,
+      storage: new LocalStorage(),
       fontDict,
       state,
       dispatch,
       debug
     });
-  }, [resume, fontDict, debug, storage, state.resume]);
+  }, [resume, fontDict, debug, storageInitiated, state, dispatch]);
 
   const saveResumeToGithub = () => {
     if (!state.resume) {
@@ -189,7 +198,7 @@ function App() {
       storage,
       fontDict,
       debug
-    }).then(({ blob, fontDict, pages }) => {
+    }).then(({ blob }) => {
       const pdf = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = pdf;
@@ -325,16 +334,16 @@ function App() {
                   }
                 </div>}
               {currentTab === "layout-editor" &&
-                <LayoutEditor />
+                <LayoutEditor dataSchemas={dataSchemas!} layoutSchemas={layoutSchemas!} />
               }
               {currentTab === "schema-editor" &&
-                <DataSchemaEditor />
+                <DataSchemaEditor dataSchemas={dataSchemas!} />
               }
             </div>
             {
-                currentTab === "freeform-layout-editor" &&
-                <FreeFormLayoutEditor />
-              }
+              currentTab === "freeform-layout-editor" &&
+              <FreeFormLayoutEditor />
+            }
             {currentTab !== "freeform-layout-editor" &&
               <div style={{ display: "flex", flexDirection: "column", margin: "20px", minWidth: "640px", maxHeight: "95vh", overflow: "scroll" }}>
                 <div style={{ display: "flex", flexDirection: "row", marginBottom: "5px" }}>

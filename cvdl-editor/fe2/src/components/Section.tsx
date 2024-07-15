@@ -59,7 +59,6 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
             dispatch!({ type: "set-editor-path", path: { tag: "section", section: section.section_name } as ElementPath });
         }
     }
-
     return (
         <div
             id={section.section_name}

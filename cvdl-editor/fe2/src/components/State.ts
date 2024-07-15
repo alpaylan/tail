@@ -195,7 +195,6 @@ export type EditorState = {
         if (section.section_name === action.section) {
           newSection.items = section.items.filter((item, index) => index !== action.item);
           if (!undoing) {
-            console.error(section.items[action.item]);
             editHistory.push({ type: "add-item", section: section.section_name, item: section.items[action.item], index: action.item });
           }
         }
@@ -215,7 +214,6 @@ export type EditorState = {
             path = { tag: 'item', section: section.section_name, item: action.index };
           }
   
-          console.error(action.item);
           document.getElementById(action.item.id)?.scrollIntoView();
           if (!undoing) {
             editHistory.push({ type: "delete-item", section: section.section_name, item: newSection.items.length - 1 });

@@ -1,4 +1,4 @@
-import { Margin } from "./Margin";
+import * as Margin from "./Margin";
 
 export type ColumnType =
     | { tag: "SingleColumn" }
@@ -38,11 +38,11 @@ export const vertical_margin = (columnType: ColumnType) => {
 export class ResumeLayout {
     schema_name: string;
     column_type: ColumnType;
-    margin: Margin;
+    margin: Margin.t;
     width: number;
     height: number;
 
-    constructor(schema_name: string, column_type: ColumnType, margin: Margin, width: number, height: number) {
+    constructor(schema_name: string, column_type: ColumnType, margin: Margin.t, width: number, height: number) {
         this.schema_name = schema_name;
         this.column_type = column_type;
         this.margin = margin;

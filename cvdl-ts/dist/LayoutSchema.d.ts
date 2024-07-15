@@ -1,17 +1,17 @@
-import { SectionLayout } from "./Layout";
+import * as Layout from "./Layout";
 export declare class LayoutSchema {
     schema_name: string;
     data_schema_name: string;
-    header_layout_schema: SectionLayout;
-    item_layout_schema: SectionLayout;
-    constructor(schema_name: string, data_schema_name: string, header_layout_schema: SectionLayout, item_layout_schema: SectionLayout);
+    header_layout_schema: Layout.t;
+    item_layout_schema: Layout.t;
+    constructor(schema_name: string, data_schema_name: string, header_layout_schema: Layout.t, item_layout_schema: Layout.t);
     static empty(schema_name: string, data_schema_name: string): LayoutSchema;
     static fromJson(json: any): LayoutSchema;
-    fonts(): import("./Font").Font[];
+    fonts(): import("./Font").t[];
     toJson(): {
         schema_name: string;
         data_schema_name: string;
-        header_layout_schema: any;
-        item_layout_schema: any;
+        header_layout_schema: unknown;
+        item_layout_schema: unknown;
     };
 }

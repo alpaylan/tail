@@ -1,9 +1,13 @@
 // Import a jsonresume file and convert it to a resume object/
 
-import { Width } from "cvdl-ts/dist/Width";
+import * as Width from "cvdl-ts/dist/Width";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
-import { Font } from "cvdl-ts/dist/Font";
-import { Elem, Row, SectionLayout, Stack } from "cvdl-ts/dist/Layout";
+import * as Font from "cvdl-ts/dist/Font";
+import * as Layout from "cvdl-ts/dist/Layout";
+import * as Stack from "cvdl-ts/dist/Stack";
+import * as Elem from "cvdl-ts/dist/Elem";
+import * as Row from "cvdl-ts/dist/Row";
+
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { ItemContent, Resume, ResumeSection } from "cvdl-ts/dist/Resume";
@@ -119,21 +123,22 @@ const jsonResumeBasics: DataSchema = new DataSchema("json-resume-basics", [
     }
 ], []);
 
+
+
 const jsonResumeBasicsLayout: LayoutSchema = new LayoutSchema(
     "json-resume-basics",
     "json-resume-basics",
-    new SectionLayout(
-        new Stack([
-            new SectionLayout(Elem.default_().as_ref().with_item("name").with_width(Width.percent(100)).with_alignment("Center").with_font(new Font("Exo", 20, "Bold", "Normal", "Local"))),
-            new SectionLayout(Row.default_().with_elements([
-                new SectionLayout(Elem.default_().as_ref().with_item("email").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50))),
-                new SectionLayout(Elem.default_().as_ref().with_item("phone").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50)).with_alignment("Right"))
-            ]))
-        ])
-    ),
-    new SectionLayout(
-        new Stack([])
-    )
+    Stack.withElements(Stack.default_(), [
+        Elem.with_(Elem.default_(), { item: "name", is_ref: true, font: Font.font("Exo", 20, "Bold", "Normal", "Local"), width: Width.percent(100), alignment: "Center" }),
+        Row.withElements(
+            Row.default_(),
+            [
+                Elem.with_(Elem.default_(), { item: "email", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50) }),
+                Elem.with_(Elem.default_(), { item: "phone", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50), alignment: "Right" })
+            ]
+        )
+    ]),
+    Layout.empty()
 );
 
 const jsonResumeWork: DataSchema = new DataSchema("json-resume-work",
@@ -157,22 +162,26 @@ const jsonResumeWork: DataSchema = new DataSchema("json-resume-work",
 )
 
 const jsonResumeWorkLayout: LayoutSchema = new LayoutSchema("json-resume-work", "json-resume-work",
-    new SectionLayout(Elem.default_().with_item("Work").with_width(Width.percent(100)).with_alignment("Center").with_font(new Font("Exo", 16, "Bold", "Normal", "Local"))),
-    new SectionLayout(
-        new Stack([
-            new SectionLayout(Elem.default_().as_ref().with_item("name").with_width(Width.percent(100)).with_font(new Font("Exo", 14, "Bold", "Normal", "Local"))),
-            new SectionLayout(Row.default_().with_width(Width.percent(100)).with_elements([
-                new SectionLayout(Elem.default_().as_ref().with_item("position").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50))),
-                new SectionLayout(Row.default_().with_width(Width.percent(50)).with_alignment("Right").with_elements([
-                    new SectionLayout(Elem.default_().as_ref().with_item("startDate").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_alignment("Left")),
-                    new SectionLayout(Elem.default_().with_item("-").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_alignment("Center")),
-                    new SectionLayout(Elem.default_().as_ref().with_item("endDate").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_alignment("Right"))
-                ]))
-            ])),
-            new SectionLayout(Elem.default_().as_ref().with_item("summary").with_width(Width.percent(100)).with_font(new Font("Exo", 12, "Medium", "Normal", "Local"))),
-        ]
-        )
-    )
+    Elem.from({ item: "Work", width: Width.percent(100), alignment: "Center", font: Font.font("Exo", 16, "Bold", "Normal", "Local") }),
+    Stack.from({elements: [
+        Elem.from( { item: "name", is_ref: true, width: Width.percent(100), font: Font.font("Exo", 14, "Bold", "Normal", "Local") }),
+        Row.from({
+            width: Width.percent(100),
+            elements: [
+                Elem.from({ item: "position", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50) }),
+                Row.from({
+                    width: Width.percent(50),
+                    alignment: "Right",
+                    elements: [
+                        Elem.from({ item: "startDate", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), alignment: "Left" }),
+                        Elem.from({ item: "-", font: Font.font("Exo", 12, "Medium", "Normal", "Local"), alignment: "Center" }),
+                        Elem.from({ item: "endDate", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), alignment: "Right" })
+                    ]
+                })
+            ]
+        }),
+        Elem.from({ item: "summary", is_ref: true, width: Width.percent(100), font: Font.font("Exo", 12, "Medium", "Normal", "Local") }),
+        ]})
 )
 
 const jsonResumeVolunteer: DataSchema = new DataSchema("json-resume-volunteer",
@@ -196,16 +205,17 @@ const jsonResumeVolunteer: DataSchema = new DataSchema("json-resume-volunteer",
 )
 
 const jsonResumeVolunteerLayout: LayoutSchema = new LayoutSchema("json-resume-volunteer", "json-resume-volunteer",
-    new SectionLayout(Elem.default_().with_item("Volunteer").with_width(Width.percent(100)).with_alignment("Center").with_font(new Font("Exo", 16, "Bold", "Normal", "Local"))),
-    new SectionLayout(
-        new Stack([
-            new SectionLayout(Elem.default_().as_ref().with_item("organization").with_width(Width.percent(100)).with_font(new Font("Exo", 14, "Bold", "Normal", "Local"))),
-            new SectionLayout(Row.default_().with_elements([
-                new SectionLayout(Elem.default_().as_ref().with_item("position").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50))),
-                new SectionLayout(Elem.default_().as_ref().with_item("startDate").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50)).with_alignment("Right"))
-            ]))
-        ])
-    )
+    Elem.from({ item: "Volunteer", width: Width.percent(100), alignment: "Center", font: Font.font("Exo", 16, "Bold", "Normal", "Local") }),
+    Stack.from({elements: [
+        Elem.from({ item: "organization", is_ref: true, width: Width.percent(100), font: Font.font("Exo", 14, "Bold", "Normal", "Local") }),
+        Row.from({
+            width: Width.percent(100),
+            elements: [
+                Elem.from({ item: "position",  is_ref: true,font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50) }),
+                Elem.from({ item: "startDate",  is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50), alignment: "Right" })
+            ]
+        }),
+    ]})
 );
 
 const jsonResumeEducation: DataSchema = new DataSchema("json-resume-education",
@@ -231,17 +241,17 @@ const jsonResumeEducation: DataSchema = new DataSchema("json-resume-education",
 )
 
 const jsonResumeEducationLayout = new LayoutSchema("json-resume-education", "json-resume-education",
-    new SectionLayout(Elem.default_().with_item("Education").with_width(Width.percent(100)).with_alignment("Center").with_font(new Font("Exo", 16, "Bold", "Normal", "Local"))),
-    new SectionLayout(
-        new Stack([
-            new SectionLayout(Elem.default_().as_ref().with_item("institution").with_width(Width.percent(100)).with_font(new Font("Exo", 14, "Bold", "Normal", "Local"))),
-            new SectionLayout(Row.default_().with_elements([
-                new SectionLayout(Elem.default_().as_ref().with_item("area").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50))),
-                new SectionLayout(Elem.default_().as_ref().with_item("studyType").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50)).with_alignment("Right"))
-            ])
-            )
-        ])
-    )
+    Elem.from({ item: "Education", width: Width.percent(100), alignment: "Center", font: Font.font("Exo", 16, "Bold", "Normal", "Local") }),
+    Stack.from({elements: [
+        Elem.from({ item: "institution", is_ref: true, width: Width.percent(100), font: Font.font("Exo", 14, "Bold", "Normal", "Local") }),
+        Row.from({
+            width: Width.percent(100),
+            elements: [
+                Elem.from({ item: "area", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50) }),
+                Elem.from({ item: "studyType", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50), alignment: "Right" })
+            ]
+        }),
+    ]})
 );
 
 const jsonResumeAwards: DataSchema = new DataSchema("json-resume-awards",
@@ -259,17 +269,17 @@ const jsonResumeAwards: DataSchema = new DataSchema("json-resume-awards",
 )
 
 const jsonResumeAwardsLayout = new LayoutSchema("json-resume-awards", "json-resume-awards",
-    new SectionLayout(Elem.default_().with_item("Awards").with_width(Width.percent(100)).with_alignment("Center").with_font(new Font("Exo", 16, "Bold", "Normal", "Local"))),
-    new SectionLayout(
-        new Stack([
-            new SectionLayout(Elem.default_().as_ref().with_item("title").with_width(Width.percent(100)).with_font(new Font("Exo", 14, "Bold", "Normal", "Local"))),
-            new SectionLayout(Row.default_().with_elements([
-                new SectionLayout(Elem.default_().as_ref().with_item("date").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50))),
-                new SectionLayout(Elem.default_().as_ref().with_item("awarder").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50)).with_alignment("Right"))
-            ])
-            )
-        ])
-    )
+    Elem.from({ item: "Awards", width: Width.percent(100), alignment: "Center", font: Font.font("Exo", 16, "Bold", "Normal", "Local") }),
+    Stack.from({elements: [
+        Elem.from({ item: "title", is_ref: true, width: Width.percent(100), font: Font.font("Exo", 14, "Bold", "Normal", "Local") }),
+        Row.from({
+            width: Width.percent(100),
+            elements: [
+                Elem.from({ item: "date", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50) }),
+                Elem.from({ item: "awarder", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50), alignment: "Right" })
+            ]
+        }),
+    ]})
 );
 
 const jsonResumeCertificates: DataSchema = new DataSchema("json-resume-certificates",
@@ -287,17 +297,17 @@ const jsonResumeCertificates: DataSchema = new DataSchema("json-resume-certifica
 )
 
 const jsonResumeCertificatesLayout = new LayoutSchema("json-resume-certificates", "json-resume-certificates",
-    new SectionLayout(Elem.default_().with_item("Certificates").with_width(Width.percent(100)).with_alignment("Center").with_font(new Font("Exo", 16, "Bold", "Normal", "Local"))),
-    new SectionLayout(
-        new Stack([
-            new SectionLayout(Elem.default_().as_ref().with_item("name").with_width(Width.percent(100)).with_font(new Font("Exo", 14, "Bold", "Normal", "Local"))),
-            new SectionLayout(Row.default_().with_elements([
-                new SectionLayout(Elem.default_().as_ref().with_item("date").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50))),
-                new SectionLayout(Elem.default_().as_ref().with_item("issuer").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50)).with_alignment("Right"))
-            ])
-            )
-        ])
-    )
+    Elem.from({ item: "Certificates", width: Width.percent(100), alignment: "Center", font: Font.font("Exo", 16, "Bold", "Normal", "Local") }),
+    Stack.from({elements: [
+        Elem.from({ item: "name", is_ref: true, width: Width.percent(100), font: Font.font("Exo", 14, "Bold", "Normal", "Local") }),
+        Row.from({
+            width: Width.percent(100),
+            elements: [
+                Elem.from({ item: "date", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50) }),
+                Elem.from({ item: "issuer", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50), alignment: "Right" })
+            ]
+        }),
+    ]})
 );
 
 const jsonResumePublications: DataSchema = new DataSchema("json-resume-publications",
@@ -317,17 +327,17 @@ const jsonResumePublications: DataSchema = new DataSchema("json-resume-publicati
 )
 
 const jsonResumePublicationsLayout = new LayoutSchema("json-resume-publications", "json-resume-publications",
-    new SectionLayout(Elem.default_().with_item("Publications").with_width(Width.percent(100)).with_alignment("Center").with_font(new Font("Exo", 16, "Bold", "Normal", "Local"))),
-    new SectionLayout(
-        new Stack([
-            new SectionLayout(Elem.default_().as_ref().with_item("name").with_width(Width.percent(100)).with_font(new Font("Exo", 14, "Bold", "Normal", "Local"))),
-            new SectionLayout(Row.default_().with_elements([
-                new SectionLayout(Elem.default_().as_ref().with_item("publisher").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50))),
-                new SectionLayout(Elem.default_().as_ref().with_item("releaseDate").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50)).with_alignment("Right"))
-            ])
-            )
-        ])
-    )
+    Elem.from({ item: "Publications", width: Width.percent(100), alignment: "Center", font: Font.font("Exo", 16, "Bold", "Normal", "Local") }),
+    Stack.from({elements: [
+        Elem.from({ item: "name", is_ref: true, width: Width.percent(100), font: Font.font("Exo", 14, "Bold", "Normal", "Local") }),
+        Row.from({
+            width: Width.percent(100),
+            elements: [
+                Elem.from({ item: "publisher", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50) }),
+                Elem.from({ item: "releaseDate", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50), alignment: "Right" })
+            ]
+        }),
+    ]})
 );
 
 const jsonResumeSkills: DataSchema = new DataSchema("json-resume-skills",
@@ -343,17 +353,17 @@ const jsonResumeSkills: DataSchema = new DataSchema("json-resume-skills",
 )
 
 const jsonResumeSkillsLayout = new LayoutSchema("json-resume-skills", "json-resume-skills",
-    new SectionLayout(Elem.default_().with_item("Skills").with_width(Width.percent(100)).with_alignment("Center").with_font(new Font("Exo", 16, "Bold", "Normal", "Local"))),
-    new SectionLayout(
-        new Stack([
-            new SectionLayout(Elem.default_().as_ref().with_item("name").with_width(Width.percent(100)).with_font(new Font("Exo", 14, "Bold", "Normal", "Local"))),
-            new SectionLayout(Row.default_().with_elements([
-                new SectionLayout(Elem.default_().as_ref().with_item("level").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50))),
-                new SectionLayout(Elem.default_().as_ref().with_item("keywords").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50)).with_alignment("Right"))
-            ])
-            )
-        ])
-    )
+    Elem.from({ item: "Skills", width: Width.percent(100), alignment: "Center", font: Font.font("Exo", 16, "Bold", "Normal", "Local") }),
+    Stack.from({elements: [
+        Elem.from({ item: "name", is_ref: true, width: Width.percent(100), font: Font.font("Exo", 14, "Bold", "Normal", "Local") }),
+        Row.from({
+            width: Width.percent(100),
+            elements: [
+                Elem.from({ item: "level", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50) }),
+                Elem.from({ item: "keywords", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50), alignment: "Right" })
+            ]
+        }),
+    ]})
 );
 
 const jsonResumeLanguages: DataSchema = new DataSchema("json-resume-languages",
@@ -367,16 +377,11 @@ const jsonResumeLanguages: DataSchema = new DataSchema("json-resume-languages",
 )
 
 const jsonResumeLanguagesLayout = new LayoutSchema("json-resume-languages", "json-resume-languages",
-    new SectionLayout(Elem.default_().with_item("Languages").with_width(Width.percent(100)).with_alignment("Center").with_font(new Font("Exo", 16, "Bold", "Normal", "Local"))),
-    new SectionLayout(
-        new Stack([
-            new SectionLayout(Elem.default_().as_ref().with_item("language").with_width(Width.percent(100)).with_font(new Font("Exo", 14, "Bold", "Normal", "Local"))),
-            new SectionLayout(Row.default_().with_elements([
-                new SectionLayout(Elem.default_().as_ref().with_item("fluency").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50)))
-            ])
-            )
-        ])
-    )
+    Elem.from({ item: "Languages", width: Width.percent(100), alignment: "Center", font: Font.font("Exo", 16, "Bold", "Normal", "Local") }),
+    Stack.from({elements: [
+        Elem.from({ item: "language", is_ref: true, width: Width.percent(100), font: Font.font("Exo", 14, "Bold", "Normal", "Local") }),
+        Elem.from({ item: "fluency", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50) }),   
+    ]})
 );
 
 const jsonResumeInterests: DataSchema = new DataSchema("json-resume-interests",
@@ -390,16 +395,11 @@ const jsonResumeInterests: DataSchema = new DataSchema("json-resume-interests",
 )
 
 const jsonResumeInterestsLayout = new LayoutSchema("json-resume-interests", "json-resume-interests",
-    new SectionLayout(Elem.default_().with_item("Interests").with_width(Width.percent(100)).with_alignment("Center").with_font(new Font("Exo", 16, "Bold", "Normal", "Local"))),
-    new SectionLayout(
-        new Stack([
-            new SectionLayout(Elem.default_().as_ref().with_item("name").with_width(Width.percent(100)).with_font(new Font("Exo", 14, "Bold", "Normal", "Local"))),
-            new SectionLayout(Row.default_().with_elements([
-                new SectionLayout(Elem.default_().as_ref().with_item("keywords").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(100)))
-            ])
-            )
-        ])
-    )
+    Elem.from({ item: "Interests", width: Width.percent(100), alignment: "Center", font: Font.font("Exo", 16, "Bold", "Normal", "Local") }),
+    Stack.from({elements: [
+        Elem.from({ item: "name", is_ref: true, width: Width.percent(100), font: Font.font("Exo", 14, "Bold", "Normal", "Local") }),
+        Elem.from({ item: "keywords", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(100) }),
+    ]})
 );
 
 const jsonResumeReferences: DataSchema = new DataSchema("json-resume-references",
@@ -413,16 +413,11 @@ const jsonResumeReferences: DataSchema = new DataSchema("json-resume-references"
 )
 
 const jsonResumeReferencesLayout = new LayoutSchema("json-resume-references", "json-resume-references",
-    new SectionLayout(Elem.default_().with_item("References").with_width(Width.percent(100)).with_alignment("Center").with_font(new Font("Exo", 16, "Bold", "Normal", "Local"))),
-    new SectionLayout(
-        new Stack([
-            new SectionLayout(Elem.default_().as_ref().with_item("name").with_width(Width.percent(100)).with_font(new Font("Exo", 14, "Bold", "Normal", "Local"))),
-            new SectionLayout(Row.default_().with_elements([
-                new SectionLayout(Elem.default_().as_ref().with_item("reference").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(100)))
-            ])
-            )
-        ])
-    )
+    Elem.from({ item: "References", width: Width.percent(100), alignment: "Center", font: Font.font("Exo", 16, "Bold", "Normal", "Local") }),
+    Stack.from({elements: [
+        Elem.from({ item: "name", is_ref: true, width: Width.percent(100), font: Font.font("Exo", 14, "Bold", "Normal", "Local") }),
+        Elem.from({ item: "reference", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(100) }),
+    ]})
 );
 
 const jsonResumeProjects: DataSchema = new DataSchema("json-resume-projects",
@@ -444,17 +439,18 @@ const jsonResumeProjects: DataSchema = new DataSchema("json-resume-projects",
 )
 
 const jsonResumeProjectsLayout = new LayoutSchema("json-resume-projects", "json-resume-projects",
-    new SectionLayout(Elem.default_().with_item("Projects").with_width(Width.percent(100)).with_alignment("Center").with_font(new Font("Exo", 16, "Bold", "Normal", "Local"))),
-    new SectionLayout(
-        new Stack([
-            new SectionLayout(Elem.default_().as_ref().with_item("name").with_width(Width.percent(100)).with_font(new Font("Exo", 14, "Bold", "Normal", "Local"))),
-            new SectionLayout(Row.default_().with_elements([
-                new SectionLayout(Elem.default_().as_ref().with_item("startDate").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50))),
-                new SectionLayout(Elem.default_().as_ref().with_item("endDate").with_font(new Font("Exo", 12, "Medium", "Normal", "Local")).with_width(Width.percent(50)).with_alignment("Right"))
-            ])),
-        ])
-    )
-)
+    Elem.from({ item: "Projects", width: Width.percent(100), alignment: "Center", font: Font.font("Exo", 16, "Bold", "Normal", "Local") }),
+    Stack.from({elements: [
+        Elem.from({ item: "name", is_ref: true, width: Width.percent(100), font: Font.font("Exo", 14, "Bold", "Normal", "Local") }),
+        Row.from({
+            width: Width.percent(100),
+            elements: [
+                Elem.from({ item: "startDate", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50) }),
+                Elem.from({ item: "endDate", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50), alignment: "Right" })
+            ]
+        }),
+    ]})
+);
 
 
 const get = (obj: any, key: string): ItemContent => {

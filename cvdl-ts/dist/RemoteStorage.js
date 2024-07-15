@@ -93,9 +93,7 @@ class RemoteStorage {
             },
             body: JSON.stringify(font)
         });
-        console.log(response);
         const font_data = await response.arrayBuffer();
-        console.log(font_data);
         return Buffer.from(font_data);
     }
 }

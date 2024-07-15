@@ -10,7 +10,6 @@ export class Resume {
     }
 
     static fromJson(resume: unknown): Resume {
-        console.log(resume);
         if (typeof resume !== "object") {
             throw new Error("Resume must be an object");
         }
@@ -105,7 +104,6 @@ export class ResumeSection {
         const data = new Map(Object.entries(json.data as { [key: string]: ItemContent }));
         // @ts-ignore
         section.data = new Map([...data].map(([key, value]) => [key, ItemContent.fromJson(value)] as [ItemName, ItemContent]));
-
         section.items = (json.items as Item[]).map(item => {
             const data = new Map(Object.entries(item.fields));
             return {

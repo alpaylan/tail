@@ -1,13 +1,17 @@
 "use client";
 import { EditorContext, DocumentDispatchContext } from "@/components/State";
-import { Alignment } from "cvdl-ts/dist/Alignment";
+import * as Alignment from "cvdl-ts/dist/Alignment";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
 import { FontStyle, FontWeight } from "cvdl-ts/dist/Font";
-import { Color, ColorMap, Elem, Row, SectionLayout, Stack } from "cvdl-ts/dist/Layout";
+import { Color, ColorMap } from "cvdl-ts/dist/Layout";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { useContext, useEffect, useState } from "react";
-
+import * as Layout from "cvdl-ts/dist/Layout";
+import * as Elem from "cvdl-ts/dist/Elem";
+import * as Row from "cvdl-ts/dist/Row";
+import * as Stack from "cvdl-ts/dist/Stack";
+import { Container } from "postcss";
 
 type LensStep = {
     'attribute': string,
@@ -22,25 +26,25 @@ const followLens = (lens: Lens, obj: any) => {
         if ('attribute' in step) {
             return acc[step.attribute];
         } else {
-            return acc.inner.elements[step.index];
+            return acc.elements[step.index];
         }
     }, obj);
 }
 
 type LayoutVisitorStep = 'down' | 'up' | 'next' | 'prev';
 type LayoutVisitor = LayoutVisitorStep[];
-const layoutFollowLens = (lens: LayoutVisitor, layout: SectionLayout) => {
+const layoutFollowLens = (lens: LayoutVisitor, layout: Layout.t) => {
     let current = layout;
     let parents = [];
 
     for (let step of lens) {
         switch (step) {
             case 'down': {
-                if (current.inner.tag === "Elem") {
+                if (current.tag === "Elem") {
                     throw new Error("Cannot go down from Elem");
                 }
                 parents.push(current);
-                current = current.inner.elements[0];
+                current = current.elements[0];
                 break;
             }
             case 'up': {
@@ -56,14 +60,14 @@ const layoutFollowLens = (lens: LayoutVisitor, layout: SectionLayout) => {
                 if (parent === undefined) {
                     throw new Error("Cannot go next from root");
                 }
-                let index = (parent.inner as Row | Stack).elements.indexOf(current);
+                let index = (parent as Layout.Container).elements.indexOf(current);
                 if (index === -1) {
                     throw new Error("Cannot find current element in parent");
                 }
-                if (index === (parent.inner as Row | Stack).elements.length - 1) {
+                if (index === (parent as Layout.Container).elements.length - 1) {
                     throw new Error("Cannot go next from last element");
                 }
-                current = (parent.inner as Row | Stack).elements[index + 1];
+                current = (parent as Layout.Container).elements[index + 1];
                 break;
             }
             case 'prev':
@@ -71,23 +75,23 @@ const layoutFollowLens = (lens: LayoutVisitor, layout: SectionLayout) => {
                 if (parent === undefined) {
                     throw new Error("Cannot go prev from root");
                 }
-                let index = (parent.inner as Row | Stack).elements.indexOf(current);
+                let index = (parent as Layout.Container).elements.indexOf(current);
                 if (index === -1) {
                     throw new Error("Cannot find current element in parent");
                 }
                 if (index === 0) {
                     throw new Error("Cannot go prev from first element");
                 }
-                current = (parent.inner as Row | Stack).elements[index - 1];
+                current = (parent as Layout.Container).elements[index - 1];
                 break;
         }
     }
 }
 
 
-const ControlPanel = (props: { layout: SectionLayout, layoutSchema: LayoutSchema, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
+const ControlPanel = (props: { layout: Layout.t, layoutSchema: LayoutSchema, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
     const current = followLens(props.lens, props.layoutSchema);
-    switch (current.inner.tag) {
+    switch (current.tag) {
         case "Row":
             return <ContainerControlPanel current={current} layout={props.layout} layoutSchema={props.layoutSchema} setLayout={props.setLayout} lens={props.lens} setLens={props.setLens} />;
         case "Stack":
@@ -99,26 +103,26 @@ const ControlPanel = (props: { layout: SectionLayout, layoutSchema: LayoutSchema
     }
 }
 
-const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionLayout, layoutSchema: LayoutSchema, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
+const ContainerControlPanel = (props: { current: Layout.t, layout: Layout.t, layoutSchema: LayoutSchema, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
     const [newElement, setNewElement] = useState<string>("");
-    const container = props.current.inner as Stack | Row;
+    const container = props.current as Layout.Container;
     const [marginLeft, setMarginLeft] = useState(container.margin.left);
     const [marginRight, setMarginRight] = useState(container.margin.right);
     const [marginTop, setMarginTop] = useState(container.margin.top);
     const [marginBottom, setMarginBottom] = useState(container.margin.bottom);
-    
+
     return (
         <div style={{ display: "flex", flexDirection: "row" }}>
             <div className="panel" style={{ display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
                 <div style={{ width: "100%", padding: "20px" }}>
                     <b>{container.tag}({container.elements.map((layout) =>
-                        layout.inner.tag === "Elem" ? layout.inner.item : layout.inner.tag
+                        layout.tag === "Elem" ? layout.item : layout.tag
                     ).join(" | ")})</b>
                 </div>
                 <div className="panel-item">
                     <label>Alignment</label>
                     <select name="alignment" value={container.alignment} onChange={(e) => {
-                        container.alignment = (e.target.value as Alignment);
+                        container.alignment = (e.target.value as Alignment.t);
                         props.setLayout(props.layout)
                     }}>
                         <option value="Left">Left</option>
@@ -154,8 +158,8 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
                 <div className="panel-item">
                     <button className="bordered" onClick={() => {
                         const parent = followLens(props.lens.slice(0, -1), props.layoutSchema);
-                        const index = (parent.inner as Row | Stack).elements.indexOf(props.current);
-                        (parent.inner as Row | Stack).elements.splice(index, 1);
+                        const index = (parent as Layout.Container).elements.indexOf(props.current);
+                        (parent as Layout.Container).elements.splice(index, 1);
                         props.setLens(props.lens.slice(0, -1));
                         props.setLayout(props.layout);
                     }}>Delete</button>
@@ -177,7 +181,7 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
                                             props.setLayout(props.layout);
                                             props.lens.push({ 'index': index });
                                         }}>{
-                                                element.inner.tag === "Elem" ? `Elem(${element.inner.item})` : element.inner.tag
+                                                element.tag === "Elem" ? `Elem(${element.item})` : element.tag
                                             }</button>
                                         <div>
                                             {<button className="bordered"
@@ -267,7 +271,7 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
                         const elem = Elem.default_();
                         elem.is_ref = false;
                         elem.item = newElement;
-                        container.elements.push(new SectionLayout(elem));
+                        container.elements.push(elem);
                         props.setLayout(props.layout);
                     }}> Add</button>
                 </div>
@@ -277,11 +281,11 @@ const ContainerControlPanel = (props: { current: SectionLayout, layout: SectionL
 
 }
 
-const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout, layoutSchema: LayoutSchema, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
-    const elem = props.current.inner as Elem;
+const ElemControlPanel = (props: { current: Layout.t, layout: Layout.t, layoutSchema: LayoutSchema, setLayout: any, lens: Lens, setLens: (lens: Lens) => void }) => {
+    const elem = props.current as Elem.t;
     const [fontSize, setFontSize] = useState(elem.font.size);
     const [marginLeft, setMarginLeft] = useState(elem.margin.left);
-    const [marginRight, setMarginRight] = useState(elem.margin.right);  
+    const [marginRight, setMarginRight] = useState(elem.margin.right);
     const [marginTop, setMarginTop] = useState(elem.margin.top);
     const [marginBottom, setMarginBottom] = useState(elem.margin.bottom);
     return (
@@ -335,7 +339,7 @@ const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout
                 <div className="panel-item">
                     <label>Alignment</label>
                     <select name="alignment" value={elem.alignment} onChange={(e) => {
-                        elem.alignment = (e.target.value as Alignment);
+                        elem.alignment = (e.target.value as Alignment.t);
                         props.setLayout(props.layout)
                     }}>
                         <option value="Left">Left</option>
@@ -384,8 +388,8 @@ const ElemControlPanel = (props: { current: SectionLayout, layout: SectionLayout
                 <div className="panel-item">
                     <button className="bordered" onClick={() => {
                         const parent = followLens(props.lens.slice(0, -1), props.layoutSchema);
-                        const index = (parent.inner as Row | Stack).elements.indexOf(props.current);
-                        (parent.inner as Row | Stack).elements.splice(index, 1);
+                        const index = (parent as Layout.Container).elements.indexOf(props.current);
+                        (parent as Layout.Container).elements.splice(index, 1);
                         props.setLens(props.lens.slice(0, -1));
                         props.setLayout(props.layout);
                     }}>Delete</button>
@@ -469,7 +473,7 @@ const RowEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
         >
             <legend>Row</legend>
             {
-                props.layout.inner.elements.map((item: any, index: number) => {
+                props.layout.elements.map((item: any, index: number) => {
                     return <LayoutEditWindow key={index} layout={item} lens={[...props.lens, { 'index': index }]} setLens={props.setLens} />
                 })
             }
@@ -488,7 +492,7 @@ const StackEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
         >
             <legend>Stack</legend>
             {
-                props.layout.inner.elements.map((item: any, index: number) => {
+                props.layout.elements.map((item: any, index: number) => {
                     return <LayoutEditWindow key={index} layout={item} lens={[...props.lens, { 'index': index }]} setLens={props.setLens} />
                 })
             }
@@ -501,12 +505,12 @@ const ItemEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
         <div
             className="layout-editor-item"
             style={{
-                fontFamily: props.layout.inner.font.name + ", sans-serif",
-                fontSize: props.layout.inner.font.size,
-                fontWeight: props.layout.inner.font.weight,
-                fontStyle: props.layout.inner.font.style,
-                justifySelf: props.layout.inner.alignment,
-                width: props.layout.inner.width.value + "%",
+                fontFamily: props.layout.font.name + ", sans-serif",
+                fontSize: props.layout.font.size,
+                fontWeight: props.layout.font.weight,
+                fontStyle: props.layout.font.style,
+                justifySelf: props.layout.alignment,
+                width: props.layout.width.value + "%",
                 border: "1px solid black",
                 padding: "5px"
             }}
@@ -514,7 +518,7 @@ const ItemEditor = (props: { layout: any, lens: Lens, setLens: any }) => {
                 props.setLens([...props.lens]);
                 e.stopPropagation();
             }}
-        >{props.layout.inner.item}
+        >{props.layout.item}
         </div>
     );
 }
@@ -536,7 +540,7 @@ const TagSwitch = (props: { tag: string, layout: LayoutSchema, lens: any, setLen
 const LayoutEditWindow = (props: { layout: any, lens: any, setLens: any }) => {
 
     return (
-        <TagSwitch tag={props.layout.inner.tag} layout={props.layout} lens={props.lens} setLens={props.setLens} />
+        <TagSwitch tag={props.layout.tag} layout={props.layout} lens={props.lens} setLens={props.setLens} />
     );
 }
 
@@ -552,12 +556,12 @@ const markUsedElements = (layout: LayoutSchema, dataSchema: DataSchema) => {
     });
 
     const markUsed = (layout: any) => {
-        if (layout.inner.tag === "Elem") {
-            if (layout.inner.is_ref) {
-                elements[layout.inner.item] = true;
+        if (layout.tag === "Elem") {
+            if (layout.is_ref) {
+                elements[layout.item] = true;
             }
         } else {
-            layout.inner.elements.forEach((element: any) => {
+            layout.elements.forEach((element: any) => {
                 markUsed(element);
             });
         }
@@ -626,10 +630,9 @@ const AddNewLayout = (props: { copy: boolean, dataSchemas: DataSchema[], layoutS
                         <div className='panel-item'>
                             <button className='bordered' onClick={() => {
                                 setAddingSection(!addingSection);
-                                const storage = new LocalStorage();
                                 const newLayout = props.copy ?
-                                    storage.load_layout_schema(layoutSchema)
-                                    : new LayoutSchema(sectionName, dataSchema, new SectionLayout(Stack.default_()), new SectionLayout(Stack.default_()));
+                                    props.layoutSchemas.find((schema) => schema.schema_name === layoutSchema)!
+                                    : new LayoutSchema(sectionName, dataSchema, Stack.default_(), Stack.default_());
                                 newLayout.data_schema_name = dataSchema;
                                 newLayout.schema_name = sectionName;
 
@@ -648,7 +651,9 @@ const AddNewLayout = (props: { copy: boolean, dataSchemas: DataSchema[], layoutS
 }
 
 
-const LayoutEditor = () => {
+const storage = new LocalStorage();
+
+const LayoutEditor = ({ layoutSchemas, dataSchemas }: { layoutSchemas: LayoutSchema[], dataSchemas: DataSchema[] }) => {
     const editorContext = useContext(EditorContext);
     const resumeContext = editorContext?.resume;
     const dispatch = useContext(DocumentDispatchContext);
@@ -658,16 +663,8 @@ const LayoutEditor = () => {
     const [dataSchema, setDataSchema] = useState<DataSchema | null>(null);
     const [layoutSchemaControlPanel, setLayoutSchemaControlPanel] = useState<Lens | null>(null);
     const [creatingNewLayoutSchema, setCreatingNewLayoutSchema] = useState<boolean>(false);
-    const [selectedLayout, setSelectedLayout] = useState<SectionLayout | null>(null);
-    const [allAvailableLayouts, setAllAvailableLayouts] = useState<string[]>([]);
-    const storage = new LocalStorage();
-    const dataSchemas = storage.list_data_schemas().map((name) => storage.load_data_schema(name));
-    const layoutSchemas = storage.list_layout_schemas().map((name) => storage.load_layout_schema(name));
-
-    useEffect(() => {
-        const storage = new LocalStorage();
-        setAllAvailableLayouts(storage.list_layout_schemas());
-    }, []);
+    const [selectedLayout, setSelectedLayout] = useState<Layout.t | null>(null);
+    const [allAvailableLayouts, setAllAvailableLayouts] = useState<string[]>(layoutSchemas.map((schema) => schema.schema_name));
 
     useEffect(() => {
         if (layoutSchemaControlPanel === null || layoutSchema === null) {
@@ -676,11 +673,10 @@ const LayoutEditor = () => {
         const current = followLens(layoutSchemaControlPanel!, layoutSchema!);
         setSelectedLayout(current);
     }, [layoutSchema, layoutSchemaControlPanel]);
-    const setLayout = (sectionLayout: SectionLayout) => {
+    const setLayout = (sectionLayout: Layout.t) => {
         if (!layoutSchema) {
             return;
         }
-        const storage = new LocalStorage();
         layoutSchema.item_layout_schema = sectionLayout;
         setLayoutSchema(layoutSchema);
         storage.save_layout_schema(layoutSchema);
@@ -702,11 +698,11 @@ const LayoutEditor = () => {
                     {
                         [...new Set(layoutSchemaNames)].map((name, index) => {
                             return <button className="bordered" key={index} onClick={() => {
-                                const storage = new LocalStorage();
-                                const schema = storage.load_layout_schema(name);
-                                setLayoutSchema(schema);
+                                const layoutSchema = layoutSchemas.find((schema) => schema.schema_name === name)!;
+                                const dataSchema = dataSchemas.find((schema) => schema.schema_name === layoutSchema?.data_schema_name)!;
+                                setLayoutSchema(layoutSchema);
+                                setDataSchema(dataSchema);
                                 setLayoutSchemaControlPanel(null);
-                                setDataSchema(storage.load_data_schema(schema.data_schema_name));
                             }}>{name}</button>
                         })
                     }
@@ -721,11 +717,11 @@ const LayoutEditor = () => {
                                 return null;
                             }
                             return <button className="bordered" key={index} onClick={() => {
-                                const storage = new LocalStorage();
-                                const schema = storage.load_layout_schema(name);
-                                setLayoutSchema(schema);
+                                const layoutSchema = layoutSchemas.find((schema) => schema.schema_name === name)!;
+                                const dataSchema = dataSchemas.find((schema) => schema.schema_name === layoutSchema?.data_schema_name)!;
+                                setLayoutSchema(layoutSchema);
+                                setDataSchema(dataSchema);
                                 setLayoutSchemaControlPanel(null);
-                                setDataSchema(storage.load_data_schema(schema.data_schema_name));
                             }}>{name}</button>
                         })
                     }
@@ -751,9 +747,8 @@ const LayoutEditor = () => {
                         {
                             resumeContext?.data_schemas().map((name, index) => {
                                 return <button key={index} onClick={() => {
-                                    const storage = new LocalStorage();
-                                    const schema = storage.load_data_schema(name);
-                                    setDataSchema(schema);
+                                    const dataSchema = dataSchemas.find((schema) => schema.schema_name === name)!;
+                                    setDataSchema(dataSchema);
                                 }}>{name}</button>
                             })
                         }
@@ -762,7 +757,7 @@ const LayoutEditor = () => {
                     </div>
             }
             {
-                (dataSchema !== null && selectedLayout && selectedLayout.inner.tag !== "Elem") &&
+                (dataSchema !== null && selectedLayout && selectedLayout.tag !== "Elem") &&
                 <div>
                     {
                         unusedElements(layoutSchema!, dataSchema).map((used, index) => {
@@ -779,7 +774,7 @@ const LayoutEditor = () => {
                                     const elem = Elem.default_();
                                     elem.is_ref = true;
                                     elem.item = used;
-                                    (selectedLayout!.inner as Row | Stack).elements.push(new SectionLayout(elem));
+                                    (selectedLayout! as Layout.Container).elements.push(elem);
                                     setLayout(selectedLayout!);
                                 }}>{used} +</button>
                         })

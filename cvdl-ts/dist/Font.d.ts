@@ -1,18 +1,19 @@
 import { FontDict } from "./AnyLayout";
-export declare class Font {
+export type t = {
     name: string;
     size: number;
     weight: FontWeight;
     style: FontStyle;
     source: FontSource;
-    constructor(name: string, size: number, weight: FontWeight, style: FontStyle, source: FontSource);
-    static fromJson(json: unknown): Font;
-    toJson(): unknown;
-    static default_(): Font;
-    full_name(): string;
-    get_width(text: string, fonts: FontDict): number;
-    get_height(fonts: FontDict): number;
-}
+};
+type Font = t;
+export declare function font(name: string, size: number, weight: FontWeight, style: FontStyle, source: FontSource): Font;
+export declare function fromJson(json: unknown): Font;
+export declare function default_(): Font;
+export declare function full_name(f: Font): string;
+export declare function get_width(f: Font, text: string, fonts: FontDict): number;
+export declare function get_height(f: Font, fonts: FontDict): number;
 export type FontSource = "Local" | "System" | "Remote";
 export type FontWeight = "Light" | "Medium" | "Bold";
 export type FontStyle = "Normal" | "Italic";
+export {};

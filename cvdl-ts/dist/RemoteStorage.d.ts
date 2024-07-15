@@ -4,7 +4,7 @@ import { DataSchema } from "./DataSchema";
 import { LayoutSchema } from "./LayoutSchema";
 import { ResumeLayout } from "./ResumeLayout";
 import { Storage } from "./Storage";
-import { Font } from "./Font";
+import * as Font from "./Font";
 export declare class RemoteStorage implements Storage {
     url: string;
     constructor(url: string);
@@ -21,5 +21,5 @@ export declare class RemoteStorage implements Storage {
     save_data_schema(data_schema: DataSchema): Promise<void>;
     save_layout_schema(layout_schema: LayoutSchema): Promise<void>;
     save_resume_layout(resume_layout: ResumeLayout): Promise<void>;
-    load_font(font: Font): Promise<Buffer>;
+    load_font(font: Font.t): Promise<Buffer>;
 }

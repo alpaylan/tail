@@ -1,4 +1,4 @@
-import { Margin } from "./Margin";
+import * as Margin from "./Margin";
 export type ColumnType = {
     tag: "SingleColumn";
 } | {
@@ -12,9 +12,9 @@ export declare const vertical_margin: (columnType: ColumnType) => number;
 export declare class ResumeLayout {
     schema_name: string;
     column_type: ColumnType;
-    margin: Margin;
+    margin: Margin.t;
     width: number;
     height: number;
-    constructor(schema_name: string, column_type: ColumnType, margin: Margin, width: number, height: number);
+    constructor(schema_name: string, column_type: ColumnType, margin: Margin.t, width: number, height: number);
     static fromJson(json: any): ResumeLayout;
 }

@@ -1,509 +1,412 @@
 "use strict";
-/* eslint-disable @typescript-eslint/no-explicit-any */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Elem = exports.ColorMap = exports.Row = exports.Stack = exports.SectionLayout = void 0;
-const Margin_1 = require("./Margin");
-const Alignment_1 = require("./Alignment");
-const Width_1 = require("./Width");
-const Font_1 = require("./Font");
-const Resume_1 = require("./Resume");
+exports.ColorMap = exports.computeTextboxPositions = exports.computeBoxes = exports.breakLines = exports.fillFonts = exports.normalize = exports.scaleWidth = exports.boundWidth = exports.instantiate = exports.isInstantiated = exports.totalElementsWidth = exports.withWidth = exports.withAlignment = exports.withMargin = exports.fonts = exports.isRef = exports.isFill = exports.isContainer = exports.toJson = exports.tag_ = exports.type_ = exports.fromJson = exports.empty = exports.default_ = void 0;
+const Width = __importStar(require("./Width"));
+const Font = __importStar(require("./Font"));
 const Box_1 = require("./Box");
-const AnyLayout_1 = require("./AnyLayout");
 const Point_1 = require("./Point");
-class SectionLayout {
-    constructor(inner) {
-        this.inner = inner;
+const Stack = __importStar(require("./Stack"));
+const Row = __importStar(require("./Row"));
+const Elem = __importStar(require("./Elem"));
+function default_(tag) {
+    switch (tag) {
+        case "Stack": return Stack.default_();
+        case "FlexRow": return Row.default_();
+        case "FrozenRow": return Row.withFrozen(Row.default_(), true);
+        case "Text": return Elem.default_();
+        case "Ref": return Elem.asRef(Elem.default_());
     }
-    copy() {
-        return new SectionLayout(this.inner.copy());
+}
+exports.default_ = default_;
+function empty() {
+    return default_("Stack");
+}
+exports.empty = empty;
+function fromJson(json) {
+    var _a;
+    const key = Object.keys(json)[0];
+    switch (key) {
+        case 'Stack':
+        case 'FlexRow':
+        case 'FrozenRow': {
+            const container = default_(key);
+            container.elements = json[key].elements.map((element) => fromJson(element));
+            container.margin = json[key].margin;
+            container.alignment = json[key].alignment;
+            container.width = Width.fromJson(json[key].width);
+            return container;
+        }
+        case 'Ref':
+        case 'Text': {
+            const inner = default_(key);
+            inner.item = json[key].item;
+            inner.margin = json[key].margin;
+            inner.alignment = json[key].alignment;
+            inner.width = Width.fromJson(json[key].width);
+            inner.text_width = Width.fromJson(json[key].text_width);
+            inner.font = Font.fromJson(json[key].font);
+            inner.url = json[key].url;
+            inner.background_color = (_a = json[key].background_color) !== null && _a !== void 0 ? _a : "Transparent";
+            return inner;
+        }
     }
-    static constrMap(tag) {
-        switch (tag) {
-            case "Stack": return Stack.default_();
-            case "FlexRow": return Row.default_();
-            case "FrozenRow": {
-                const row = Row.default_();
-                row.is_frozen = true;
-                return row;
+    throw new Error(`Invalid layout ${key}`);
+}
+exports.fromJson = fromJson;
+function type_(l) {
+    return l.tag;
+}
+exports.type_ = type_;
+function tag_(l) {
+    switch (l.tag) {
+        case "Stack": return "Stack";
+        case "Row": {
+            const row = l;
+            return row.is_frozen ? "FrozenRow" : "FlexRow";
+        }
+        case "Elem": {
+            const elem = l;
+            return elem.is_ref ? "Ref" : "Text";
+        }
+    }
+}
+exports.tag_ = tag_;
+function toJson(l) {
+    switch (l.tag) {
+        case "Stack":
+        case "Row": {
+            const container = l;
+            return {
+                [tag_(container)]: {
+                    elements: container.elements.map(e => toJson(e)),
+                    margin: container.margin,
+                    alignment: container.alignment,
+                    width: Width.toJson(container.width),
+                },
+            };
+        }
+        case "Elem": {
+            const elem = l;
+            return {
+                [tag_(elem)]: {
+                    item: elem.item,
+                    margin: elem.margin,
+                    alignment: elem.alignment,
+                    width: Width.toJson(elem.width),
+                    text_width: Width.toJson(elem.text_width),
+                    font: elem.font,
+                    url: elem.url,
+                    background_color: elem.background_color,
+                },
+            };
+        }
+    }
+}
+exports.toJson = toJson;
+function isContainer(l) {
+    return l.tag === "Stack" || l.tag === "Row";
+}
+exports.isContainer = isContainer;
+function isFill(l) {
+    switch (l.tag) {
+        case "Stack":
+            return l.is_fill && l.elements.map(e => isFill(e)).reduce((a, b) => a && b, true);
+        case "Row":
+            return l.is_fill && l.elements.map(e => isFill(e)).reduce((a, b) => a && b, true);
+        case "Elem":
+            return l.is_fill;
+    }
+}
+exports.isFill = isFill;
+function isRef(l) {
+    return l.tag === "Elem" && l.is_ref;
+}
+exports.isRef = isRef;
+function fonts(l) {
+    switch (l.tag) {
+        case "Stack":
+            return l.elements.map(e => fonts(e)).reduce((a, b) => a.concat(b), []);
+        case "Row":
+            return l.elements.map(e => fonts(e)).reduce((a, b) => a.concat(b), []);
+        case "Elem":
+            return [l.font];
+    }
+}
+exports.fonts = fonts;
+function withMargin(l, margin) {
+    switch (l.tag) {
+        case "Stack":
+            return Stack.withMargin(l, margin);
+        case "Row":
+            return Row.withMargin(l, margin);
+        case "Elem":
+            return Elem.withMargin(l, margin);
+    }
+}
+exports.withMargin = withMargin;
+function withAlignment(l, alignment) {
+    switch (l.tag) {
+        case "Stack":
+            return Stack.withAlignment(l, alignment);
+        case "Row":
+            return Row.withAlignment(l, alignment);
+        case "Elem":
+            return Elem.withAlignment(l, alignment);
+    }
+}
+exports.withAlignment = withAlignment;
+function withWidth(l, width) {
+    switch (l.tag) {
+        case "Stack":
+            return Stack.withWidth(l, width);
+        case "Row":
+            return Row.withWidth(l, width);
+        case "Elem":
+            return Elem.withWidth(l, width);
+    }
+}
+exports.withWidth = withWidth;
+function totalElementsWidth(l) {
+    switch (l.tag) {
+        case "Stack":
+            return l.elements.map(e => totalElementsWidth(e)).reduce((a, b) => a + b, 0.0);
+        case "Row":
+            return l.elements.map(e => totalElementsWidth(e)).reduce((a, b) => a + b, 0.0);
+        case "Elem":
+            return Width.get_fixed_unchecked(l.width);
+    }
+}
+exports.totalElementsWidth = totalElementsWidth;
+function isInstantiated(l) {
+    if (isContainer(l)) {
+        return l.elements.map(e => isInstantiated(e)).reduce((a, b) => a && b, true);
+    }
+    else {
+        return !isRef(l);
+    }
+}
+exports.isInstantiated = isInstantiated;
+function instantiate(l, section) {
+    switch (l.tag) {
+        case "Stack":
+            return Stack.instantiate(l, section);
+        case "Row":
+            return Row.instantiate(l, section);
+        case "Elem":
+            return Elem.instantiate(l, section);
+    }
+}
+exports.instantiate = instantiate;
+function boundWidth(l, width) {
+    const bound = l.width.tag === "Absolute" ? Math.min(l.width.value, width)
+        : l.width.tag === "Fill" ? width
+            : null;
+    if (bound === null) {
+        throw new Error("Cannot bound width of non-unitized widths!");
+    }
+    if (l.tag === "Elem" && l.is_ref) {
+        throw new Error("Cannot propagate widths of uninstantiated layout");
+    }
+    switch (l.tag) {
+        case "Stack":
+            return Stack.boundWidth(l, bound - l.margin.left - l.margin.right);
+        case "Row":
+            return Row.boundWidth(l, bound - l.margin.left - l.margin.right);
+        case "Elem":
+            return Elem.boundWidth(l, bound - l.margin.left - l.margin.right);
+    }
+}
+exports.boundWidth = boundWidth;
+function scaleWidth(l, document_width) {
+    if (isRef(l)) {
+        throw new Error("Cannot scale width of uninstantiated layout");
+    }
+    switch (l.tag) {
+        case "Stack":
+            return Stack.scaleWidth(l, document_width);
+        case "Row":
+            return Row.scaleWidth(l, document_width);
+        case "Elem":
+            return Elem.scaleWidth(l, document_width);
+    }
+}
+exports.scaleWidth = scaleWidth;
+function normalize(l, width, font_dict) {
+    console.debug(`Normalizing document, checking if document is instantiated...`);
+    if (!isInstantiated(l)) {
+        throw Error(`Cannot normalize uninstantiated layout ${JSON.stringify(l)}`);
+    }
+    console.debug("Document is instantiated. Scaling widths...");
+    const scaled_layout = scaleWidth(l, width);
+    console.debug("Widths are scaled. Bounding widths...");
+    const bounded_layout = boundWidth(scaled_layout, width);
+    console.debug("Widths are bounded. Filling fonts...");
+    const font_filled_layout = fillFonts(bounded_layout, font_dict);
+    console.debug("Fonts filled. Breaking lines...");
+    const broken_layout = breakLines(font_filled_layout, font_dict);
+    console.debug("Lines broken.");
+    return broken_layout;
+}
+exports.normalize = normalize;
+function fillFonts(l, font_dict) {
+    if (isRef(l)) {
+        throw new Error("Cannot fill fonts of uninstantiated layout");
+    }
+    switch (l.tag) {
+        case "Stack":
+        case "Row": {
+            const filledFonts = l.elements.map(e => fillFonts(e, font_dict));
+            l = { ...l, elements: filledFonts };
+            if (isFill(l)) {
+                const total_width = totalElementsWidth(l);
+                if (total_width <= Width.get_fixed_unchecked(l.width)) {
+                    // throw `Cannot fill fonts of row with width ${JSON.stringify(this.width())} and total width ${total_width}`
+                    return withWidth(l, Width.absolute(total_width));
+                }
             }
-            case "Text": return Elem.default_();
-            case "Ref": {
-                const elem = Elem.default_();
-                elem.is_ref = true;
-                return elem;
-            }
+            return l;
         }
+        case "Elem":
+            return Elem.fillFonts(l, font_dict);
     }
-    static empty() {
-        return new SectionLayout(Stack.default_());
-    }
-    static fromJson(json) {
-        var _a;
-        const key = Object.keys(json)[0];
-        switch (key) {
-            case 'Stack':
-            case 'FlexRow':
-            case 'FrozenRow': {
-                const container = SectionLayout.constrMap(key);
-                container.elements = json[key].elements.map((element) => SectionLayout.fromJson(element));
-                container.margin = Margin_1.Margin.fromJson(json[key].margin);
-                container.alignment = json[key].alignment;
-                container.width = Width_1.Width.fromJson(json[key].width);
-                return new SectionLayout(container);
-            }
-            case 'Ref':
-            case 'Text': {
-                const inner = SectionLayout.constrMap(key);
-                inner.item = json[key].item;
-                inner.margin = Margin_1.Margin.fromJson(json[key].margin);
-                inner.alignment = json[key].alignment;
-                inner.width = Width_1.Width.fromJson(json[key].width);
-                inner.text_width = Width_1.Width.fromJson(json[key].text_width);
-                inner.font = Font_1.Font.fromJson(json[key].font);
-                inner.url = json[key].url;
-                inner.background_color = (_a = json[key].background_color) !== null && _a !== void 0 ? _a : "Transparent";
-                return new SectionLayout(inner);
-            }
+}
+exports.fillFonts = fillFonts;
+function breakLines(l, font_dict) {
+    switch (l.tag) {
+        case "Stack": {
+            const stack = l;
+            return Stack.withElements(stack, stack.elements.map(e => breakLines(e, font_dict)));
         }
-        throw new Error(`Invalid layout ${key}`);
-    }
-    toJson() {
-        switch (this.type_()) {
-            case "Stack":
-            case "Row": {
-                const container = this.inner;
-                return {
-                    [this.tag_()]: {
-                        elements: container.elements.map(e => e.toJson()),
-                        margin: container.margin.toJson(),
-                        alignment: container.alignment,
-                        width: Width_1.Width.toJson(container.width),
-                    },
-                };
-            }
-            case "Elem": {
-                const elem = this.inner;
-                console.error(elem.background_color);
-                return {
-                    [this.tag_()]: {
-                        item: elem.item,
-                        margin: elem.margin.toJson(),
-                        alignment: elem.alignment,
-                        width: Width_1.Width.toJson(elem.width),
-                        text_width: Width_1.Width.toJson(elem.text_width),
-                        font: elem.font.toJson(),
-                        url: elem.url,
-                        background_color: elem.background_color,
-                    },
-                };
-            }
-        }
-    }
-    width() {
-        return this.inner.width;
-    }
-    is_container() {
-        return this.inner.tag === "Stack" || this.inner.tag === "Row";
-    }
-    is_fill() {
-        switch (this.type_()) {
-            case "Stack":
-                return this.inner.is_fill && this.inner.elements.map(e => e.is_fill()).reduce((a, b) => a && b, true);
-            case "Row":
-                return this.inner.is_fill && this.inner.elements.map(e => e.is_fill()).reduce((a, b) => a && b, true);
-            case "Elem":
-                return this.inner.is_fill;
-        }
-    }
-    is_ref() {
-        return this.inner.tag === "Elem" && this.inner.is_ref;
-    }
-    type_() {
-        return this.inner.tag;
-    }
-    tag_() {
-        switch (this.type_()) {
-            case "Stack":
-                return "Stack";
-            case "Row":
-                return this.inner.is_frozen ? "FrozenRow" : "FlexRow";
-            case "Elem":
-                return this.is_ref() ? "Ref" : "Text";
-        }
-    }
-    fonts() {
-        switch (this.type_()) {
-            case "Stack":
-                return this.inner.elements.map(e => e.fonts()).reduce((a, b) => a.concat(b), []);
-            case "Row":
-                return this.inner.elements.map(e => e.fonts()).reduce((a, b) => a.concat(b), []);
-            case "Elem":
-                return [this.inner.font];
-        }
-    }
-    with_margin(margin) {
-        this.inner = this.inner.with_margin(margin);
-        return this;
-    }
-    with_alignment(alignment) {
-        this.inner = this.inner.with_alignment(alignment);
-        return this;
-    }
-    with_width(width) {
-        this.inner = this.inner.with_width(width);
-        return this;
-    }
-    total_elements_width() {
-        if (this.is_container()) {
-            return this.inner.elements.map(e => e.total_elements_width()).reduce((a, b) => a + b, 0.0);
-        }
-        else {
-            return Width_1.Width.get_fixed_unchecked(this.width());
-        }
-    }
-    is_instantiated() {
-        if (this.is_container()) {
-            return this.inner.elements.map(e => e.is_instantiated()).reduce((a, b) => a && b, true);
-        }
-        else {
-            return !this.inner.is_ref;
-        }
-    }
-    instantiate(section) {
-        if (this.is_container()) {
-            return new SectionLayout(this.inner.instantiate(section));
-        }
-        else if (this.inner.is_ref) {
-            return SectionLayout.instantiate_ref_element(this.inner, section);
-        }
-        else {
-            return this;
-        }
-    }
-    static instantiate_ref_element(element, section) {
-        const text = section.get(element.item);
-        if (text === undefined) {
-            return new SectionLayout(new Stack([], Margin_1.Margin.default_(), Alignment_1.Alignment.default_(), Width_1.Width.default_()));
-        }
-        else {
-            // @ts-ignore
-            element.item = Resume_1.ItemContent.toString(text);
-            element.is_ref = false;
-            if (text.tag === "Url") {
-                return new SectionLayout(element.with_url(text.value.url).with_item(text.value.text));
+        case "Row": {
+            const row = l;
+            if (row.is_frozen) {
+                const total_width = row
+                    .elements
+                    .map(e => Width.get_fixed_unchecked(e.width))
+                    .reduce((a, b) => a + b, 0.0);
+                if (total_width > Width.get_fixed_unchecked(row.width)) {
+                    throw `Cannot break lines of frozen row with width ${row.width} and total width ${total_width}`;
+                }
+                else {
+                    row.elements = row.elements.map(e => breakLines(e, font_dict));
+                }
             }
             else {
-                return new SectionLayout(element);
+                const lines = Row.breakLines(row, font_dict);
+                return Stack.stack(lines, row.margin, row.alignment, row.width, false);
             }
+            return row;
         }
-    }
-    bound_width(width) {
-        const bound = this.inner.width.tag === "Absolute" ? Math.min(this.inner.width.value, width)
-            : this.inner.width.tag === "Fill" ? width
-                : null;
-        if (bound === null) {
-            throw new Error("Cannot bound width of non-unitized widths!");
-        }
-        if (this.inner.tag === "Elem" && this.inner.is_ref) {
-            throw new Error("Cannot propagate widths of uninstantiated layout");
-        }
-        this.inner = this.inner.bound_width(bound - this.inner.margin.left - this.inner.margin.right);
-        return this;
-    }
-    scale_width(document_width) {
-        if (this.is_ref()) {
-            throw new Error("Cannot scale width of uninstantiated layout");
-        }
-        return new SectionLayout(this.inner.scale_width(document_width));
-    }
-    normalize(width, font_dict) {
-        console.debug(`Normalizing document, checking if document is instantiated...`);
-        if (!this.is_instantiated()) {
-            throw Error("Cannot normalize uninstantiated layout");
-        }
-        console.debug("Document is instantiated. Scaling widths...");
-        const scaled_layout = this.scale_width(width);
-        console.debug("Widths are scaled. Bounding widths...");
-        const bounded_layout = scaled_layout.bound_width(width);
-        console.debug("Widths are bounded. Filling fonts...");
-        const font_filled_layout = bounded_layout.fill_fonts(font_dict);
-        console.debug("Fonts filled. Breaking lines...");
-        const broken_layout = font_filled_layout.break_lines(font_dict);
-        console.debug("Lines broken.");
-        return broken_layout;
-    }
-    fill_fonts(font_dict) {
-        if (this.is_ref()) {
-            throw new Error("Cannot fill fonts of uninstantiated layout");
-        }
-        switch (this.type_()) {
-            case "Stack":
-            case "Row":
-                this.inner.elements = this.inner.elements.map(e => e.fill_fonts(font_dict));
-                console.error(this, this.is_fill());
-                if (this.is_fill()) {
-                    const total_width = this.total_elements_width();
-                    console.error(this);
-                    console.error(total_width);
-                    console.error(this.inner.elements);
-                    if (total_width <= Width_1.Width.get_fixed_unchecked(this.width())) {
-                        // throw `Cannot fill fonts of row with width ${JSON.stringify(this.width())} and total width ${total_width}`
-                        this.inner = this.inner.with_width(Width_1.Width.absolute(total_width));
-                    }
-                }
-                break;
-            case "Elem":
-                this.inner = this.inner.fill_fonts(font_dict);
-                break;
-        }
-        return this;
-    }
-    break_lines(font_dict) {
-        switch (this.type_()) {
-            case "Stack": {
-                const stack = this.inner;
-                stack.elements = stack.elements.map(e => e.break_lines(font_dict));
-                return this;
+        case "Elem": {
+            if (isRef(l)) {
+                throw new Error("Cannot break lines of uninstantiated layout");
             }
-            case "Row": {
-                const row = this.inner;
-                if (row.is_frozen) {
-                    const total_width = row
-                        .elements
-                        .map(e => Width_1.Width.get_fixed_unchecked(e.width()))
-                        .reduce((a, b) => a + b, 0.0);
-                    if (total_width > Width_1.Width.get_fixed_unchecked(this.width())) {
-                        throw `Cannot break lines of frozen row with width ${this.width()} and total width ${total_width}`;
-                    }
-                    else {
-                        row.elements = row.elements.map(e => e.break_lines(font_dict));
-                    }
-                }
-                else {
-                    const lines = row.break_lines(font_dict).map(l => new SectionLayout(l));
-                    return new SectionLayout(new Stack(lines, row.margin, row.alignment, row.width));
-                }
-                return this;
+            const elem = l;
+            const lines = Elem.break_lines(elem, font_dict);
+            // Make last line left if it's justified
+            if (lines[lines.length - 1].alignment === "Justified") {
+                lines[lines.length - 1] = withAlignment(lines[lines.length - 1], "Left");
             }
-            case "Elem": {
-                if (this.is_ref()) {
-                    throw new Error("Cannot break lines of uninstantiated layout");
-                }
-                const elem = this.inner;
-                const lines = elem.break_lines(font_dict).map(l => new SectionLayout(l));
-                // Make last line left if it's justified
-                if (lines[lines.length - 1].inner.alignment === "Justified") {
-                    console.error(lines[lines.length - 1]);
-                    lines[lines.length - 1] = lines[lines.length - 1].with_alignment("Left");
-                }
-                return new SectionLayout(new Stack(lines, elem.margin, elem.alignment, elem.width));
-            }
-        }
-    }
-    compute_boxes(font_dict) {
-        const textbox_positions = [];
-        const top_left = new Point_1.Point(0.0, 0.0);
-        const depth = this.compute_textbox_positions(textbox_positions, top_left, font_dict);
-        const bounding_box = new Box_1.Box(new Point_1.Point(0.0, 0.0), new Point_1.Point(Width_1.Width.get_fixed_unchecked(this.width()), depth));
-        return new AnyLayout_1.ElementBox(bounding_box, textbox_positions);
-    }
-    compute_textbox_positions(textbox_positions, top_left, font_dict) {
-        let depth = top_left.y;
-        switch (this.type_()) {
-            case "Stack": {
-                const stack = this.inner;
-                top_left = top_left.move_y_by(stack.margin.top).move_x_by(stack.margin.left);
-                for (const element of stack.elements) {
-                    depth = element.compute_textbox_positions(textbox_positions, top_left, font_dict);
-                    top_left = top_left.move_y_to(depth);
-                }
-                return depth;
-            }
-            case "Row": {
-                const row = this.inner;
-                top_left = top_left.move_y_by(row.margin.top).move_x_by(row.margin.left);
-                let per_elem_space = 0.0;
-                switch (row.alignment) {
-                    case "Center":
-                        top_left = top_left.move_x_by((Width_1.Width.get_fixed_unchecked(row.width) - row.elements_width()) / 2.0);
-                        break;
-                    case "Right":
-                        top_left = top_left.move_x_by(Width_1.Width.get_fixed_unchecked(row.width) - row.elements_width());
-                        break;
-                    case "Justified":
-                        per_elem_space = (Width_1.Width.get_fixed_unchecked(row.width) - row.elements_width()) / (row.elements.length - 1);
-                        break;
-                }
-                for (const element of row.elements) {
-                    depth = Math.max(depth, element.compute_textbox_positions(textbox_positions, top_left, font_dict));
-                    top_left =
-                        top_left.move_x_by(Width_1.Width.get_fixed_unchecked(element.width()) + per_elem_space);
-                }
-                return depth;
-            }
-            case "Elem": {
-                const elem = this.inner;
-                if (elem.is_ref) {
-                    throw new Error("Cannot compute textbox positions of uninstantiated layout");
-                }
-                if (elem.item === "") {
-                    return top_left.y;
-                }
-                const height = elem.font.get_height(font_dict);
-                const width = Width_1.Width.get_fixed_unchecked(elem.text_width);
-                top_left = top_left.move_y_by(elem.margin.top).move_x_by(elem.margin.left);
-                switch (elem.alignment) {
-                    case "Center":
-                        top_left = top_left.move_x_by((Width_1.Width.get_fixed_unchecked(elem.width) - width) / 2.0);
-                        break;
-                    case "Right":
-                        top_left = top_left.move_x_by(Width_1.Width.get_fixed_unchecked(elem.width) - width);
-                        break;
-                }
-                if (elem.alignment === "Justified") {
-                    const words = elem.item.split(/\s+/);
-                    const word_elems = words.map((word) => {
-                        const word_width = elem.font.get_width(word, font_dict);
-                        const word_elem = new Elem(word, null, false, false, Width_1.Width.absolute(word_width), elem.font, Margin_1.Margin.default_(), Alignment_1.Alignment.default_(), Width_1.Width.absolute(word_width), elem.background_color);
-                        return word_elem;
-                    });
-                    const per_elem_space = (Width_1.Width.get_fixed_unchecked(elem.width) - (word_elems.reduce((w, elem) => w + Width_1.Width.get_fixed_unchecked(elem.width), 0.0))) / (words.length);
-                    for (const word_elem of word_elems) {
-                        const textbox = new Box_1.Box(top_left, top_left.move_x_by(width).move_y_by(height));
-                        textbox_positions.push([textbox, word_elem]);
-                        top_left = top_left.move_x_by(Width_1.Width.get_fixed_unchecked(word_elem.width) + per_elem_space);
-                    }
-                }
-                else {
-                    const textbox = new Box_1.Box(top_left, top_left.move_x_by(width).move_y_by(height));
-                    textbox_positions.push([textbox, elem]);
-                }
-                return top_left.y + height;
-            }
+            return Stack.stack(lines, elem.margin, elem.alignment, elem.width, false);
         }
     }
 }
-exports.SectionLayout = SectionLayout;
-class Stack {
-    constructor(elements, margin, alignment, width, is_fill) {
-        this.tag = "Stack";
-        this.elements = elements;
-        this.margin = margin !== null && margin !== void 0 ? margin : Margin_1.Margin.default_();
-        this.alignment = alignment !== null && alignment !== void 0 ? alignment : Alignment_1.Alignment.default_();
-        this.width = width !== null && width !== void 0 ? width : Width_1.Width.default_();
-        this.is_fill = is_fill !== null && is_fill !== void 0 ? is_fill : false;
-    }
-    static stack(elements, margin, alignment, width, is_fill) {
-        return new SectionLayout(new Stack(elements, margin, alignment, width, is_fill));
-    }
-    copy() {
-        return new Stack(this.elements.map((e) => e.copy()), this.margin.copy(), this.alignment, Width_1.Width.copy(this.width));
-    }
-    static default_() {
-        return new Stack([]);
-    }
-    instantiate(section) {
-        return new Stack(this.elements.map(e => e.instantiate(section)), this.margin, this.alignment, this.width, this.is_fill);
-    }
-    with_elements(elements) {
-        return new Stack(elements, this.margin, this.alignment, this.width, this.is_fill);
-    }
-    with_margin(margin) {
-        return new Stack(this.elements, margin, this.alignment, this.width, this.is_fill);
-    }
-    with_alignment(alignment) {
-        return new Stack(this.elements, this.margin, alignment, this.width, this.is_fill);
-    }
-    with_width(width) {
-        return new Stack(this.elements, this.margin, this.alignment, width, this.is_fill);
-    }
-    bound_width(width) {
-        const bound = this.width.tag === "Absolute" ? Math.min(this.width.value, width)
-            : this.width.tag === "Fill" ? width
-                : null;
-        if (bound === null) {
-            throw new Error("Cannot bound width of non-unitized widths!");
-        }
-        return new Stack(this.elements.map(e => e.bound_width(bound)), this.margin, this.alignment, Width_1.Width.absolute(bound), Width_1.Width.is_fill(this.width));
-    }
-    scale_width(w) {
-        return this.with_elements(this.elements.map(e => e.scale_width(w))).with_width(Width_1.Width.scale(this.width, w));
-    }
+exports.breakLines = breakLines;
+function computeBoxes(l, font_dict) {
+    const top_left = new Point_1.Point(0.0, 0.0);
+    return computeTextboxPositions(l, top_left, font_dict).renderedLayout;
 }
-exports.Stack = Stack;
-class Row {
-    constructor(elements, is_frozen, margin, alignment, width, is_fill) {
-        this.tag = "Row";
-        this.elements = elements;
-        this.is_frozen = is_frozen !== null && is_frozen !== void 0 ? is_frozen : false;
-        this.margin = margin !== null && margin !== void 0 ? margin : Margin_1.Margin.default_();
-        this.alignment = alignment !== null && alignment !== void 0 ? alignment : Alignment_1.Alignment.default_();
-        this.width = width !== null && width !== void 0 ? width : Width_1.Width.default_();
-        this.is_fill = is_fill !== null && is_fill !== void 0 ? is_fill : false;
-    }
-    static row(elements, is_frozen, margin, alignment, width, is_fill) {
-        return new SectionLayout(new Row(elements, is_frozen, margin, alignment, width, is_fill));
-    }
-    copy() {
-        return new Row(this.elements.map((e) => e.copy()), this.is_frozen, this.margin.copy(), this.alignment, Width_1.Width.copy(this.width), this.is_fill);
-    }
-    static default_() {
-        return new Row([]);
-    }
-    instantiate(section) {
-        return new Row(this.elements.map(e => e.instantiate(section)), this.is_frozen, this.margin, this.alignment, this.width, this.is_fill);
-    }
-    with_elements(elements) {
-        return new Row(elements, this.is_frozen, this.margin, this.alignment, this.width, this.is_fill);
-    }
-    with_margin(margin) {
-        return new Row(this.elements, this.is_frozen, margin, this.alignment, this.width, this.is_fill);
-    }
-    with_alignment(alignment) {
-        return new Row(this.elements, this.is_frozen, this.margin, alignment, this.width, this.is_fill);
-    }
-    with_width(width) {
-        return new Row(this.elements, this.is_frozen, this.margin, this.alignment, width, this.is_fill);
-    }
-    elements_width() {
-        return this.elements.map(e => Width_1.Width.get_fixed_unchecked(e.width())).reduce((a, b) => a + b, 0.0);
-    }
-    bound_width(width) {
-        const bound = this.width.tag === "Absolute" ? Math.min(this.width.value, width)
-            : this.width.tag === "Fill" ? width
-                : null;
-        if (bound === null) {
-            throw new Error("Cannot bound width of non-unitized widths!");
-        }
-        return new Row(this.elements.map(e => e.bound_width(bound)), this.is_frozen, this.margin, this.alignment, Width_1.Width.absolute(bound), Width_1.Width.is_fill(this.width));
-    }
-    scale_width(w) {
-        return this.with_elements(this.elements.map(e => e.scale_width(w))).with_width(Width_1.Width.scale(this.width, w));
-    }
-    break_lines(font_dict) {
-        const lines = [];
-        let current_line = [];
-        let current_width = 0.0;
-        const elements = this
-            .elements
-            .map(e => e.break_lines(font_dict));
-        for (const element of elements) {
-            const element_width = Width_1.Width.get_fixed_unchecked(element.width());
-            if (current_width + element_width > Width_1.Width.get_fixed_unchecked(this.width)) {
-                lines.push(this.with_elements(current_line));
-                current_line = [];
-                current_width = 0.0;
+exports.computeBoxes = computeBoxes;
+function computeTextboxPositions(l, top_left, font_dict) {
+    let depth = top_left.y;
+    switch (l.tag) {
+        case "Stack": {
+            const stack = l;
+            top_left = top_left.move_y_by(stack.margin.top).move_x_by(stack.margin.left);
+            const originalTopLeft = top_left;
+            const renderedElements = [];
+            for (const element of stack.elements) {
+                const result = computeTextboxPositions(element, top_left, font_dict);
+                depth = result.depth;
+                top_left = top_left.move_y_to(depth);
+                renderedElements.push(result.renderedLayout);
             }
-            current_line.push(element);
-            current_width += element_width;
+            return { depth, renderedLayout: { ...l, bounding_box: new Box_1.Box(originalTopLeft, top_left.move_x_by(Width.get_fixed_unchecked(stack.width))), elements: renderedElements } };
         }
-        if (current_line.length > 0) {
-            lines.push(this.with_elements(current_line));
+        case "Row": {
+            const row = l;
+            top_left = top_left.move_y_by(row.margin.top).move_x_by(row.margin.left);
+            const originalTopLeft = top_left;
+            let per_elem_space = 0.0;
+            switch (row.alignment) {
+                case "Center":
+                    top_left = top_left.move_x_by((Width.get_fixed_unchecked(row.width) - Row.elementsWidth(row)) / 2.0);
+                    break;
+                case "Right":
+                    top_left = top_left.move_x_by(Width.get_fixed_unchecked(row.width) - Row.elementsWidth(row));
+                    break;
+                case "Justified":
+                    per_elem_space = (Width.get_fixed_unchecked(row.width) - Row.elementsWidth(row)) / (row.elements.length - 1);
+                    break;
+            }
+            const renderedElements = [];
+            for (const element of row.elements) {
+                const result = computeTextboxPositions(element, top_left, font_dict);
+                depth = Math.max(depth, result.depth);
+                top_left =
+                    top_left.move_x_by(Width.get_fixed_unchecked(element.width) + per_elem_space);
+                renderedElements.push(result.renderedLayout);
+            }
+            return { depth, renderedLayout: { ...l, bounding_box: new Box_1.Box(originalTopLeft, originalTopLeft.move_y_by(depth).move_x_by(Width.get_fixed_unchecked(row.width))), elements: renderedElements } };
         }
-        return lines;
+        case "Elem": {
+            const elem = l;
+            if (elem.is_ref) {
+                throw new Error("Cannot compute textbox positions of uninstantiated layout");
+            }
+            if (elem.item === "") {
+                return { depth, renderedLayout: { ...l, bounding_box: new Box_1.Box(top_left, top_left) } };
+            }
+            const height = Font.get_height(elem.font, font_dict);
+            const width = Width.get_fixed_unchecked(elem.text_width);
+            top_left = top_left.move_y_by(elem.margin.top).move_x_by(elem.margin.left);
+            switch (elem.alignment) {
+                case "Center":
+                    top_left = top_left.move_x_by((Width.get_fixed_unchecked(elem.width) - width) / 2.0);
+                    break;
+                case "Right":
+                    top_left = top_left.move_x_by(Width.get_fixed_unchecked(elem.width) - width);
+                    break;
+            }
+            const textbox = new Box_1.Box(top_left, top_left.move_x_by(width).move_y_by(height));
+            return { depth: top_left.y + height, renderedLayout: { ...l, bounding_box: textbox } };
+        }
     }
 }
-exports.Row = Row;
+exports.computeTextboxPositions = computeTextboxPositions;
 exports.ColorMap = {
     "Transparent": "transparent",
     "Light Yellow": "#FFC96F",
@@ -513,127 +416,3 @@ exports.ColorMap = {
     "Light Blue": "#EEF7FF",
     "Blue": "#4793AF",
 };
-class Elem {
-    constructor(item, url, is_ref, is_fill, text_width, font, margin, alignment, width, background_color) {
-        this.tag = "Elem";
-        this.item = item;
-        this.url = url;
-        this.is_ref = is_ref;
-        this.is_fill = is_fill;
-        this.text_width = text_width;
-        this.font = font;
-        this.margin = margin;
-        this.alignment = alignment;
-        this.width = width;
-        this.background_color = background_color;
-    }
-    static elem(item, url, is_ref, is_fill, text_width, font, margin, alignment, width, background_color) {
-        return new SectionLayout(new Elem(item, url, is_ref, is_fill, text_width, font, margin, alignment, width, background_color));
-    }
-    copy() {
-        console.error(this.background_color);
-        return new Elem(this.item, this.url, this.is_ref, this.is_fill, Width_1.Width.copy(this.text_width), this.font, this.margin.copy(), this.alignment, Width_1.Width.copy(this.width), this.background_color);
-    }
-    static default_() {
-        return new Elem("", null, false, false, Width_1.Width.default_(), Font_1.Font.default_(), Margin_1.Margin.default_(), Alignment_1.Alignment.default_(), Width_1.Width.default_(), "Transparent");
-    }
-    with_item(item) {
-        return new Elem(item, this.url, this.is_ref, this.is_fill, this.text_width, this.font, this.margin, this.alignment, this.width, this.background_color);
-    }
-    as_ref() {
-        return new Elem(this.item, this.url, true, this.is_fill, this.text_width, this.font, this.margin, this.alignment, this.width, this.background_color);
-    }
-    with_font(font) {
-        return new Elem(this.item, this.url, this.is_ref, this.is_fill, this.text_width, font, this.margin, this.alignment, this.width, this.background_color);
-    }
-    with_url(url) {
-        return new Elem(this.item, url, this.is_ref, this.is_fill, this.text_width, this.font, this.margin, this.alignment, this.width, this.background_color);
-    }
-    with_margin(margin) {
-        return new Elem(this.item, this.url, this.is_ref, this.is_fill, this.text_width, this.font, margin, this.alignment, this.width, this.background_color);
-    }
-    with_alignment(alignment) {
-        return new Elem(this.item, this.url, this.is_ref, this.is_fill, this.text_width, this.font, this.margin, alignment, this.width, this.background_color);
-    }
-    with_width(width) {
-        return new Elem(this.item, this.url, this.is_ref, this.is_fill, this.text_width, this.font, this.margin, this.alignment, width, this.background_color);
-    }
-    with_text_width(text_width) {
-        return new Elem(this.item, this.url, this.is_ref, this.is_fill, text_width, this.font, this.margin, this.alignment, this.width, this.background_color);
-    }
-    with_is_fill(is_fill) {
-        return new Elem(this.item, this.url, this.is_ref, is_fill, this.text_width, this.font, this.margin, this.alignment, this.width, this.background_color);
-    }
-    scale_width(w) {
-        return this.with_width(Width_1.Width.scale(this.width, w));
-    }
-    fill_fonts(fonts) {
-        const text_width_with_font = this.font.get_width(this.item, fonts);
-        if (this.is_fill) {
-            return this.with_width(Width_1.Width.absolute(Math.min(Width_1.Width.get_fixed_unchecked(this.width), text_width_with_font)))
-                .with_text_width(Width_1.Width.absolute(text_width_with_font));
-        }
-        else {
-            return this.with_text_width(Width_1.Width.absolute(text_width_with_font));
-        }
-    }
-    justified_lines(lines, font_dict) {
-        const rowLines = [];
-        for (const line of lines.slice(0, -1)) {
-            const words = line.item.split(/\s+/);
-            const row = new Row([], false, line.margin, line.alignment, line.width);
-            words.forEach(word => {
-                const word_width = this.font.get_width(word, font_dict);
-                row.elements.push(new SectionLayout(new Elem(word, null, false, false, Width_1.Width.absolute(word_width), this.font, Margin_1.Margin.default_(), Alignment_1.Alignment.default_(), Width_1.Width.absolute(word_width), this.background_color)));
-            });
-            rowLines.push(row);
-        }
-        rowLines.push(new Row([new SectionLayout(lines[lines.length - 1]).with_alignment("Left")], false, lines[0].margin, "Left", lines[0].width));
-        return rowLines;
-    }
-    break_lines(font_dict) {
-        if (Width_1.Width.get_fixed_unchecked(this.text_width) <= Width_1.Width.get_fixed_unchecked(this.width)) {
-            return [this];
-        }
-        const lines = [];
-        // todo: I'm sure this implementation is pretty buggy. Note to future me, fix
-        // this.
-        const words = this.item.split(/\s+/);
-        const widths = words.map((word) => this.font.get_width(word, font_dict));
-        const space_width = this.font.get_width(" ", font_dict);
-        let start = 0;
-        let width = widths[0];
-        const max_width = Width_1.Width.get_fixed_unchecked(this.width);
-        for (let i = 1; i < words.length; i++) {
-            const candidate_width = width + space_width + widths[i];
-            if (candidate_width > max_width) {
-                const line = words.slice(start, i).join(" ");
-                const line_width = this.font.get_width(line, font_dict);
-                lines.push(this.with_item(line)
-                    .with_text_width(Width_1.Width.absolute(line_width)));
-                start = i;
-                width = widths[i];
-            }
-            else {
-                width += space_width + widths[i];
-            }
-        }
-        const line = words.slice(start).join(" ");
-        const line_width = this.font.get_width(line, font_dict);
-        lines.push(this.with_item(line)
-            .with_text_width(Width_1.Width.absolute(line_width)));
-        if (this.alignment === "Justified") {
-            return this.justified_lines(lines, font_dict);
-        }
-        return lines;
-    }
-    bound_width(width) {
-        if (!Width_1.Width.is_fill(this.width)) {
-            return this.with_width(Width_1.Width.absolute(Math.min(Width_1.Width.get_fixed_unchecked(this.width), width))).with_is_fill(false);
-        }
-        else {
-            return this.with_width(Width_1.Width.absolute(width)).with_is_fill(true);
-        }
-    }
-}
-exports.Elem = Elem;

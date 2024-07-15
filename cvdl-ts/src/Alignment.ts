@@ -1,8 +1,8 @@
 
-export type Alignment = "Left" | "Center" | "Right" | "Justified";
+export type t = "Left" | "Center" | "Right" | "Justified";
 
-export module Alignment {
-    export function default_() : Alignment {
-        return "Left";
-    }
+type Alignment = t;
+
+export function default_(): Alignment {
+    return "Left";
 }

@@ -8,7 +8,6 @@ class Resume {
         this.sections = sections;
     }
     static fromJson(resume) {
-        console.log(resume);
         if (typeof resume !== "object") {
             throw new Error("Resume must be an object");
         }

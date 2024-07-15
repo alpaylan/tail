@@ -1,6 +1,6 @@
 {
     "name": "cvdl-ts",
-    "version": "1.0.10",
+    "version": "1.0.12",
     "description": "Typescript Implementation of CVDL Compiler",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -24,6 +24,7 @@
     "scripts": {
         "lint": "eslint . --ext .ts",
         "build": "tsc",
-        "start": "ts-node src/index.ts"
+        "start": "ts-node src/index.ts",
+        "cli": "ts-node src/cli.ts"
     }
 }

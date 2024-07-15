@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { DataSchema } from "./DataSchema";
-import { Font } from "./Font";
+import * as Font from "./Font";
 import { LayoutSchema } from "./LayoutSchema";
 import { Resume } from "./Resume";
 import { ResumeLayout } from "./ResumeLayout";
@@ -18,5 +18,5 @@ export interface Storage {
     save_data_schema(data_schema: DataSchema): Promise<void>;
     save_layout_schema(layout_schema: LayoutSchema): Promise<void>;
     save_resume_layout(resume_layout: ResumeLayout): Promise<void>;
-    load_font(font: Font): Promise<Buffer>;
+    load_font(font: Font.t): Promise<Buffer>;
 }

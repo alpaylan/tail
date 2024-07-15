@@ -3,11 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.render = void 0;
+exports.renderSectionLayout = exports.render = void 0;
 const blob_stream_1 = __importDefault(require("blob-stream"));
 const AnyLayout_1 = require("./AnyLayout");
 const pdfkit_1 = __importDefault(require("pdfkit"));
-const Layout_1 = require("./Layout");
+const _1 = require(".");
 const render = async ({ resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict, debug = false }) => {
     let start_time = Date.now();
     if (!resume && !resume_name) {
@@ -37,7 +37,7 @@ const render = async ({ resume_name, resume, data_schemas, layout_schemas, resum
     // doc.pipe(fs.createWriteStream('output.pdf'));
     const stream = doc.pipe((0, blob_stream_1.default)());
     start_time = Date.now();
-    const [font_dict, pages] = await (0, AnyLayout_1.render)({ layout_schemas, resume, data_schemas, resume_layout, storage, fontDict });
+    const [font_dict, layouts] = await (0, AnyLayout_1.render)({ layout_schemas, resume, data_schemas, resume_layout, storage, fontDict });
     end_time = Date.now();
     console.info(`Rendering time: ${end_time - start_time}ms`);
     console.log("Constructing printpdf font dictionary...");
@@ -57,31 +57,38 @@ const render = async ({ resume_name, resume, data_schemas, layout_schemas, resum
     }
     console.log("Rendering the document...");
     // Render the boxes
-    for (const [index, boxes] of pages.entries()) {
-        if (index > 0) {
-            doc.addPage();
-        }
-        boxes.forEach((box) => {
-            const elements = box.elements;
-            if (debug) {
-                doc.rect(box.bounding_box.top_left.x, box.bounding_box.top_left.y, box.bounding_box.width(), box.bounding_box.height()).stroke();
-            }
-            for (const [box_, element] of elements) {
-                console.log(`(${box_.top_left.x}, ${box_.top_left.y})(${box_.bottom_right.x}, ${box_.bottom_right.y}): ${element.item}`);
-                if (element.background_color !== "Transparent") {
-                    doc.rect(box_.top_left.x, box_.top_left.y, box_.width(), box_.height()).fillAndStroke(Layout_1.ColorMap[element.background_color], Layout_1.ColorMap[element.background_color]);
-                }
-                // Make this more generic
-                doc.fillColor("black");
-                doc.
-                    font(element.font.full_name()).
-                    fontSize(element.font.size).
-                    text(element.item, box_.top_left.x, box_.top_left.y, { lineBreak: false });
-                if (debug) {
-                    // doc.rect(box_.top_left.x, box_.top_left.y, box_.width(), box_.height()).stroke();
-                }
-            }
-        });
+    // for (const [index, boxes] of pages.entries()) {
+    //     if (index > 0) {
+    //         doc.addPage();
+    //     }
+    //     boxes.forEach((box) => {
+    //         const elements = box.elements;
+    //         // if (debug) {
+    //         //     doc.rect(box.bounding_box.top_left.x, box.bounding_box.top_left.y, box.bounding_box.width(), box.bounding_box.height()).stroke();
+    //         // }
+    //         for (const [box_, element] of elements) {
+    //             console.log(
+    //                 `(${box_.top_left.x}, ${box_.top_left.y})(${box_.bottom_right.x}, ${box_.bottom_right.y}): ${element.item}`
+    //             );
+    //             if (element.background_color !== "Transparent") {
+    //                 doc.rect(box_.top_left.x, box_.top_left.y, box_.width(), box_.height()).fillAndStroke(ColorMap[element.background_color], ColorMap[element.background_color]);
+    //             }
+    //             // Make this more generic
+    //             doc.fillColor("black");
+    //             doc.
+    //                 font(element.font.full_name()).
+    //                 fontSize(element.font.size).
+    //                 text(element.item, box_.top_left.x, box_.top_left.y, { lineBreak: false });
+    //             if (debug) {
+    //                 // doc.rect(box_.top_left.x, box_.top_left.y, box_.width(), box_.height()).stroke();
+    //             }
+    //         }
+    //     });
+    // }
+    let current_height = 0;
+    for (const layout of layouts) {
+        (0, exports.renderSectionLayout)(layout, resume_layout, current_height, doc);
+        current_height += layout.bounding_box.height() + layout.margin.top + layout.margin.bottom;
     }
     console.log("Rendering is completed. Saving the document...");
     console.log("Document is saved to output.pdf");
@@ -90,11 +97,36 @@ const render = async ({ resume_name, resume, data_schemas, layout_schemas, resum
         stream.on("finish", () => {
             resolve({
                 blob: stream.toBlob("application/pdf"),
-                // @ts-ignore
                 fontDict: fontDict,
-                pages: pages
             });
         });
     });
 };
 exports.render = render;
+const renderSectionLayout = (layout, resume_layout, current_height, doc) => {
+    switch (layout.tag) {
+        case "Stack": {
+            const stack = layout;
+            for (const elem of stack.elements) {
+                (0, exports.renderSectionLayout)(elem, resume_layout, current_height, doc);
+            }
+            break;
+        }
+        case "Row": {
+            const row = layout;
+            for (const elem of row.elements) {
+                (0, exports.renderSectionLayout)(elem, resume_layout, current_height, doc);
+            }
+            break;
+        }
+        case "Elem": {
+            const elem = layout;
+            doc.
+                font(_1.Font.full_name(elem.font)).
+                fontSize(elem.font.size).
+                text(elem.item, layout.bounding_box.top_left.x + resume_layout.margin.left, layout.bounding_box.top_left.y + resume_layout.margin.top + current_height, { lineBreak: false });
+            break;
+        }
+    }
+};
+exports.renderSectionLayout = renderSectionLayout;

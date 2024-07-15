@@ -78,7 +78,6 @@ const AddNewSection = (props: { dataSchemas: DataSchema[], layoutSchemas: Layout
           <div className='panel-item'>
             <label>Layout Schema</label>
             <select value={layoutSchema} onChange={(e) => {
-              console.error(e.target.value);
               setLayoutSchema(e.target.value);
             }}>
               {availableLayoutSchemas.map((schema) => {

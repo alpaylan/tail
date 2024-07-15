@@ -27,8 +27,8 @@ import { DataSchema } from "./DataSchema";
 import { LayoutSchema } from "./LayoutSchema";
 import { ResumeLayout } from "./ResumeLayout";
 import { Storage } from "./Storage";
-import { SectionLayout } from "./Layout";
-import { Font } from "./Font";
+import * as Layout from "./Layout";
+import * as Font from "./Font";
 
 export class RemoteStorage implements Storage {
     url: string = '';
@@ -111,7 +111,7 @@ export class RemoteStorage implements Storage {
 
     }
 
-    async load_font(font: Font): Promise<Buffer> {
+    async load_font(font: Font.t): Promise<Buffer> {
         const response = await fetch(this.url + "/font/", {
             method: 'POST',
             headers: {
@@ -119,9 +119,7 @@ export class RemoteStorage implements Storage {
             },
             body: JSON.stringify(font)
         });
-        console.log(response);
         const font_data = await response.arrayBuffer();
-        console.log(font_data);
         return Buffer.from(font_data);
     }
 }

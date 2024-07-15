@@ -4,11 +4,11 @@ import { DataSchema } from "./DataSchema";
 import { LayoutSchema } from "./LayoutSchema";
 import { ResumeLayout } from "./ResumeLayout";
 import { Storage } from "./Storage";
-import { Font } from "./Font";
+import * as Font from "./Font";
 export declare class FileStorage implements Storage {
     dir: string;
     constructor(dir: string);
-    load_font(font: Font): Promise<Buffer>;
+    load_font(font: Font.t): Promise<Buffer>;
     initiate_storage(): Promise<void>;
     list_resumes(): Promise<string[]>;
     list_data_schemas(): Promise<string[]>;

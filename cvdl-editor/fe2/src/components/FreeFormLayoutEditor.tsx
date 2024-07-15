@@ -5,7 +5,7 @@ import { DocumentDispatchContext, EditorContext } from './State';
 import { LayoutSchema } from 'cvdl-ts/dist/LayoutSchema';
 import { DataSchema } from 'cvdl-ts/dist/DataSchema';
 import { LocalStorage } from 'cvdl-ts/dist/LocalStorage';
-import { SectionLayout } from 'cvdl-ts/dist/Layout';
+import * as Layout from 'cvdl-ts/dist/Layout';
 
 type Position = {
     x: number,
@@ -197,19 +197,19 @@ const findElementOnPosition: (elements: FormElement[], position: Position) => Fo
 }
 
 const toFreeformElements = (layoutSchema: LayoutSchema): FormElement => {
-    const toFreeformElement = (section: SectionLayout): FormElement => {
-        if (section.inner.tag === 'Elem') {
+    const toFreeformElement = (section: Layout.t): FormElement => {
+        if (section.tag === 'Elem') {
             return {
                 tag: 'item',
-                id: section.inner.item,
-                value: section.inner.item,
+                id: section.item,
+                value: section.item,
                 position: { x: 10, y: 10 },
                 size: { width: EMPTY_ELEMENT_WIDTH, height: EMPTY_ELEMENT_HEIGHT }
             };
         } else {
-            const children = section.inner.elements.map((section) => toFreeformElement(section));
+            const children = section.elements.map((section) => toFreeformElement(section));
             return {
-                tag: section.inner.tag === 'Row' ? 'row' : 'column',
+                tag: section.tag === 'Row' ? 'row' : 'column',
                 id: Math.random().toString(36).substring(7),
                 position: { x: 10, y: 10 },
                 size: { width: EMPTY_ELEMENT_WIDTH, height: EMPTY_ELEMENT_HEIGHT },

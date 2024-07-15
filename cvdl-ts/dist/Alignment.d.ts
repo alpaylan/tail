@@ -1,4 +1,4 @@
-export type Alignment = "Left" | "Center" | "Right" | "Justified";
-export declare namespace Alignment {
-    function default_(): Alignment;
-}
+export type t = "Left" | "Center" | "Right" | "Justified";
+type Alignment = t;
+export declare function default_(): Alignment;
+export {};

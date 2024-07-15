@@ -27,7 +27,7 @@ import { DataSchema } from "./DataSchema";
 import { LayoutSchema } from "./LayoutSchema";
 import { ResumeLayout } from "./ResumeLayout";
 import { Storage } from "./Storage";
-import { Font } from "./Font";
+import * as Font from "./Font";
 
 export class FileStorage implements Storage {
     dir: string = "";
@@ -36,8 +36,8 @@ export class FileStorage implements Storage {
         this.dir = dir;
     }
 
-    load_font(font: Font): Promise<Buffer> {
-        throw new Error("Method not implemented.");
+    load_font(font: Font.t): Promise<Buffer> {
+        return Promise.resolve(fs.readFileSync(this.dir + Font.full_name(font) + ".ttf"));
     }
 
     initiate_storage() : Promise<void> {
