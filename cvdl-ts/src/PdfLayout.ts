@@ -93,39 +93,6 @@ export const render = async (
         console.error(e);
     }
     console.log("Rendering the document...");
-    // Render the boxes
-    // for (const [index, boxes] of pages.entries()) {
-    //     if (index > 0) {
-    //         doc.addPage();
-    //     }
-
-    //     boxes.forEach((box) => {
-    //         const elements = box.elements;
-    //         // if (debug) {
-    //         //     doc.rect(box.bounding_box.top_left.x, box.bounding_box.top_left.y, box.bounding_box.width(), box.bounding_box.height()).stroke();
-    //         // }
-    //         for (const [box_, element] of elements) {
-    //             console.log(
-    //                 `(${box_.top_left.x}, ${box_.top_left.y})(${box_.bottom_right.x}, ${box_.bottom_right.y}): ${element.item}`
-    //             );
-    //             if (element.background_color !== "Transparent") {
-    //                 doc.rect(box_.top_left.x, box_.top_left.y, box_.width(), box_.height()).fillAndStroke(ColorMap[element.background_color], ColorMap[element.background_color]);
-    //             }
-    //             // Make this more generic
-    //             doc.fillColor("black");
-
-    //             doc.
-    //                 font(element.font.full_name()).
-    //                 fontSize(element.font.size).
-    //                 text(element.item, box_.top_left.x, box_.top_left.y, { lineBreak: false });
-
-    //             if (debug) {
-    //                 // doc.rect(box_.top_left.x, box_.top_left.y, box_.width(), box_.height()).stroke();
-    //             }
-    //         }
-    //     });
-    // }
-
 
     let current_height = 0;
     for (const layout of layouts) {
@@ -151,6 +118,27 @@ export const render = async (
 
 }
 
+export const mergeSpans = (spans: Elem.Span[]): Elem.Span[] => {
+    const merged_spans: Elem.Span[] = [];
+    let currentSpan = spans[0];
+    for (let i = 1; i < spans.length; i++) {
+        if (currentSpan.bbox.top_left.y === spans[i].bbox.top_left.y
+            && currentSpan.font === spans[i].font
+            && currentSpan.is_code === spans[i].is_code
+            && currentSpan.is_bold === spans[i].is_bold
+            && currentSpan.is_italic === spans[i].is_italic
+        ) {
+            currentSpan.text += spans[i].text;
+            currentSpan.bbox.bottom_right = spans[i].bbox.bottom_right;
+        } else {
+            merged_spans.push(currentSpan);
+            currentSpan = spans[i];
+        }
+    }
+    merged_spans.push(currentSpan);
+    return merged_spans;
+}
+
 export const renderSectionLayout = (layout: Layout.RenderedLayout, resume_layout: ResumeLayout, current_height: number, doc: PDFKit.PDFDocument) => {
     switch (layout.tag) {
         case "Stack": {
@@ -169,11 +157,7 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, resume_layout
         }
         case "Elem": {
             const elem = layout as Elem.t;
-            elem.spans.forEach((span) => {
-                console.log(span)
-                if (span.text === "") {
-                    return;
-                }
+            mergeSpans(elem.spans).forEach((span) => {
                 doc.
                     font(Font.full_name(span.font)).
                     fontSize(span.font.size).
@@ -181,9 +165,9 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, resume_layout
                 if (span.is_code) {
                     // Add a rounded rectangle around the code
                     doc.roundedRect(
-                        layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 3,
+                        layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 5,
                         layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y,
-                        span.bbox.width() + span.font.size / 3 * 2,
+                        span.bbox.width() + span.font.size / 5 * 2,
                         span.bbox.height(),
                         5
                     ).stroke();
@@ -191,9 +175,9 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, resume_layout
                     doc.fillColor("black");
                     doc.fillOpacity(0.05);
                     doc.rect(
-                        layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 3,
+                        layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 5,
                         layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y,
-                        span.bbox.width() + span.font.size / 3 * 2,
+                        span.bbox.width() + span.font.size / 5 * 2,
                         span.bbox.height()
                     ).fill();
                     doc.fillOpacity(1);

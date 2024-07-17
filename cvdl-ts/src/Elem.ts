@@ -28,7 +28,7 @@ function defaultSpanProps(): SpanProps {
     };
 }
 
-type Span = {
+export type Span = {
     is_italic: boolean;
     is_bold: boolean;
     is_code: boolean;
@@ -186,14 +186,14 @@ function flattenToken(t: marked.Token, sp: SpanProps): Span[] {
             })
         .with({ type: "text", text: P.select("text") },
             ({ text }) => {
-                const result : Span[] = [];
+                const result: Span[] = [];
 
                 if (text.startsWith(" ")) {
                     result.push({ ...sp, text: " ", link: null });
                 }
 
                 result.push({ ...sp, text: text.trim(), link: null });
-                
+
                 if (text.endsWith(" ")) {
                     result.push({ ...sp, text: " ", link: null });
                 } else if (text.endsWith("\n")) {
@@ -219,9 +219,9 @@ export function parseMarkdownItem(item: string): Span[] {
 
 export function fillFonts(e: Elem, fonts: FontDict): Elem {
     const simpleSpans = e.is_markdown ? parseMarkdownItem(e.item) : [{ ...defaultSpanProps(), text: e.item, font: e.font, link: null }];
-    const spans : Span[] = [];
+    const spans: Span[] = [];
     for (const span of simpleSpans) {
-        const font = e.is_markdown ? with_(e.font, ({ 
+        const font = e.is_markdown ? with_(e.font, ({
             // style: span.is_italic ? "Italic" : "Normal",
             weight: span.is_bold ? "Bold" : "Medium",
         })) : e.font;
@@ -232,15 +232,18 @@ export function fillFonts(e: Elem, fonts: FontDict): Elem {
             continue;
         }
 
-        span.text.split(/\s+/).forEach(word => {
+        const words = span.text.split(/\s+/);
+        words.forEach((word, index) => {
             const width = Font.get_width(font, word, fonts);
             spans.push({ ...span, text: word, font, width });
-            spans.push({ ...span, text: " ", font, width: Font.get_width(font, " ", fonts) });
+            if (index < words.length - 1) {
+                spans.push({ ...span, text: " ", font, width: Font.get_width(font, " ", fonts) });
+            }
         });
     }
 
     const text_width = spans.reduce((acc, span) => acc + span.width, 0);
-    
+
     if (e.is_fill) {
         return with_(e, {
             width: Width.absolute(Math.min(Width.get_fixed_unchecked(e.width), text_width)),
