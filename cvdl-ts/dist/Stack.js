@@ -1,11 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.scaleWidth = exports.boundWidth = exports.withIsFill = exports.withWidth = exports.withAlignment = exports.withMargin = exports.withElements = exports.instantiate = exports.default_ = exports.copy = exports.stack = exports.from = exports.with_ = void 0;
+exports.scaleWidth = exports.boundWidth = exports.withIsFill = exports.withWidth = exports.withAlignment = exports.withMargin = exports.withElements = exports.default_ = exports.copy = exports.stack = exports.from = void 0;
 const _1 = require(".");
-function with_(e, w) {
-    return { ...e, ...w };
-}
-exports.with_ = with_;
 function from(w) {
     return { ...default_(), ...w };
 }
@@ -38,10 +34,6 @@ function default_() {
     };
 }
 exports.default_ = default_;
-function instantiate(s, section) {
-    return withElements(s, s.elements.map(e => _1.Layout.instantiate(e, section)));
-}
-exports.instantiate = instantiate;
 function withElements(s, elements) {
     return {
         ...s,

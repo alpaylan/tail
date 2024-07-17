@@ -9,6 +9,7 @@ import { Point } from "./Point";
 import * as Stack from "./Stack";
 import * as Row from "./Row";
 import * as Elem from "./Elem";
+import { Field } from "./DataSchema";
 export type Container = Stack.t | Row.t;
 export type t = Stack.t | Row.t | Elem.t;
 type Layout = t;
@@ -39,7 +40,7 @@ export declare function withAlignment(l: Layout, alignment: Alignment.t): Layout
 export declare function withWidth(l: Layout, width: Width.t): Layout;
 export declare function totalElementsWidth(l: Layout): number;
 export declare function isInstantiated(l: Layout): boolean;
-export declare function instantiate(l: Layout, section: Map<string, ItemContent>): Layout;
+export declare function instantiate(l: Layout, section: Map<string, ItemContent>, fields: Field.t[]): Layout;
 export declare function boundWidth(l: Layout, width: number): Layout;
 export declare function scaleWidth(l: Layout, document_width: number): Layout;
 export declare function normalize(l: Layout, width: number, font_dict: FontDict): Layout;

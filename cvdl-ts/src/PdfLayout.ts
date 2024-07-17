@@ -130,7 +130,7 @@ export const render = async (
     let current_height = 0;
     for (const layout of layouts) {
         renderSectionLayout(layout, resume_layout, current_height, doc);
-        current_height += layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;        
+        current_height += layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;
     }
 
     console.log("Rendering is completed. Saving the document...");
@@ -169,10 +169,40 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, resume_layout
         }
         case "Elem": {
             const elem = layout as Elem.t;
-            doc.
-                font(Font.full_name(elem.font)).
-                fontSize(elem.font.size).
-                text(elem.item, layout.bounding_box.top_left.x + resume_layout.margin.left, layout.bounding_box.top_left.y + resume_layout.margin.top + current_height, { lineBreak: false });
+            elem.spans.forEach((span) => {
+                console.log(span)
+                if (span.text === "") {
+                    return;
+                }
+                doc.
+                    font(Font.full_name(span.font)).
+                    fontSize(span.font.size).
+                    text(span.text, layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x, layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y, { lineBreak: false });
+                if (span.is_code) {
+                    // Add a rounded rectangle around the code
+                    doc.roundedRect(
+                        layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 3,
+                        layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y,
+                        span.bbox.width() + span.font.size / 3 * 2,
+                        span.bbox.height(),
+                        5
+                    ).stroke();
+                    // Add a background color to the code
+                    doc.fillColor("black");
+                    doc.fillOpacity(0.05);
+                    doc.rect(
+                        layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 3,
+                        layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y,
+                        span.bbox.width() + span.font.size / 3 * 2,
+                        span.bbox.height()
+                    ).fill();
+                    doc.fillOpacity(1);
+                }
+            });
+            // doc.
+            //     font(Font.full_name(elem.font)).
+            //     fontSize(elem.font.size).
+            //     text(elem.item, layout.bounding_box.top_left.x + resume_layout.margin.left, layout.bounding_box.top_left.y + resume_layout.margin.top + current_height, { lineBreak: false });
             break;
         }
     }

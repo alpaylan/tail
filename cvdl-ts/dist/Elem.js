@@ -23,18 +23,30 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.instantiate = exports.boundWidth = exports.break_lines = exports.justifiedLines = exports.fillFonts = exports.scaleWidth = exports.withBackgroundColor = exports.withWidth = exports.withAlignment = exports.withMargin = exports.withFont = exports.withTextWidth = exports.withIsFill = exports.asRef = exports.withIsRef = exports.withUrl = exports.withItem = exports.from = exports.with_ = exports.default_ = exports.copy = exports.elem = void 0;
+exports.instantiate = exports.boundWidth = exports.break_lines = exports.justifiedLines = exports.fillFonts = exports.parseMarkdownItem = exports.scaleWidth = exports.withBackgroundColor = exports.withWidth = exports.withAlignment = exports.withMargin = exports.withFont = exports.withTextWidth = exports.withIsFill = exports.asRef = exports.withIsRef = exports.withUrl = exports.withItem = exports.from = exports.default_ = exports.copy = exports.elem = void 0;
 const Font = __importStar(require("./Font"));
 const _1 = require(".");
 const Row_1 = require("./Row");
 const Resume_1 = require("./Resume");
-function elem(item, url, is_ref, is_fill, text_width, font, margin, alignment, width, background_color) {
+const marked = __importStar(require("marked"));
+const ts_pattern_1 = require("ts-pattern");
+const Utils_1 = require("./Utils");
+function defaultSpanProps() {
+    return {
+        is_italic: false,
+        is_bold: false,
+        is_code: false,
+        is_link: false,
+    };
+}
+function elem(item, url, is_ref, is_fill, is_markdown, text_width, font, margin, alignment, width, background_color) {
     return {
         tag: "Elem",
         item,
         url,
         is_ref,
         is_fill,
+        is_markdown,
         text_width,
         font,
         margin,
@@ -55,6 +67,7 @@ function default_() {
         url: null,
         is_ref: false,
         is_fill: false,
+        is_markdown: false,
         text_width: _1.Width.default_(),
         font: Font.default_(),
         margin: _1.Margin.default_(),
@@ -64,10 +77,6 @@ function default_() {
     };
 }
 exports.default_ = default_;
-function with_(e, w) {
-    return { ...e, ...w };
-}
-exports.with_ = with_;
 function from(w) {
     return { ...default_(), ...w };
 }
@@ -120,13 +129,91 @@ function scaleWidth(e, scale) {
     return withWidth(e, _1.Width.scale(e.width, scale));
 }
 exports.scaleWidth = scaleWidth;
+function flatten(ts, sp) {
+    const spans = [];
+    for (const t of ts) {
+        spans.push(...flattenToken(t, sp));
+    }
+    return spans;
+}
+function flattenToken(t, sp) {
+    return (0, ts_pattern_1.match)(t)
+        .returnType()
+        .with({ type: "paragraph", tokens: ts_pattern_1.P.select("tokens") }, ({ tokens }) => {
+        // console.log("[paragraph]", tokens);
+        return flatten(tokens, sp);
+    })
+        .with({ type: "strong", tokens: ts_pattern_1.P.select("tokens") }, ({ tokens }) => {
+        // console.log("[strong]", tokens);
+        return flatten(tokens, { ...sp, is_bold: true });
+    })
+        .with({ type: "em", tokens: ts_pattern_1.P.select("tokens") }, ({ tokens }) => {
+        // console.log("[em]", tokens);
+        return flatten(tokens, { ...sp, is_italic: true });
+    })
+        .with({ type: "codespan", text: ts_pattern_1.P.select("text") }, ({ text }) => {
+        // console.log("[codespan]", text);
+        return [{ ...sp, is_code: true, text, link: null }];
+    })
+        .with({ type: "text", tokens: ts_pattern_1.P.select("tokens") }, ({ tokens }) => {
+        return flatten(tokens, sp);
+    })
+        .with({ type: "text", text: ts_pattern_1.P.select("text") }, ({ text }) => {
+        const result = [];
+        if (text.startsWith(" ")) {
+            result.push({ ...sp, text: " ", link: null });
+        }
+        result.push({ ...sp, text: text.trim(), link: null });
+        if (text.endsWith(" ")) {
+            result.push({ ...sp, text: " ", link: null });
+        }
+        else if (text.endsWith("\n")) {
+            result.push({ ...sp, text: "\n", link: null });
+        }
+        return result;
+    })
+        .otherwise((e) => {
+        // console.log(`Unknown token type: ${JSON.stringify(e)}`);
+        return [{ ...defaultSpanProps(), text: e.raw, link: null }];
+    });
+}
+function parseMarkdownItem(item) {
+    const spans = [];
+    for (const token of marked.lexer(item)) {
+        spans.push(...flatten([token], defaultSpanProps()));
+    }
+    return spans;
+}
+exports.parseMarkdownItem = parseMarkdownItem;
 function fillFonts(e, fonts) {
-    const text_width_with_font = Font.get_width(e.font, e.item, fonts);
+    const simpleSpans = e.is_markdown ? parseMarkdownItem(e.item) : [{ ...defaultSpanProps(), text: e.item, font: e.font, link: null }];
+    const spans = [];
+    for (const span of simpleSpans) {
+        const font = e.is_markdown ? (0, Utils_1.with_)(e.font, ({
+            // style: span.is_italic ? "Italic" : "Normal",
+            weight: span.is_bold ? "Bold" : "Medium",
+        })) : e.font;
+        if (span.text === " " || span.text === "\n") {
+            const width = Font.get_width(font, span.text, fonts);
+            spans.push({ ...span, font, width });
+            continue;
+        }
+        span.text.split(/\s+/).forEach(word => {
+            const width = Font.get_width(font, word, fonts);
+            spans.push({ ...span, text: word, font, width });
+            spans.push({ ...span, text: " ", font, width: Font.get_width(font, " ", fonts) });
+        });
+    }
+    const text_width = spans.reduce((acc, span) => acc + span.width, 0);
     if (e.is_fill) {
-        return withTextWidth(withWidth(e, _1.Width.absolute(Math.min(_1.Width.get_fixed_unchecked(e.width), text_width_with_font))), _1.Width.absolute(text_width_with_font));
+        return (0, Utils_1.with_)(e, {
+            width: _1.Width.absolute(Math.min(_1.Width.get_fixed_unchecked(e.width), text_width)),
+            text_width: _1.Width.absolute(text_width),
+            spans
+        });
     }
     else {
-        return withTextWidth(e, _1.Width.absolute(text_width_with_font));
+        return (0, Utils_1.with_)(e, { text_width: _1.Width.absolute(text_width), spans });
     }
 }
 exports.fillFonts = fillFonts;
@@ -137,7 +224,7 @@ function justifiedLines(e, lines, font_dict) {
         const r = (0, Row_1.row)([], line.margin, line.alignment, line.width, false, false);
         words.forEach(word => {
             const word_width = Font.get_width(e.font, word, font_dict);
-            r.elements.push(elem(word, null, false, false, _1.Width.absolute(word_width), this.font, _1.Margin.default_(), _1.Alignment.default_(), _1.Width.absolute(word_width), this.background_color));
+            r.elements.push(elem(word, null, false, false, false, _1.Width.absolute(word_width), this.font, _1.Margin.default_(), _1.Alignment.default_(), _1.Width.absolute(word_width), this.background_color));
         });
         rowLines.push(Row_1.row);
     }
@@ -189,9 +276,15 @@ function boundWidth(e, width) {
     }
 }
 exports.boundWidth = boundWidth;
-function instantiate(e, section) {
+function instantiate(e, section, fields) {
     if (!e.is_ref) {
         return e;
+    }
+    const itemType = fields.find(f => f.name === e.item);
+    console.log(`Found item type: ${JSON.stringify(itemType)}`);
+    if (itemType.type.tag === "MarkdownString") {
+        console.log(`Found markdown string: ${e.item}`);
+        e.is_markdown = true;
     }
     const text = section.get(e.item);
     if (text === undefined) {

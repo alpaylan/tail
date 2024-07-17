@@ -1,8 +1,7 @@
 import { Alignment, Margin, Width } from ".";
 import { FontDict } from "./AnyLayout";
-import { Optional } from "./Elem";
+import { Optional } from "./Utils";
 import * as Layout from "./Layout";
-import { ItemContent } from "./Resume";
 
 export type t = {
     tag: "Row";
@@ -15,10 +14,6 @@ export type t = {
 }
 
 type Row = t;
-
-export function with_(e: Row, w: Optional<Row>): Row {
-    return { ...e, ...w };
-}
 
 export function from(w: Optional<Row>): Row {
     return { ...default_(), ...w };
@@ -53,10 +48,6 @@ export function default_(): Row {
         is_frozen: false,
         is_fill: false,
     };
-}
-
-export function instantiate(r: Row, section: Map<string, ItemContent>): Row {
-    return withElements(r, r.elements.map(e => Layout.instantiate(e, section)));
 }
 
 export function withElements(r: Row, elements: Layout.t[]): Row {

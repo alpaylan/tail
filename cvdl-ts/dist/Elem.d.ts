@@ -4,12 +4,28 @@ import { Color } from "./Layout";
 import { FontDict } from "./AnyLayout";
 import * as Row from "./Row";
 import { ItemContent } from "./Resume";
+import { Field } from "./DataSchema";
+import { Optional } from "./Utils";
+import { Box } from "./Box";
+type Span = {
+    is_italic: boolean;
+    is_bold: boolean;
+    is_code: boolean;
+    text: string;
+    link: string | null;
+    font?: Font.t;
+    width?: number;
+    line?: number;
+    bbox?: Box;
+};
 export type t = {
     tag: "Elem";
     item: string;
+    spans?: Span[];
     url: string | null;
     is_ref: boolean;
     is_fill: boolean;
+    is_markdown: boolean;
     text_width: Width.t;
     font: Font.t;
     margin: Margin.t;
@@ -18,13 +34,15 @@ export type t = {
     background_color: Color;
 };
 type Elem = t;
-export declare function elem(item: string, url: string | null, is_ref: boolean, is_fill: boolean, text_width: Width.t, font: Font.t, margin: Margin.t, alignment: Alignment.t, width: Width.t, background_color: Color): Elem;
+export declare function elem(item: string, url: string | null, is_ref: boolean, is_fill: boolean, is_markdown: boolean, text_width: Width.t, font: Font.t, margin: Margin.t, alignment: Alignment.t, width: Width.t, background_color: Color): Elem;
 export declare function copy(e: Elem): {
     tag: "Elem";
     item: string;
+    spans?: Span[];
     url: string;
     is_ref: boolean;
     is_fill: boolean;
+    is_markdown: boolean;
     text_width: Width.t;
     font: Font.t;
     margin: Margin.t;
@@ -33,10 +51,6 @@ export declare function copy(e: Elem): {
     background_color: Layout.Color;
 };
 export declare function default_(): Elem;
-export type Optional<T> = {
-    [P in keyof T]?: T[P];
-};
-export declare function with_(e: Elem, w: Optional<Elem>): Elem;
 export declare function from(w: Optional<Elem>): Elem;
 export declare function withItem(e: Elem, item: string): Elem;
 export declare function withUrl(e: Elem, url: string | null): Elem;
@@ -50,9 +64,10 @@ export declare function withAlignment(e: Elem, alignment: Alignment.t): Elem;
 export declare function withWidth(e: Elem, width: Width.t): Elem;
 export declare function withBackgroundColor(e: Elem, background_color: Color): Elem;
 export declare function scaleWidth(e: Elem, scale: number): Elem;
+export declare function parseMarkdownItem(item: string): Span[];
 export declare function fillFonts(e: Elem, fonts: FontDict): Elem;
 export declare function justifiedLines(e: Elem, lines: Elem[], font_dict: FontDict): Row.t[];
 export declare function break_lines(e: Elem, font_dict: FontDict): Layout.t[];
 export declare function boundWidth(e: Elem, width: number): Elem;
-export declare function instantiate(e: Elem, section: Map<string, ItemContent>): Elem;
+export declare function instantiate(e: Elem, section: Map<string, ItemContent>, fields: Field.t[]): Elem;
 export {};

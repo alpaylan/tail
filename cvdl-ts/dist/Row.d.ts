@@ -1,8 +1,7 @@
 import { Alignment, Margin, Width } from ".";
 import { FontDict } from "./AnyLayout";
-import { Optional } from "./Elem";
+import { Optional } from "./Utils";
 import * as Layout from "./Layout";
-import { ItemContent } from "./Resume";
 export type t = {
     tag: "Row";
     elements: Layout.t[];
@@ -13,12 +12,10 @@ export type t = {
     is_fill: boolean;
 };
 type Row = t;
-export declare function with_(e: Row, w: Optional<Row>): Row;
 export declare function from(w: Optional<Row>): Row;
 export declare function row(elements: Layout.t[], margin: Margin.t, alignment: Alignment.t, width: Width.t, is_frozen: boolean, is_fill: boolean): Row;
 export declare function copy(r: Row): Row;
 export declare function default_(): Row;
-export declare function instantiate(r: Row, section: Map<string, ItemContent>): Row;
 export declare function withElements(r: Row, elements: Layout.t[]): Row;
 export declare function withMargin(r: Row, margin: Margin.t): Row;
 export declare function withAlignment(r: Row, alignment: Alignment.t): Row;

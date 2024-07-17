@@ -1,7 +1,6 @@
 
 import { Alignment, Layout, Margin, Width } from ".";
-import { Optional } from "./Elem";
-import { ItemContent } from "./Resume";
+import { Optional } from "./Utils";
 
 export type t = {
     tag: "Stack";
@@ -12,11 +11,6 @@ export type t = {
     is_fill: boolean;
 };
 type Stack = t;
-
-
-export function with_(e: Stack, w: Optional<Stack>): Stack {
-    return { ...e, ...w };
-}
 
 export function from(w: Optional<Stack>): Stack {
     return { ...default_(), ...w };
@@ -48,10 +42,6 @@ export function default_(): Stack {
         width: Width.default_(),
         is_fill: false,
     };
-}
-
-export function instantiate(s: Stack, section: Map<string, ItemContent>): Stack {
-    return withElements(s, s.elements.map(e => Layout.instantiate(e, section)));
 }
 
 export function withElements(s: Stack, elements: Layout.t[]): Stack {

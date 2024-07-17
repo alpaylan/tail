@@ -1,11 +1,9 @@
-/* eslint-disable */
-import { Box } from "./Box";
 import { DataSchema } from "./DataSchema";
 import { LayoutSchema } from "./LayoutSchema";
 // import { LocalStorage } from "./LocalStorage";
 import { Storage } from "./Storage";
 
-import { Resume, ResumeSection } from "./Resume";
+import { Resume } from "./Resume";
 import { vertical_margin, ResumeLayout } from "./ResumeLayout";
 
 import * as fontkit from 'fontkit';
@@ -98,9 +96,9 @@ export async function render({ resume, layout_schemas, data_schemas, resume_layo
         let end_time = Date.now();
         console.info(`Font loading time: ${end_time - start_time}ms for section ${section.section_name}`);
         // 2. Find the data schema for the section
-        const _data_schema = data_schemas.find(s => s.schema_name === section.data_schema);
+        const data_schema = data_schemas.find(s => s.schema_name === section.data_schema);
 
-        if (_data_schema === undefined) {
+        if (data_schema === undefined) {
             throw new Error(`Could not find data schema ${section.data_schema}`);
         }
 
@@ -109,37 +107,20 @@ export async function render({ resume, layout_schemas, data_schemas, resume_layo
         const layout = 
             Layout.computeBoxes(
                 Layout.normalize(
-                    Layout.instantiate(layout_schema.header_layout_schema, section.data), column_width, font_dict), font_dict);
+                    Layout.instantiate(layout_schema.header_layout_schema, section.data, data_schema.header_schema), column_width, font_dict), font_dict);
         console.error("Header is computed");
         layouts.push(layout);
         end_time = Date.now();
         console.info(`Header rendering time: ${end_time - start_time}ms for section ${section.section_name}`);
         start_time = Date.now();
         // Render Section Items
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        // @ts-nocheck
-        for (const [index, item] of section.items.entries()) {
-            console.log("Computing item");
-            console.error("Item:", item);
-            // 1. Find the layout schema for the section
-            const layout_schema = layout_schemas
-                .find((s) => s.schema_name == section.layout_schema);
-
-            if (layout_schema == undefined) {
-                throw new Error(`Could not find layout schema ${section.layout_schema}`);
-            }
-            await font_dict.load_fonts_from_schema(layout_schema, storage);
-            console.log("Fonts are loaded");
-            // 2. Find the data schema for the section
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const _data_schema = data_schemas
-                .find((s) => s.schema_name == section.data_schema)
+        for (const [, item] of section.items.entries()) {
             // 3. Render the item
             const layout = 
                 Layout.computeBoxes(
                 Layout.normalize(
                 Layout.instantiate(
-                    layout_schema.item_layout_schema, item.fields), column_width, font_dict), font_dict);
+                    layout_schema.item_layout_schema, item.fields, data_schema.item_schema), column_width, font_dict), font_dict);
 
             layouts.push(layout);
         }

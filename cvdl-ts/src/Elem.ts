@@ -6,13 +6,49 @@ import { FontDict } from "./AnyLayout";
 import { row } from "./Row";
 import * as Row from "./Row";
 import { ItemContent } from "./Resume";
+import * as marked from "marked";
+import { match, P } from "ts-pattern";
+import { Field } from "./DataSchema";
+import { Optional, with_ } from "./Utils";
+import { Box } from "./Box";
+
+type SpanProps = {
+    is_italic: boolean;
+    is_bold: boolean;
+    is_code: boolean;
+    is_link: boolean;
+};
+
+function defaultSpanProps(): SpanProps {
+    return {
+        is_italic: false,
+        is_bold: false,
+        is_code: false,
+        is_link: false,
+    };
+}
+
+type Span = {
+    is_italic: boolean;
+    is_bold: boolean;
+    is_code: boolean;
+    text: string;
+    link: string | null;
+    font?: Font.t;
+    width?: number;
+    line?: number;
+    bbox?: Box;
+}
+
 
 export type t = {
     tag: "Elem";
     item: string;
+    spans?: Span[];
     url: string | null;
     is_ref: boolean;
     is_fill: boolean;
+    is_markdown: boolean;
     text_width: Width.t;
     font: Font.t;
     margin: Margin.t;
@@ -20,15 +56,17 @@ export type t = {
     width: Width.t;
     background_color: Color;
 };
+
 type Elem = t;
 
-export function elem(item: string, url: string | null, is_ref: boolean, is_fill: boolean, text_width: Width.t, font: Font.t, margin: Margin.t, alignment: Alignment.t, width: Width.t, background_color: Color): Elem {
+export function elem(item: string, url: string | null, is_ref: boolean, is_fill: boolean, is_markdown: boolean, text_width: Width.t, font: Font.t, margin: Margin.t, alignment: Alignment.t, width: Width.t, background_color: Color): Elem {
     return {
         tag: "Elem",
         item,
         url,
         is_ref,
         is_fill,
+        is_markdown,
         text_width,
         font,
         margin,
@@ -49,6 +87,7 @@ export function default_(): Elem {
         url: null,
         is_ref: false,
         is_fill: false,
+        is_markdown: false,
         text_width: Width.default_(),
         font: Font.default_(),
         margin: Margin.default_(),
@@ -56,14 +95,6 @@ export function default_(): Elem {
         width: Width.default_(),
         background_color: "Transparent",
     };
-}
-
-export type Optional<T> = {
-    [P in keyof T]?: T[P];
-};
-
-export function with_(e: Elem, w: Optional<Elem>): Elem {
-    return { ...e, ...w };
 }
 
 export function from(w: Optional<Elem>): Elem {
@@ -118,13 +149,106 @@ export function scaleWidth(e: Elem, scale: number): Elem {
     return withWidth(e, Width.scale(e.width, scale));
 }
 
-export function fillFonts(e: Elem, fonts: FontDict): Elem {
-    const text_width_with_font = Font.get_width(e.font, e.item, fonts);
+function flatten(ts: marked.Token[], sp: SpanProps): Span[] {
+    const spans: Span[] = [];
+    for (const t of ts) {
+        spans.push(...flattenToken(t, sp));
+    }
+    return spans;
+}
 
+function flattenToken(t: marked.Token, sp: SpanProps): Span[] {
+    return match(t)
+        .returnType<Span[]>()
+        .with({ type: "paragraph", tokens: P.select("tokens") },
+            ({ tokens }) => {
+                // console.log("[paragraph]", tokens);
+                return flatten(tokens, sp);
+            })
+        .with({ type: "strong", tokens: P.select("tokens") },
+            ({ tokens }) => {
+                // console.log("[strong]", tokens);
+                return flatten(tokens, { ...sp, is_bold: true });
+            })
+        .with({ type: "em", tokens: P.select("tokens") },
+            ({ tokens }) => {
+                // console.log("[em]", tokens);
+                return flatten(tokens, { ...sp, is_italic: true });
+            })
+        .with({ type: "codespan", text: P.select("text") },
+            ({ text }) => {
+                // console.log("[codespan]", text);
+                return [{ ...sp, is_code: true, text, link: null }];
+            })
+        .with({ type: "text", tokens: P.select("tokens") },
+            ({ tokens }: { tokens: marked.Token[] }) => {
+                return flatten(tokens, sp);
+            })
+        .with({ type: "text", text: P.select("text") },
+            ({ text }) => {
+                const result : Span[] = [];
+
+                if (text.startsWith(" ")) {
+                    result.push({ ...sp, text: " ", link: null });
+                }
+
+                result.push({ ...sp, text: text.trim(), link: null });
+                
+                if (text.endsWith(" ")) {
+                    result.push({ ...sp, text: " ", link: null });
+                } else if (text.endsWith("\n")) {
+                    result.push({ ...sp, text: "\n", link: null });
+                }
+
+                return result;
+            })
+        .otherwise((e: marked.Token) => {
+            // console.log(`Unknown token type: ${JSON.stringify(e)}`);
+            return [{ ...defaultSpanProps(), text: e.raw, link: null }];
+        });
+}
+export function parseMarkdownItem(item: string): Span[] {
+    const spans: Span[] = [];
+
+    for (const token of marked.lexer(item)) {
+        spans.push(...flatten([token], defaultSpanProps()));
+    }
+
+    return spans;
+}
+
+export function fillFonts(e: Elem, fonts: FontDict): Elem {
+    const simpleSpans = e.is_markdown ? parseMarkdownItem(e.item) : [{ ...defaultSpanProps(), text: e.item, font: e.font, link: null }];
+    const spans : Span[] = [];
+    for (const span of simpleSpans) {
+        const font = e.is_markdown ? with_(e.font, ({ 
+            // style: span.is_italic ? "Italic" : "Normal",
+            weight: span.is_bold ? "Bold" : "Medium",
+        })) : e.font;
+
+        if (span.text === " " || span.text === "\n") {
+            const width = Font.get_width(font, span.text, fonts);
+            spans.push({ ...span, font, width });
+            continue;
+        }
+
+        span.text.split(/\s+/).forEach(word => {
+            const width = Font.get_width(font, word, fonts);
+            spans.push({ ...span, text: word, font, width });
+            spans.push({ ...span, text: " ", font, width: Font.get_width(font, " ", fonts) });
+        });
+    }
+
+    const text_width = spans.reduce((acc, span) => acc + span.width, 0);
+    
     if (e.is_fill) {
-        return withTextWidth(withWidth(e, Width.absolute(Math.min(Width.get_fixed_unchecked(e.width), text_width_with_font))), Width.absolute(text_width_with_font));
+        return with_(e, {
+            width: Width.absolute(Math.min(Width.get_fixed_unchecked(e.width), text_width)),
+            text_width: Width.absolute(text_width),
+            spans
+        })
     } else {
-        return withTextWidth(e, Width.absolute(text_width_with_font));
+        return with_(e, { text_width: Width.absolute(text_width), spans });
     }
 }
 
@@ -135,7 +259,7 @@ export function justifiedLines(e: Elem, lines: Elem[], font_dict: FontDict): Row
         const r = row([], line.margin, line.alignment, line.width, false, false);
         words.forEach(word => {
             const word_width = Font.get_width(e.font, word, font_dict);
-            r.elements.push(elem(word, null, false, false, Width.absolute(word_width), this.font, Margin.default_(), Alignment.default_(), Width.absolute(word_width), this.background_color));
+            r.elements.push(elem(word, null, false, false, false, Width.absolute(word_width), this.font, Margin.default_(), Alignment.default_(), Width.absolute(word_width), this.background_color));
         });
         rowLines.push(row);
     }
@@ -193,10 +317,17 @@ export function boundWidth(e: Elem, width: number): Elem {
     }
 }
 
-export function instantiate(e: Elem, section: Map<string, ItemContent>): Elem {
+export function instantiate(e: Elem, section: Map<string, ItemContent>, fields: Field.t[]): Elem {
 
     if (!e.is_ref) {
         return e;
+    }
+
+    const itemType = fields.find(f => f.name === e.item);
+    console.log(`Found item type: ${JSON.stringify(itemType)}`);
+    if (itemType.type.tag === "MarkdownString") {
+        console.log(`Found markdown string: ${e.item}`);
+        e.is_markdown = true;
     }
 
     const text = section.get(e.item);

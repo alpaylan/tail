@@ -23,13 +23,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.breakLines = exports.scaleWidth = exports.boundWidth = exports.elementsWidth = exports.withFill = exports.withFrozen = exports.withWidth = exports.withAlignment = exports.withMargin = exports.withElements = exports.instantiate = exports.default_ = exports.copy = exports.row = exports.from = exports.with_ = void 0;
+exports.breakLines = exports.scaleWidth = exports.boundWidth = exports.elementsWidth = exports.withFill = exports.withFrozen = exports.withWidth = exports.withAlignment = exports.withMargin = exports.withElements = exports.default_ = exports.copy = exports.row = exports.from = void 0;
 const _1 = require(".");
 const Layout = __importStar(require("./Layout"));
-function with_(e, w) {
-    return { ...e, ...w };
-}
-exports.with_ = with_;
 function from(w) {
     return { ...default_(), ...w };
 }
@@ -64,10 +60,6 @@ function default_() {
     };
 }
 exports.default_ = default_;
-function instantiate(r, section) {
-    return withElements(r, r.elements.map(e => Layout.instantiate(e, section)));
-}
-exports.instantiate = instantiate;
 function withElements(r, elements) {
     return {
         ...r,

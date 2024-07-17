@@ -7,6 +7,7 @@ import * as Layout from "cvdl-ts/dist/Layout";
 import * as Stack from "cvdl-ts/dist/Stack";
 import * as Elem from "cvdl-ts/dist/Elem";
 import * as Row from "cvdl-ts/dist/Row";
+import * as Utils from "cvdl-ts/dist/Utils";
 
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
@@ -111,15 +112,15 @@ export type JsonResume = {
 const jsonResumeBasics: DataSchema = new DataSchema("json-resume-basics", [
     {
         name: "name",
-        data_type: { tag: "String" }
+        type: { tag: "String" }
     },
     {
         name: "email",
-        data_type: { tag: "String" }
+        type: { tag: "String" }
     },
     {
         name: "phone",
-        data_type: { tag: "String" }
+        type: { tag: "String" }
     }
 ], []);
 
@@ -129,12 +130,12 @@ const jsonResumeBasicsLayout: LayoutSchema = new LayoutSchema(
     "json-resume-basics",
     "json-resume-basics",
     Stack.withElements(Stack.default_(), [
-        Elem.with_(Elem.default_(), { item: "name", is_ref: true, font: Font.font("Exo", 20, "Bold", "Normal", "Local"), width: Width.percent(100), alignment: "Center" }),
+        Utils.with_(Elem.default_(), { item: "name", is_ref: true, font: Font.font("Exo", 20, "Bold", "Normal", "Local"), width: Width.percent(100), alignment: "Center" }),
         Row.withElements(
             Row.default_(),
             [
-                Elem.with_(Elem.default_(), { item: "email", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50) }),
-                Elem.with_(Elem.default_(), { item: "phone", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50), alignment: "Right" })
+                Utils.with_(Elem.default_(), { item: "email", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50) }),
+                Utils.with_(Elem.default_(), { item: "phone", is_ref: true, font: Font.font("Exo", 12, "Medium", "Normal", "Local"), width: Width.percent(50), alignment: "Right" })
             ]
         )
     ]),
@@ -145,19 +146,19 @@ const jsonResumeWork: DataSchema = new DataSchema("json-resume-work",
     [],
     [
         // name?: string;
-        { name: 'name', data_type: { tag: 'String' } },
+        { name: 'name', type: { tag: 'String' } },
         // position?: string;
-        { name: 'position', data_type: { tag: 'String' } },
+        { name: 'position', type: { tag: 'String' } },
         // url?: string;
-        { name: 'url', data_type: { tag: 'String' } },
+        { name: 'url', type: { tag: 'String' } },
         // startDate?: string;
-        { name: 'startDate', data_type: { tag: 'Date' } },
+        { name: 'startDate', type: { tag: 'Date' } },
         // endDate?: string;
-        { name: 'endDate', data_type: { tag: 'Date' } },
+        { name: 'endDate', type: { tag: 'Date' } },
         // summary?: string;
-        { name: 'summary', data_type: { tag: 'String' } },
+        { name: 'summary', type: { tag: 'String' } },
         // highlights?: string[];
-        { name: 'highlights', data_type: { tag: 'List', value: { tag: 'String' } } }
+        { name: 'highlights', type: { tag: 'List', value: { tag: 'String' } } }
     ]
 )
 
@@ -188,19 +189,19 @@ const jsonResumeVolunteer: DataSchema = new DataSchema("json-resume-volunteer",
     [],
     [
         // organization?: string;
-        { name: 'organization', data_type: { tag: 'String' } },
+        { name: 'organization', type: { tag: 'String' } },
         // position?: string;
-        { name: 'position', data_type: { tag: 'String' } },
+        { name: 'position', type: { tag: 'String' } },
         // url?: string;
-        { name: 'url', data_type: { tag: 'String' } },
+        { name: 'url', type: { tag: 'String' } },
         // startDate?: string;
-        { name: 'startDate', data_type: { tag: 'Date' } },
+        { name: 'startDate', type: { tag: 'Date' } },
         // endDate?: string;
-        { name: 'endDate', data_type: { tag: 'Date' } },
+        { name: 'endDate', type: { tag: 'Date' } },
         // summary?: string;
-        { name: 'summary', data_type: { tag: 'String' } },
+        { name: 'summary', type: { tag: 'String' } },
         // highlights?: string[];
-        { name: 'highlights', data_type: { tag: 'List', value: { tag: 'String' } } }
+        { name: 'highlights', type: { tag: 'List', value: { tag: 'String' } } }
     ]
 )
 
@@ -222,21 +223,21 @@ const jsonResumeEducation: DataSchema = new DataSchema("json-resume-education",
     [],
     [
         // institution?: string;
-        { name: 'institution', data_type: { tag: 'String' } },
+        { name: 'institution', type: { tag: 'String' } },
         // url?: string;
-        { name: 'url', data_type: { tag: 'String' } },
+        { name: 'url', type: { tag: 'String' } },
         // area?: string;
-        { name: 'area', data_type: { tag: 'String' } },
+        { name: 'area', type: { tag: 'String' } },
         // studyType?: string;
-        { name: 'studyType', data_type: { tag: 'String' } },
+        { name: 'studyType', type: { tag: 'String' } },
         // startDate?: string;
-        { name: 'startDate', data_type: { tag: 'Date' } },
+        { name: 'startDate', type: { tag: 'Date' } },
         // endDate?: string;
-        { name: 'endDate', data_type: { tag: 'Date' } },
+        { name: 'endDate', type: { tag: 'Date' } },
         // score?: string;
-        { name: 'score', data_type: { tag: 'String' } },
+        { name: 'score', type: { tag: 'String' } },
         // courses?: string[];
-        { name: 'courses', data_type: { tag: 'List', value: { tag: 'String' } } }
+        { name: 'courses', type: { tag: 'List', value: { tag: 'String' } } }
     ]
 )
 
@@ -258,13 +259,13 @@ const jsonResumeAwards: DataSchema = new DataSchema("json-resume-awards",
     [],
     [
         // title?: string;
-        { name: 'title', data_type: { tag: 'String' } },
+        { name: 'title', type: { tag: 'String' } },
         // date?: string;
-        { name: 'date', data_type: { tag: 'Date' } },
+        { name: 'date', type: { tag: 'Date' } },
         // awarder?: string;
-        { name: 'awarder', data_type: { tag: 'String' } },
+        { name: 'awarder', type: { tag: 'String' } },
         // summary?: string;
-        { name: 'summary', data_type: { tag: 'String' } }
+        { name: 'summary', type: { tag: 'String' } }
     ]
 )
 
@@ -286,13 +287,13 @@ const jsonResumeCertificates: DataSchema = new DataSchema("json-resume-certifica
     [],
     [
         // name?: string;
-        { name: 'name', data_type: { tag: 'String' } },
+        { name: 'name', type: { tag: 'String' } },
         // date?: string;
-        { name: 'date', data_type: { tag: 'Date' } },
+        { name: 'date', type: { tag: 'Date' } },
         // issuer?: string;
-        { name: 'issuer', data_type: { tag: 'String' } },
+        { name: 'issuer', type: { tag: 'String' } },
         // url?: string;
-        { name: 'url', data_type: { tag: 'String' } }
+        { name: 'url', type: { tag: 'String' } }
     ]
 )
 
@@ -314,15 +315,15 @@ const jsonResumePublications: DataSchema = new DataSchema("json-resume-publicati
     [],
     [
         // name?: string;
-        { name: 'name', data_type: { tag: 'String' } },
+        { name: 'name', type: { tag: 'String' } },
         // publisher?: string;
-        { name: 'publisher', data_type: { tag: 'String' } },
+        { name: 'publisher', type: { tag: 'String' } },
         // releaseDate?: string;
-        { name: 'releaseDate', data_type: { tag: 'Date' } },
+        { name: 'releaseDate', type: { tag: 'Date' } },
         // url?: string;
-        { name: 'url', data_type: { tag: 'String' } },
+        { name: 'url', type: { tag: 'String' } },
         // summary?: string;
-        { name: 'summary', data_type: { tag: 'String' } }
+        { name: 'summary', type: { tag: 'String' } }
     ]
 )
 
@@ -344,11 +345,11 @@ const jsonResumeSkills: DataSchema = new DataSchema("json-resume-skills",
     [],
     [
         // name?: string;
-        { name: 'name', data_type: { tag: 'String' } },
+        { name: 'name', type: { tag: 'String' } },
         // level?: string;
-        { name: 'level', data_type: { tag: 'String' } },
+        { name: 'level', type: { tag: 'String' } },
         // keywords?: string[];
-        { name: 'keywords', data_type: { tag: 'List', value: { tag: 'String' } } }
+        { name: 'keywords', type: { tag: 'List', value: { tag: 'String' } } }
     ]
 )
 
@@ -370,9 +371,9 @@ const jsonResumeLanguages: DataSchema = new DataSchema("json-resume-languages",
     [],
     [
         // language?: string;
-        { name: 'language', data_type: { tag: 'String' } },
+        { name: 'language', type: { tag: 'String' } },
         // fluency?: string;
-        { name: 'fluency', data_type: { tag: 'String' } }
+        { name: 'fluency', type: { tag: 'String' } }
     ]
 )
 
@@ -388,9 +389,9 @@ const jsonResumeInterests: DataSchema = new DataSchema("json-resume-interests",
     [],
     [
         // name?: string;
-        { name: 'name', data_type: { tag: 'String' } },
+        { name: 'name', type: { tag: 'String' } },
         // keywords?: string[];
-        { name: 'keywords', data_type: { tag: 'List', value: { tag: 'String' } } }
+        { name: 'keywords', type: { tag: 'List', value: { tag: 'String' } } }
     ]
 )
 
@@ -406,9 +407,9 @@ const jsonResumeReferences: DataSchema = new DataSchema("json-resume-references"
     [],
     [
         // name?: string;
-        { name: 'name', data_type: { tag: 'String' } },
+        { name: 'name', type: { tag: 'String' } },
         // reference?: string;
-        { name: 'reference', data_type: { tag: 'String' } }
+        { name: 'reference', type: { tag: 'String' } }
     ]
 )
 
@@ -424,17 +425,17 @@ const jsonResumeProjects: DataSchema = new DataSchema("json-resume-projects",
     [],
     [
         // name?: string;
-        { name: 'name', data_type: { tag: 'String' } },
+        { name: 'name', type: { tag: 'String' } },
         // startDate?: string;
-        { name: 'startDate', data_type: { tag: 'Date' } },
+        { name: 'startDate', type: { tag: 'Date' } },
         // endDate?: string;
-        { name: 'endDate', data_type: { tag: 'Date' } },
+        { name: 'endDate', type: { tag: 'Date' } },
         // description?: string;
-        { name: 'description', data_type: { tag: 'String' } },
+        { name: 'description', type: { tag: 'String' } },
         // highlights?: string[];
-        { name: 'highlights', data_type: { tag: 'List', value: { tag: 'String' } } },
+        { name: 'highlights', type: { tag: 'List', value: { tag: 'String' } } },
         // url?: string;
-        { name: 'url', data_type: { tag: 'String' } }
+        { name: 'url', type: { tag: 'String' } }
     ]
 )
 

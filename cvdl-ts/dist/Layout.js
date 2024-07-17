@@ -209,14 +209,14 @@ function isInstantiated(l) {
     }
 }
 exports.isInstantiated = isInstantiated;
-function instantiate(l, section) {
+function instantiate(l, section, fields) {
     switch (l.tag) {
         case "Stack":
-            return Stack.instantiate(l, section);
+            return Stack.withElements(l, l.elements.map(e => instantiate(e, section, fields)));
         case "Row":
-            return Row.instantiate(l, section);
+            return Row.withElements(l, l.elements.map(e => instantiate(e, section, fields)));
         case "Elem":
-            return Elem.instantiate(l, section);
+            return Elem.instantiate(l, section, fields);
     }
 }
 exports.instantiate = instantiate;
@@ -266,9 +266,10 @@ function normalize(l, width, font_dict) {
     console.debug("Widths are bounded. Filling fonts...");
     const font_filled_layout = fillFonts(bounded_layout, font_dict);
     console.debug("Fonts filled. Breaking lines...");
-    const broken_layout = breakLines(font_filled_layout, font_dict);
+    // const broken_layout = breakLines(font_filled_layout, font_dict);
     console.debug("Lines broken.");
-    return broken_layout;
+    // return broken_layout;
+    return font_filled_layout;
 }
 exports.normalize = normalize;
 function fillFonts(l, font_dict) {
@@ -354,7 +355,11 @@ function computeTextboxPositions(l, top_left, font_dict) {
                 top_left = top_left.move_y_to(depth);
                 renderedElements.push(result.renderedLayout);
             }
-            return { depth, renderedLayout: { ...l, bounding_box: new Box_1.Box(originalTopLeft, top_left.move_x_by(Width.get_fixed_unchecked(stack.width))), elements: renderedElements } };
+            return {
+                depth, renderedLayout: {
+                    ...l, bounding_box: new Box_1.Box(originalTopLeft, top_left.move_x_by(Width.get_fixed_unchecked(stack.width))), elements: renderedElements
+                }
+            };
         }
         case "Row": {
             const row = l;
@@ -380,19 +385,31 @@ function computeTextboxPositions(l, top_left, font_dict) {
                     top_left.move_x_by(Width.get_fixed_unchecked(element.width) + per_elem_space);
                 renderedElements.push(result.renderedLayout);
             }
-            return { depth, renderedLayout: { ...l, bounding_box: new Box_1.Box(originalTopLeft, originalTopLeft.move_y_by(depth).move_x_by(Width.get_fixed_unchecked(row.width))), elements: renderedElements } };
+            return {
+                depth, renderedLayout: {
+                    ...l, bounding_box: new Box_1.Box(originalTopLeft, originalTopLeft.move_y_by(depth).move_x_by(Width.get_fixed_unchecked(row.width))), elements: renderedElements
+                }
+            };
         }
         case "Elem": {
             const elem = l;
             if (elem.is_ref) {
                 throw new Error("Cannot compute textbox positions of uninstantiated layout");
             }
-            if (elem.item === "") {
-                return { depth, renderedLayout: { ...l, bounding_box: new Box_1.Box(top_left, top_left) } };
-            }
             const height = Font.get_height(elem.font, font_dict);
             const width = Width.get_fixed_unchecked(elem.text_width);
             top_left = top_left.move_y_by(elem.margin.top).move_x_by(elem.margin.left);
+            let line = 1;
+            let cursor = top_left.x;
+            elem.spans.forEach(span => {
+                if (cursor + span.width > Width.get_fixed_unchecked(elem.width) - elem.margin.right) {
+                    cursor = top_left.x;
+                    line += 1;
+                }
+                span.bbox = new Box_1.Box(new Point_1.Point(cursor, (line - 1) * height), new Point_1.Point(cursor + span.width, line * height));
+                cursor += span.width;
+                console.log(span);
+            });
             switch (elem.alignment) {
                 case "Center":
                     top_left = top_left.move_x_by((Width.get_fixed_unchecked(elem.width) - width) / 2.0);

@@ -10,6 +10,7 @@ import { Point } from "./Point";
 import * as Stack from "./Stack";
 import * as Row from "./Row";
 import * as Elem from "./Elem";
+import { Field } from "./DataSchema";
 
 export type Container = Stack.t | Row.t;
 export type t = Stack.t | Row.t | Elem.t;
@@ -49,7 +50,7 @@ export function fromJson(json: unknown): Layout {
             container.width = Width.fromJson(json[key].width);
             return container;
         }
-        case 'Ref': 
+        case 'Ref':
         case 'Text': {
             const inner = default_(key) as Elem.t;
             inner.item = json[key].item;
@@ -199,14 +200,14 @@ export function isInstantiated(l: Layout): boolean {
     }
 }
 
-export function instantiate(l: Layout, section: Map<string, ItemContent>): Layout {
+export function instantiate(l: Layout, section: Map<string, ItemContent>, fields: Field.t[]): Layout {
     switch (l.tag) {
         case "Stack":
-            return Stack.instantiate(l as Stack.t, section);
+            return Stack.withElements(l, l.elements.map(e => instantiate(e, section, fields)));
         case "Row":
-            return Row.instantiate(l as Row.t, section);
+            return Row.withElements(l, l.elements.map(e => instantiate(e, section, fields)));
         case "Elem":
-            return Elem.instantiate(l as Elem.t, section);
+            return Elem.instantiate(l, section, fields);
     }
 }
 
@@ -270,11 +271,13 @@ export function normalize(l: Layout, width: number, font_dict: FontDict): Layout
 
     console.debug("Fonts filled. Breaking lines...");
 
-    const broken_layout = breakLines(font_filled_layout, font_dict);
+    // const broken_layout = breakLines(font_filled_layout, font_dict);
 
     console.debug("Lines broken.");
 
-    return broken_layout;
+    // return broken_layout;
+
+    return font_filled_layout;
 }
 
 export function fillFonts(l: Layout, font_dict: FontDict): Layout {
@@ -373,10 +376,14 @@ export function computeTextboxPositions(
                 renderedElements.push(result.renderedLayout);
             }
 
-            return { depth, renderedLayout: { ...l, bounding_box: new Box(
-                originalTopLeft,
-                top_left.move_x_by(Width.get_fixed_unchecked(stack.width)),
-            ), elements: renderedElements } };
+            return {
+                depth, renderedLayout: {
+                    ...l, bounding_box: new Box(
+                        originalTopLeft,
+                        top_left.move_x_by(Width.get_fixed_unchecked(stack.width)),
+                    ), elements: renderedElements
+                }
+            };
         }
         case "Row": {
             const row = l as Row.t;
@@ -396,7 +403,7 @@ export function computeTextboxPositions(
             }
 
             const renderedElements = [];
-            
+
             for (const element of row.elements) {
                 const result = computeTextboxPositions(element, top_left, font_dict);
                 depth = Math.max(depth, result.depth);
@@ -405,26 +412,41 @@ export function computeTextboxPositions(
                 renderedElements.push(result.renderedLayout);
             }
 
-            return { depth, renderedLayout: { ...l, bounding_box: new Box(
-                originalTopLeft,
-                originalTopLeft.move_y_by(depth).move_x_by(Width.get_fixed_unchecked(row.width)),
-            ), elements: renderedElements } };
+            return {
+                depth, renderedLayout: {
+                    ...l, bounding_box: new Box(
+                        originalTopLeft,
+                        originalTopLeft.move_y_by(depth).move_x_by(Width.get_fixed_unchecked(row.width)),
+                    ), elements: renderedElements
+                }
+            };
         }
 
         case "Elem": {
             const elem = l as Elem.t;
-            
+
             if (elem.is_ref) {
                 throw new Error("Cannot compute textbox positions of uninstantiated layout")
-            }
-            if (elem.item === "") {
-                return { depth, renderedLayout: { ...l, bounding_box: new Box(top_left, top_left) } };
             }
 
             const height = Font.get_height(elem.font, font_dict);
             const width = Width.get_fixed_unchecked(elem.text_width);
             top_left = top_left.move_y_by(elem.margin.top).move_x_by(elem.margin.left);
+            let line = 1;
+            let cursor = top_left.x;
 
+            elem.spans.forEach(span => {
+                if (cursor + span.width > Width.get_fixed_unchecked(elem.width) - elem.margin.right) {
+                    cursor = top_left.x;
+                    line += 1;
+
+                }
+                span.bbox = new Box(new Point(cursor, (line - 1) * height), new Point(cursor + span.width, line * height));
+                cursor += span.width;
+
+                console.log(span);
+
+            });
             switch (elem.alignment) {
                 case "Center":
                     top_left = top_left.move_x_by((Width.get_fixed_unchecked(elem.width) - width) / 2.0);

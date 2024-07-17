@@ -185,24 +185,61 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, tracker: Trac
                 background-color: ${ColorMap[element.background_color]};
             `;
 
-            // if (JSON.stringify(tracker.state.editorPath) === JSON.stringify(tracker.path)) {
-            //     domElem.style.outline = "1px solid red";
-            //     domElem.style.zIndex = "100";
-            // }
-            // domElem.addEventListener("click", () => {
-            //     tracker.dispatch({ type: 'set-editor-path', path: tracker.path ?? { tag: 'none' } })
-            // });
-            domElem.addEventListener("mouseover", () => {
-                domElem.style.backgroundColor = "lightgray";
-                domElem.style.cursor = "pointer";
-            });
 
-            domElem.addEventListener("mouseout", () => {
-                domElem.style.backgroundColor = ColorMap[element.background_color];
-                domElem.style.animation = "none";
-            });
+            element.spans!.forEach((span) => {
+                console.log(span)
+                if (span.text === "") {
+                    return;
+                }
 
-            tracker.pageContainer.appendChild(domElem);
+                const spanElem = document.createElement("span");
+                spanElem.innerText = span.text;
+                spanElem.style.cssText = `
+                    position: absolute;
+                    left: ${layout.bounding_box.top_left.x + tracker.resume_layout.margin.left + span.bbox!.top_left.x}px;
+                    top: ${layout.bounding_box.top_left.y + tracker.resume_layout.margin.top + tracker.height + span.bbox!.top_left.y}px;
+                    font-family: "${Font.full_name(span.font!)}", sans-serif;
+                    font-size: ${span.font!.size}px;
+                    font-style: ${span.font!.style};
+                    font-weight: ${span.font!.weight};
+                    background-color: ${ColorMap[element.background_color]};
+                `;
+                
+                            
+                spanElem.addEventListener("mouseover", () => {
+                    spanElem.style.backgroundColor = "lightgray";
+                    spanElem.style.cursor = "pointer";
+                });
+
+                spanElem.addEventListener("mouseout", () => {
+                    spanElem.style.backgroundColor = ColorMap[element.background_color];
+                    spanElem.style.animation = "none";
+                });
+
+                
+                // if (span.is_code) {
+                //     // Add a rounded rectangle around the code
+                //     doc.roundedRect(
+                //         layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 3,
+                //         layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y,
+                //         span.bbox.width() + span.font.size / 3 * 2,
+                //         span.bbox.height(),
+                //         5
+                //     ).stroke();
+                //     // Add a background color to the code
+                //     doc.fillColor("black");
+                //     doc.fillOpacity(0.05);
+                //     doc.rect(
+                //         layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 3,
+                //         layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y,
+                //         span.bbox.width() + span.font.size / 3 * 2,
+                //         span.bbox.height()
+                //     ).fill();
+                //     doc.fillOpacity(1);
+                // }
+                tracker.pageContainer.appendChild(spanElem);
+            });
+            // tracker.pageContainer.appendChild(domElem);
             break;
         }
     }
