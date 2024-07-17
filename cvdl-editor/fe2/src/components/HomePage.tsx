@@ -6,7 +6,7 @@ import 'react-pdf/dist/Page/TextLayer.css';
 import { ElementPath, FontDict } from 'cvdl-ts/dist/AnyLayout';
 import { render as pdfRender } from 'cvdl-ts/dist/PdfLayout';
 import { LocalStorage } from 'cvdl-ts/dist/LocalStorage';
-import { Resume} from 'cvdl-ts/dist/Resume';
+import { Resume } from 'cvdl-ts/dist/Resume';
 import { LayoutSchema } from 'cvdl-ts/dist/LayoutSchema';
 import { ResumeLayout } from 'cvdl-ts/dist/ResumeLayout';
 import { DataSchema } from 'cvdl-ts/dist/DataSchema';
@@ -24,7 +24,6 @@ import { convert } from '@/logic/JsonResume';
 import { fetchGist, fetchGistById } from '@/api/fetchGist';
 import { DocumentDispatchContext, DocumentReducer, EditorContext } from './State';
 import AddNewSection from './AddNewSection';
-import FreeFormLayoutEditor from './FreeFormLayoutEditor';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -45,7 +44,7 @@ function App() {
   const [fontDict, setFontDict] = useState<FontDict>(new FontDict());
   const [debug, setDebug] = useState<boolean>(false);
   const [storageInitiated, setStorageInitiated] = useState<boolean>(false);
-  const [currentTab, setCurrentTab] = useState<"content-editor" | "layout-editor" | "schema-editor" | "freeform-layout-editor">("content-editor");
+  const [currentTab, setCurrentTab] = useState<"content-editor" | "layout-editor" | "schema-editor">("content-editor");
 
   useEffect(() => {
     require('../registerStaticFiles.js');
@@ -100,7 +99,7 @@ function App() {
         Promise.all(layoutSchemaNames.map((schema) => new LocalStorage().load_layout_schema(schema))).then((layoutSchemas: LayoutSchema[]) => {
           setLayoutSchemas(layoutSchemas);
         });
-      });      
+      });
     }
 
     const resume_layout_loader = () => {
@@ -293,10 +292,6 @@ function App() {
                 backgroundColor: currentTab === "schema-editor" ? "#101010" : "white",
                 color: currentTab === "schema-editor" ? "white" : "black"
               }} onClick={() => setCurrentTab("schema-editor")}>Schema Editor</button>
-              <button className='bordered' style={{
-                backgroundColor: currentTab === "freeform-layout-editor" ? "#101010" : "white",
-                color: currentTab === "freeform-layout-editor" ? "white" : "black"
-              }} onClick={() => setCurrentTab("freeform-layout-editor")}>Freeform Editor</button>
 
             </div>
             <div style={{ display: "flex", flexDirection: "column", width: "50%", margin: "20px", minWidth: "250px", maxHeight: "95vh", overflow: "scroll" }}>
@@ -340,20 +335,15 @@ function App() {
                 <DataSchemaEditor dataSchemas={dataSchemas!} />
               }
             </div>
-            {
-              currentTab === "freeform-layout-editor" &&
-              <FreeFormLayoutEditor />
-            }
-            {currentTab !== "freeform-layout-editor" &&
-              <div style={{ display: "flex", flexDirection: "column", margin: "20px", minWidth: "640px", maxHeight: "95vh", overflow: "scroll" }}>
-                <div style={{ display: "flex", flexDirection: "row", marginBottom: "5px" }}>
-                  <button className='bordered' onClick={uploadResume} >&#x1F4C1; Import</button>
-                  <button className='bordered' onClick={uploadResumeFromGist} >&#x1F517; Import</button>
-                  <button className='bordered' onClick={downloadResume} >⤓ Download</button>
-                  <button className='bordered' onClick={() => setDebug(!debug)}>&#x1F41E; Debug</button>
-                </div>
-                <div id="pdf-container" style={{ display: "flex", flexDirection: "column" }}></div>
-              </div>}
+            <div style={{ display: "flex", flexDirection: "column", margin: "20px", minWidth: "640px", maxHeight: "95vh", overflow: "scroll" }}>
+              <div style={{ display: "flex", flexDirection: "row", marginBottom: "5px" }}>
+                <button className='bordered' onClick={uploadResume} >&#x1F4C1; Import</button>
+                <button className='bordered' onClick={uploadResumeFromGist} >&#x1F517; Import</button>
+                <button className='bordered' onClick={downloadResume} >⤓ Download</button>
+                <button className='bordered' onClick={() => setDebug(!debug)}>&#x1F41E; Debug</button>
+              </div>
+              <div id="pdf-container" style={{ display: "flex", flexDirection: "column" }}></div>
+            </div>
           </div>
         </Layout>
       </DocumentDispatchContext.Provider>
