@@ -63,6 +63,7 @@ function fromJson(json) {
         case 'Text': {
             const inner = default_(key);
             inner.item = json[key].item;
+            inner.text = json[key].item;
             inner.margin = json[key].margin;
             inner.alignment = json[key].alignment;
             inner.width = Width.fromJson(json[key].width);
@@ -402,24 +403,24 @@ function computeTextboxPositions(l, top_left, font_dict) {
             let line = 1;
             let cursor = top_left.x;
             elem.spans.forEach(span => {
-                if (cursor + span.width > Width.get_fixed_unchecked(elem.width) - elem.margin.right) {
+                if (cursor - top_left.x + span.width > Width.get_fixed_unchecked(elem.width) - elem.margin.right || span.text === "\n\n") {
                     cursor = top_left.x;
                     line += 1;
                 }
-                span.bbox = new Box_1.Box(new Point_1.Point(cursor, (line - 1) * height), new Point_1.Point(cursor + span.width, line * height));
+                span.bbox = new Box_1.Box(new Point_1.Point(cursor - top_left.x, (line - 1) * height), new Point_1.Point(cursor + span.width, line * height));
+                span.line = line;
                 cursor += span.width;
-                console.log(span);
             });
-            switch (elem.alignment) {
-                case "Center":
-                    top_left = top_left.move_x_by((Width.get_fixed_unchecked(elem.width) - width) / 2.0);
-                    break;
-                case "Right":
-                    top_left = top_left.move_x_by(Width.get_fixed_unchecked(elem.width) - width);
-                    break;
-            }
-            const textbox = new Box_1.Box(top_left, top_left.move_x_by(width).move_y_by(height));
-            return { depth: top_left.y + height, renderedLayout: { ...l, bounding_box: textbox } };
+            // switch (elem.alignment) {
+            //     case "Center":
+            //         top_left = top_left.move_x_by((Width.get_fixed_unchecked(elem.width) - width) / 2.0);
+            //         break;
+            //     case "Right":
+            //         top_left = top_left.move_x_by(Width.get_fixed_unchecked(elem.width) - width);
+            //         break;
+            // }
+            const textbox = new Box_1.Box(top_left, top_left.move_x_by(width).move_y_by(height * line));
+            return { depth: top_left.y + height * line, renderedLayout: { ...l, bounding_box: textbox } };
         }
     }
 }

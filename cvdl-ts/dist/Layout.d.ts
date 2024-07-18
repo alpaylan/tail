@@ -4,7 +4,7 @@ import * as Width from "./Width";
 import * as Font from "./Font";
 import { ItemContent } from "./Resume";
 import { Box } from "./Box";
-import { FontDict } from "./AnyLayout";
+import { ElementPath, FontDict } from "./AnyLayout";
 import { Point } from "./Point";
 import * as Stack from "./Stack";
 import * as Row from "./Row";
@@ -24,7 +24,9 @@ export type RenderedRow = Row.t & {
 export type RenderedElem = Elem.t & {
     bounding_box: Box;
 };
-export type RenderedLayout = RenderedStack | RenderedRow | RenderedElem;
+export type RenderedLayout = (RenderedStack | RenderedRow | RenderedElem) & {
+    path?: ElementPath;
+};
 export declare function default_(tag: string): Stack.t | Row.t | Elem.t;
 export declare function empty(): Layout;
 export declare function fromJson(json: unknown): Layout;

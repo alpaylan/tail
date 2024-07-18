@@ -51,7 +51,7 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
     const state = useContext(EditorContext);
     const dispatch = useContext(DocumentDispatchContext);
     const editorPath = state?.editorPath;
-    const showAll = (editorPath?.tag === "section" || editorPath?.tag === "item") && editorPath.section === section.section_name;
+    const showAll = (editorPath && editorPath.tag !== "none") && editorPath.section === section.section_name;
     const toggleShowAll = () => {
         if (showAll) {
             dispatch!({ type: "set-editor-path", path: { tag: "none" } as ElementPath });

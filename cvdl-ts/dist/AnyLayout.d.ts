@@ -34,4 +34,4 @@ export declare class FontDict {
     load_fonts_from_schema(schema: LayoutSchema, storage: Storage): Promise<void>;
     get_font(name: string): fontkit.Font;
 }
-export declare function render({ resume, layout_schemas, data_schemas, resume_layout, storage, fontDict }: RenderProps): Promise<[FontDict, Layout.RenderedLayout[]]>;
+export declare function render({ resume, layout_schemas, data_schemas, resume_layout, storage, fontDict }: RenderProps): Promise<Layout.RenderedLayout[]>;

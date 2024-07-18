@@ -5,11 +5,12 @@ import * as Width from "./Width";
 import * as Font from "./Font";
 import { ItemContent } from "./Resume";
 import { Box } from "./Box";
-import { FontDict } from "./AnyLayout";
+import { ElementPath, FontDict } from "./AnyLayout";
 import { Point } from "./Point";
 import * as Stack from "./Stack";
 import * as Row from "./Row";
 import * as Elem from "./Elem";
+import * as Utils from "./Utils";
 import { Field } from "./DataSchema";
 
 export type Container = Stack.t | Row.t;
@@ -21,7 +22,7 @@ export type RenderedStack = Stack.t & { bounding_box: Box, elements: RenderedLay
 export type RenderedRow = Row.t & { bounding_box: Box, elements: RenderedLayout[] };
 export type RenderedElem = Elem.t & { bounding_box: Box };
 
-export type RenderedLayout = RenderedStack | RenderedRow | RenderedElem;
+export type RenderedLayout = (RenderedStack | RenderedRow | RenderedElem) & { path?: ElementPath };
 
 export function default_(tag: string) {
     switch (tag) {
@@ -54,6 +55,7 @@ export function fromJson(json: unknown): Layout {
         case 'Text': {
             const inner = default_(key) as Elem.t;
             inner.item = json[key].item;
+            inner.text = json[key].item;
             inner.margin = json[key].margin;
             inner.alignment = json[key].alignment;
             inner.width = Width.fromJson(json[key].width);
@@ -434,31 +436,27 @@ export function computeTextboxPositions(
             top_left = top_left.move_y_by(elem.margin.top).move_x_by(elem.margin.left);
             let line = 1;
             let cursor = top_left.x;
-
             elem.spans.forEach(span => {
-                if (cursor + span.width > Width.get_fixed_unchecked(elem.width) - elem.margin.right) {
+                if (cursor - top_left.x + span.width > Width.get_fixed_unchecked(elem.width) - elem.margin.right  || span.text === "\n\n") {
                     cursor = top_left.x;
                     line += 1;
-
                 }
-                span.bbox = new Box(new Point(cursor, (line - 1) * height), new Point(cursor + span.width, line * height));
+                span.bbox = new Box(new Point(cursor - top_left.x, (line - 1) * height), new Point(cursor + span.width, line * height));
+                span.line = line;
                 cursor += span.width;
 
-                console.log(span);
-
             });
-            switch (elem.alignment) {
-                case "Center":
-                    top_left = top_left.move_x_by((Width.get_fixed_unchecked(elem.width) - width) / 2.0);
-                    break;
-                case "Right":
-                    top_left = top_left.move_x_by(Width.get_fixed_unchecked(elem.width) - width);
-                    break;
-            }
+            // switch (elem.alignment) {
+            //     case "Center":
+            //         top_left = top_left.move_x_by((Width.get_fixed_unchecked(elem.width) - width) / 2.0);
+            //         break;
+            //     case "Right":
+            //         top_left = top_left.move_x_by(Width.get_fixed_unchecked(elem.width) - width);
+            //         break;
+            // }
 
-            const textbox = new Box(top_left, top_left.move_x_by(width).move_y_by(height));
-
-            return { depth: top_left.y + height, renderedLayout: { ...l, bounding_box: textbox } };
+            const textbox = new Box(top_left, top_left.move_x_by(width).move_y_by(height * line));
+            return { depth: top_left.y + height * line, renderedLayout: { ...l, bounding_box: textbox } };
 
         }
     }

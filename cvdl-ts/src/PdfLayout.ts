@@ -30,7 +30,7 @@ export type RenderProps = {
 }
 
 export const render = async (
-    { resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict, debug = false }: RenderProps
+    { resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict }: RenderProps
 ) => {
     let start_time = Date.now();
 
@@ -72,7 +72,7 @@ export const render = async (
     const stream = doc.pipe(blobStream());
 
     start_time = Date.now();
-    const [font_dict, layouts] = await
+    const layouts = await
         anyRender({ layout_schemas, resume, data_schemas, resume_layout, storage, fontDict });
     end_time = Date.now();
     console.info(`Rendering time: ${end_time - start_time}ms`);
@@ -84,7 +84,7 @@ export const render = async (
 
     try {
         console.log("Registering fonts...");
-        for (const [font_name, font] of font_dict.fonts.entries()) {
+        for (const [font_name, font] of fontDict.fonts.entries()) {
             console.log(`Registering font ${font_name}`);
             // @ts-ignore
             doc.registerFont(font_name, font.stream.buffer);
@@ -95,6 +95,19 @@ export const render = async (
     console.log("Rendering the document...");
 
     let current_height = 0;
+
+    // Add rulers to the document at every 10 pixels
+    doc.strokeColor("grey");
+    for (let i = 0; i < resume_layout.height; i += 10) {
+        doc.moveTo(0, i).lineTo(resume_layout.width, i).stroke();
+    }
+
+    for(let i = 0; i < resume_layout.width; i += 10) {
+        doc.moveTo(i, 0).lineTo(i, resume_layout.height).stroke();
+    }
+    doc.strokeColor("black");
+
+
     for (const layout of layouts) {
         renderSectionLayout(layout, resume_layout, current_height, doc);
         current_height += layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;
@@ -157,11 +170,22 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, resume_layout
         }
         case "Elem": {
             const elem = layout as Elem.t;
-            mergeSpans(elem.spans).forEach((span) => {
+
+            elem.spans.forEach((span) => {
+                console.log("Rendering span:", span);
                 doc.
                     font(Font.full_name(span.font)).
                     fontSize(span.font.size).
-                    text(span.text, layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x, layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y, { lineBreak: false });
+                    text(span.text, 
+                        layout.bounding_box.top_left.x 
+                            + resume_layout.margin.left 
+                            + span.bbox.top_left.x, 
+                        layout.bounding_box.top_left.y 
+                            + resume_layout.margin.top 
+                            + current_height 
+                            + span.bbox.top_left.y, 
+                    { lineBreak: false });
+
                 if (span.is_code) {
                     // Add a rounded rectangle around the code
                     doc.roundedRect(

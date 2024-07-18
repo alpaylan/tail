@@ -3,12 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.renderSectionLayout = exports.render = void 0;
+exports.renderSectionLayout = exports.mergeSpans = exports.render = void 0;
 const blob_stream_1 = __importDefault(require("blob-stream"));
 const AnyLayout_1 = require("./AnyLayout");
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const _1 = require(".");
-const render = async ({ resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict, debug = false }) => {
+const render = async ({ resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict }) => {
     let start_time = Date.now();
     if (!resume && !resume_name) {
         throw "Rendering requires either resume_name or resume";
@@ -37,7 +37,7 @@ const render = async ({ resume_name, resume, data_schemas, layout_schemas, resum
     // doc.pipe(fs.createWriteStream('output.pdf'));
     const stream = doc.pipe((0, blob_stream_1.default)());
     start_time = Date.now();
-    const [font_dict, layouts] = await (0, AnyLayout_1.render)({ layout_schemas, resume, data_schemas, resume_layout, storage, fontDict });
+    const layouts = await (0, AnyLayout_1.render)({ layout_schemas, resume, data_schemas, resume_layout, storage, fontDict });
     end_time = Date.now();
     console.info(`Rendering time: ${end_time - start_time}ms`);
     console.log("Constructing printpdf font dictionary...");
@@ -46,7 +46,7 @@ const render = async ({ resume_name, resume, data_schemas, layout_schemas, resum
     //     "/Users/akeles/Programming/projects/cvdl/cvdl/assets/Exo/static/Exo-Medium.ttf");
     try {
         console.log("Registering fonts...");
-        for (const [font_name, font] of font_dict.fonts.entries()) {
+        for (const [font_name, font] of fontDict.fonts.entries()) {
             console.log(`Registering font ${font_name}`);
             // @ts-ignore
             doc.registerFont(font_name, font.stream.buffer);
@@ -56,36 +56,16 @@ const render = async ({ resume_name, resume, data_schemas, layout_schemas, resum
         console.error(e);
     }
     console.log("Rendering the document...");
-    // Render the boxes
-    // for (const [index, boxes] of pages.entries()) {
-    //     if (index > 0) {
-    //         doc.addPage();
-    //     }
-    //     boxes.forEach((box) => {
-    //         const elements = box.elements;
-    //         // if (debug) {
-    //         //     doc.rect(box.bounding_box.top_left.x, box.bounding_box.top_left.y, box.bounding_box.width(), box.bounding_box.height()).stroke();
-    //         // }
-    //         for (const [box_, element] of elements) {
-    //             console.log(
-    //                 `(${box_.top_left.x}, ${box_.top_left.y})(${box_.bottom_right.x}, ${box_.bottom_right.y}): ${element.item}`
-    //             );
-    //             if (element.background_color !== "Transparent") {
-    //                 doc.rect(box_.top_left.x, box_.top_left.y, box_.width(), box_.height()).fillAndStroke(ColorMap[element.background_color], ColorMap[element.background_color]);
-    //             }
-    //             // Make this more generic
-    //             doc.fillColor("black");
-    //             doc.
-    //                 font(element.font.full_name()).
-    //                 fontSize(element.font.size).
-    //                 text(element.item, box_.top_left.x, box_.top_left.y, { lineBreak: false });
-    //             if (debug) {
-    //                 // doc.rect(box_.top_left.x, box_.top_left.y, box_.width(), box_.height()).stroke();
-    //             }
-    //         }
-    //     });
-    // }
     let current_height = 0;
+    // Add rulers to the document at every 10 pixels
+    doc.strokeColor("grey");
+    for (let i = 0; i < resume_layout.height; i += 10) {
+        doc.moveTo(0, i).lineTo(resume_layout.width, i).stroke();
+    }
+    for (let i = 0; i < resume_layout.width; i += 10) {
+        doc.moveTo(i, 0).lineTo(i, resume_layout.height).stroke();
+    }
+    doc.strokeColor("black");
     for (const layout of layouts) {
         (0, exports.renderSectionLayout)(layout, resume_layout, current_height, doc);
         current_height += layout.bounding_box.height() + layout.margin.top + layout.margin.bottom;
@@ -103,6 +83,27 @@ const render = async ({ resume_name, resume, data_schemas, layout_schemas, resum
     });
 };
 exports.render = render;
+const mergeSpans = (spans) => {
+    const merged_spans = [];
+    let currentSpan = spans[0];
+    for (let i = 1; i < spans.length; i++) {
+        if (currentSpan.bbox.top_left.y === spans[i].bbox.top_left.y
+            && currentSpan.font === spans[i].font
+            && currentSpan.is_code === spans[i].is_code
+            && currentSpan.is_bold === spans[i].is_bold
+            && currentSpan.is_italic === spans[i].is_italic) {
+            currentSpan.text += spans[i].text;
+            currentSpan.bbox.bottom_right = spans[i].bbox.bottom_right;
+        }
+        else {
+            merged_spans.push(currentSpan);
+            currentSpan = spans[i];
+        }
+    }
+    merged_spans.push(currentSpan);
+    return merged_spans;
+};
+exports.mergeSpans = mergeSpans;
 const renderSectionLayout = (layout, resume_layout, current_height, doc) => {
     switch (layout.tag) {
         case "Stack": {
@@ -122,21 +123,23 @@ const renderSectionLayout = (layout, resume_layout, current_height, doc) => {
         case "Elem": {
             const elem = layout;
             elem.spans.forEach((span) => {
-                console.log(span);
-                if (span.text === "") {
-                    return;
-                }
+                console.log("Rendering span:", span);
                 doc.
                     font(_1.Font.full_name(span.font)).
                     fontSize(span.font.size).
-                    text(span.text, layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x, layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y, { lineBreak: false });
+                    text(span.text, layout.bounding_box.top_left.x
+                    + resume_layout.margin.left
+                    + span.bbox.top_left.x, layout.bounding_box.top_left.y
+                    + resume_layout.margin.top
+                    + current_height
+                    + span.bbox.top_left.y, { lineBreak: false });
                 if (span.is_code) {
                     // Add a rounded rectangle around the code
-                    doc.roundedRect(layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 3, layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y, span.bbox.width() + span.font.size / 3 * 2, span.bbox.height(), 5).stroke();
+                    doc.roundedRect(layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 5, layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y, span.bbox.width() + span.font.size / 5 * 2, span.bbox.height(), 5).stroke();
                     // Add a background color to the code
                     doc.fillColor("black");
                     doc.fillOpacity(0.05);
-                    doc.rect(layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 3, layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y, span.bbox.width() + span.font.size / 3 * 2, span.bbox.height()).fill();
+                    doc.rect(layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 5, layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y, span.bbox.width() + span.font.size / 5 * 2, span.bbox.height()).fill();
                     doc.fillOpacity(1);
                 }
             });

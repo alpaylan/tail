@@ -54,8 +54,6 @@ class FontDict {
 }
 exports.FontDict = FontDict;
 async function render({ resume, layout_schemas, data_schemas, resume_layout, storage, fontDict }) {
-    // Each box contains a set of elements(positioned by 0x0 and projected into its bounding box)
-    const font_dict = fontDict !== null && fontDict !== void 0 ? fontDict : new FontDict();
     // Compute the total usable width by subtracting the margins from the document width
     const width = resume_layout.width - (resume_layout.margin.left + resume_layout.margin.right);
     // If the resume is double column, then the usable width is halved
@@ -65,7 +63,6 @@ async function render({ resume, layout_schemas, data_schemas, resume_layout, sto
     const layouts = [];
     console.error("Rendering sections...");
     for (const section of resume.sections) {
-        console.error("Print section:", section);
         // Render Section Header
         // 1. Find the layout schema for the section
         console.info("Computing section: ", section.section_name);
@@ -75,7 +72,7 @@ async function render({ resume, layout_schemas, data_schemas, resume_layout, sto
             throw new Error(`Could not find layout schema ${section.layout_schema}`);
         }
         let start_time = Date.now();
-        await font_dict.load_fonts_from_schema(layout_schema, storage);
+        await fontDict.load_fonts_from_schema(layout_schema, storage);
         let end_time = Date.now();
         console.info(`Font loading time: ${end_time - start_time}ms for section ${section.section_name}`);
         // 2. Find the data schema for the section
@@ -85,22 +82,24 @@ async function render({ resume, layout_schemas, data_schemas, resume_layout, sto
         }
         start_time = Date.now();
         // 3. Render the header
-        const layout = _1.Layout.computeBoxes(_1.Layout.normalize(_1.Layout.instantiate(layout_schema.header_layout_schema, section.data, data_schema.header_schema), column_width, font_dict), font_dict);
-        console.error("Header is computed");
+        const layout = _1.Layout.computeBoxes(_1.Layout.normalize(_1.Layout.instantiate(layout_schema.header_layout_schema, section.data, data_schema.header_schema), column_width, fontDict), fontDict);
+        layout.path = { tag: 'section', section: section.section_name };
+        console.info("Header is computed");
         layouts.push(layout);
         end_time = Date.now();
         console.info(`Header rendering time: ${end_time - start_time}ms for section ${section.section_name}`);
         start_time = Date.now();
         // Render Section Items
-        for (const [, item] of section.items.entries()) {
+        for (const [index, item] of section.items.entries()) {
             // 3. Render the item
-            const layout = _1.Layout.computeBoxes(_1.Layout.normalize(_1.Layout.instantiate(layout_schema.item_layout_schema, item.fields, data_schema.item_schema), column_width, font_dict), font_dict);
+            const layout = _1.Layout.computeBoxes(_1.Layout.normalize(_1.Layout.instantiate(layout_schema.item_layout_schema, item.fields, data_schema.item_schema), column_width, fontDict), fontDict);
+            layout.path = { tag: 'item', section: section.section_name, item: index };
             layouts.push(layout);
         }
         end_time = Date.now();
         console.info(`Item rendering time: ${end_time - start_time}ms for section ${section.section_name}`);
     }
     console.log("Position calculations are completed.");
-    return [font_dict, layouts];
+    return layouts;
 }
 exports.render = render;

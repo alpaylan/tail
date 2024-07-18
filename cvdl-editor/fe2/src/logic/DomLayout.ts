@@ -33,8 +33,6 @@ export type RenderProps = {
 export const render = async (
     { resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict, state, dispatch, debug = false }: RenderProps
 ) => {
-    let container = document.getElementById("pdf-container")!;
-    container.innerHTML = "";
     let start_time = Date.now();
 
     if (!resume && !resume_name) {
@@ -68,9 +66,12 @@ export const render = async (
 
     console.info(`Loading time: ${end_time - start_time}ms`);
 
+    let container = document.getElementById("pdf-container")!;
+    container.innerHTML = "";
+
     start_time = Date.now();
-    console.error(resume);
-    const [font_dict, layouts] = await
+
+    const layouts = await
         anyRender({ layout_schemas, resume, data_schemas, resume_layout, storage, fontDict });
     end_time = Date.now();
     console.info(`Rendering time: ${end_time - start_time}ms`);
@@ -87,15 +88,46 @@ export const render = async (
     const tracker = {
         page: 0,
         pageContainer: getPageContainer(0, resume_layout.width, resume_layout.height),
-        path: { tag: 'none' } as ElementPath,
+        path: null,
         height: 0,
         state,
         dispatch,
         resume_layout,
         fontDict,
     }
+
+    // Add rulers to the document at every 10 pixels
+    // for (let i = 0; i < resume_layout.height; i += 10) {
+    //     const ruler = document.createElement("div");
+    //     ruler.style.cssText = `
+    //         position: absolute;
+    //         left: 0;
+    //         top: ${i}px;
+    //         width: 100%;
+    //         height: 1px;
+    //         background-color: grey;
+    //     `;
+    //     tracker.pageContainer.appendChild(ruler);
+    // }
+
+
+    // for (let i = 0; i < resume_layout.width; i += 10) {
+    //     const ruler = document.createElement("div");
+    //     ruler.style.cssText = `
+    //         position: absolute;
+    //         left: ${i}px;
+    //         top: 0;
+    //         width: 1px;
+    //         height: 100%;
+    //         background-color: grey;
+    //     `;
+    //     tracker.pageContainer.appendChild(ruler);
+    // }
+
+
+
     for (const layout of layouts) {
-        renderSectionLayout(layout, tracker);   
+        renderSectionLayout(layout, tracker);
         tracker.height += layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;
     }
 
@@ -109,7 +141,7 @@ export const render = async (
 type Tracker = {
     page: number,
     pageContainer: HTMLElement,
-    path: ElementPath,
+    path: ElementPath | null,
     height: number,
     state: EditorState,
     dispatch: Dispatch<EditorAction>,
@@ -135,21 +167,42 @@ const getPageContainer = (page: number, width: number, height: number) => {
 }
 
 
+export const mergeSpans = (spans: Elem.Span[]): Elem.Span[] => {
+    const merged_spans: Elem.Span[] = [];
+    let currentSpan = spans[0];
+    for (let i = 1; i < spans.length; i++) {
+        if (currentSpan.bbox!.top_left.y === spans[i].bbox!.top_left.y
+            && currentSpan.font === spans[i].font
+            && currentSpan.is_code === spans[i].is_code
+            && currentSpan.is_bold === spans[i].is_bold
+            && currentSpan.is_italic === spans[i].is_italic
+        ) {
+            currentSpan.text += spans[i].text;
+            currentSpan.bbox!.bottom_right = spans[i].bbox!.bottom_right;
+        } else {
+            merged_spans.push(currentSpan);
+            currentSpan = spans[i];
+        }
+    }
+    merged_spans.push(currentSpan);
+    return merged_spans;
+}
+
+
 export const renderSectionLayout = (layout: Layout.RenderedLayout, tracker: Tracker) => {
     switch (layout.tag) {
         case "Stack": {
             const stack = layout as Layout.RenderedStack;
             for (const elem of stack.elements) {
-                const currentPath = { ...tracker.path };
-                renderSectionLayout(elem, tracker);
-                tracker.path = currentPath;
+                renderSectionLayout(elem, { ...tracker, path: layout.path ?? tracker.path });
             }
             break;
         }
         case "Row": {
             const row = layout as Layout.RenderedRow;
+
             for (const elem of row.elements) {
-                renderSectionLayout(elem, tracker);
+                renderSectionLayout(elem, { ...tracker, path: layout.path ?? tracker.path });
             }
             break;
         }
@@ -158,36 +211,9 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, tracker: Trac
             if (!layout.bounding_box) {
                 return;
             }
-            const x = layout.bounding_box!.top_left.x + tracker.resume_layout.margin.left;
-            let y = layout.bounding_box!.top_left.y 
-                    + (tracker.resume_layout.margin.top * (tracker.page + 1)) 
-                    + (tracker.resume_layout.margin.bottom * tracker.page)
-                    + tracker.height 
-                    - (tracker.resume_layout.height * tracker.page)
-            if (y + Font.get_height(element.font, tracker.fontDict) > tracker.resume_layout.height - tracker.resume_layout.margin.bottom) {
-                tracker.page++;
-                y = y + tracker.resume_layout.margin.top + tracker.resume_layout.margin.bottom - tracker.resume_layout.height; 
 
-                tracker.pageContainer = getPageContainer(tracker.page, tracker.resume_layout.width, tracker.resume_layout.height);
-            }
+            mergeSpans(element.spans!).forEach((span) => {
 
-            const domElem = document.createElement("div");
-
-            domElem.innerText = element.item;
-            domElem.style.cssText = `
-                position: absolute;
-                left: ${x}px;
-                top: ${y}px;
-                font-family: "${Font.full_name(element.font)}", sans-serif;
-                font-size: ${element.font.size}px;
-                font-style: ${element.font.style};
-                font-weight: ${element.font.weight};
-                background-color: ${ColorMap[element.background_color]};
-            `;
-
-
-            element.spans!.forEach((span) => {
-                console.log(span)
                 if (span.text === "") {
                     return;
                 }
@@ -198,14 +224,16 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, tracker: Trac
                     position: absolute;
                     left: ${layout.bounding_box.top_left.x + tracker.resume_layout.margin.left + span.bbox!.top_left.x}px;
                     top: ${layout.bounding_box.top_left.y + tracker.resume_layout.margin.top + tracker.height + span.bbox!.top_left.y}px;
+                    width: ${span.bbox!.width()}px;
+                    height: ${span.bbox!.height()}px;
                     font-family: "${Font.full_name(span.font!)}", sans-serif;
                     font-size: ${span.font!.size}px;
                     font-style: ${span.font!.style};
                     font-weight: ${span.font!.weight};
                     background-color: ${ColorMap[element.background_color]};
                 `;
-                
-                            
+
+
                 spanElem.addEventListener("mouseover", () => {
                     spanElem.style.backgroundColor = "lightgray";
                     spanElem.style.cursor = "pointer";
@@ -216,27 +244,36 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, tracker: Trac
                     spanElem.style.animation = "none";
                 });
 
-                
-                // if (span.is_code) {
+                // console.error("Setting Click Path for", span.text, "to", tracker.path);
+                spanElem.addEventListener("click", () => {
+                    const path = layout.path ?? tracker.path ?? { tag: "none" };
+
+                    if (path.tag === "section") {
+                        console.error("Setting path to section", { ...path, tag: "field", field: element.item });
+                        tracker.dispatch({
+                            type: "set-editor-path",
+                            path: { ...path }
+                        });
+                        return;
+                    } else if (path.tag === "item") {
+                        console.error("Setting path to field", { ...path, tag: "field", field: element.item });
+                        tracker.dispatch({
+                            type: "set-editor-path",
+                            path: { ...path, tag: "field", field: element.item }
+                        });
+                    } else {
+                        console.error("Cannot path to item", tracker.path, element.item);
+                    }
+                });
+
+                if (span.is_code) {
                 //     // Add a rounded rectangle around the code
-                //     doc.roundedRect(
-                //         layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 3,
-                //         layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y,
-                //         span.bbox.width() + span.font.size / 3 * 2,
-                //         span.bbox.height(),
-                //         5
-                //     ).stroke();
-                //     // Add a background color to the code
-                //     doc.fillColor("black");
-                //     doc.fillOpacity(0.05);
-                //     doc.rect(
-                //         layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 3,
-                //         layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y,
-                //         span.bbox.width() + span.font.size / 3 * 2,
-                //         span.bbox.height()
-                //     ).fill();
-                //     doc.fillOpacity(1);
-                // }
+                //     spanElem.style.borderRadius = "5px";
+                //     spanElem.style.border = "1px solid black";
+                //     spanElem.style.padding = `0 ${span.font?.size! / 5}px`;
+                //     spanElem.style.backgroundColor = "rgba(0, 0, 0, 0.05)";
+                    spanElem.style.backgroundColor = "rgba(0, 0, 0, 0.1)";
+                }
                 tracker.pageContainer.appendChild(spanElem);
             });
             // tracker.pageContainer.appendChild(domElem);

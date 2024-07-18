@@ -7,3 +7,5 @@ export type Optional<T> = {
 export function with_<T>(e: T, w: Optional<T>): T {
     return { ...e, ...w };
 }
+
+export const EPSILON = 5;

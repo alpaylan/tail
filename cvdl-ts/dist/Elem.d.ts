@@ -7,7 +7,7 @@ import { ItemContent } from "./Resume";
 import { Field } from "./DataSchema";
 import { Optional } from "./Utils";
 import { Box } from "./Box";
-type Span = {
+export type Span = {
     is_italic: boolean;
     is_bold: boolean;
     is_code: boolean;
@@ -21,6 +21,7 @@ type Span = {
 export type t = {
     tag: "Elem";
     item: string;
+    text?: string;
     spans?: Span[];
     url: string | null;
     is_ref: boolean;
@@ -38,6 +39,7 @@ export declare function elem(item: string, url: string | null, is_ref: boolean, 
 export declare function copy(e: Elem): {
     tag: "Elem";
     item: string;
+    text?: string;
     spans?: Span[];
     url: string;
     is_ref: boolean;

@@ -140,19 +140,15 @@ function flattenToken(t, sp) {
     return (0, ts_pattern_1.match)(t)
         .returnType()
         .with({ type: "paragraph", tokens: ts_pattern_1.P.select("tokens") }, ({ tokens }) => {
-        // console.log("[paragraph]", tokens);
         return flatten(tokens, sp);
     })
         .with({ type: "strong", tokens: ts_pattern_1.P.select("tokens") }, ({ tokens }) => {
-        // console.log("[strong]", tokens);
         return flatten(tokens, { ...sp, is_bold: true });
     })
         .with({ type: "em", tokens: ts_pattern_1.P.select("tokens") }, ({ tokens }) => {
-        // console.log("[em]", tokens);
         return flatten(tokens, { ...sp, is_italic: true });
     })
         .with({ type: "codespan", text: ts_pattern_1.P.select("text") }, ({ text }) => {
-        // console.log("[codespan]", text);
         return [{ ...sp, is_code: true, text, link: null }];
     })
         .with({ type: "text", tokens: ts_pattern_1.P.select("tokens") }, ({ tokens }) => {
@@ -186,22 +182,29 @@ function parseMarkdownItem(item) {
 }
 exports.parseMarkdownItem = parseMarkdownItem;
 function fillFonts(e, fonts) {
-    const simpleSpans = e.is_markdown ? parseMarkdownItem(e.item) : [{ ...defaultSpanProps(), text: e.item, font: e.font, link: null }];
+    const simpleSpans = e.is_markdown ? parseMarkdownItem(e.text) : [{ ...defaultSpanProps(), text: e.text, font: e.font, link: null }];
     const spans = [];
     for (const span of simpleSpans) {
         const font = e.is_markdown ? (0, Utils_1.with_)(e.font, ({
             // style: span.is_italic ? "Italic" : "Normal",
             weight: span.is_bold ? "Bold" : "Medium",
         })) : e.font;
-        if (span.text === " " || span.text === "\n") {
-            const width = Font.get_width(font, span.text, fonts);
+        if (span.text === " ") {
+            const width = Font.get_width(font, "-", fonts);
             spans.push({ ...span, font, width });
             continue;
         }
-        span.text.split(/\s+/).forEach(word => {
+        if (span.text === "\n\n") {
+            spans.push({ ...span, font, width: 0 });
+            continue;
+        }
+        const words = span.text.split(/\s+/);
+        words.forEach((word, index) => {
             const width = Font.get_width(font, word, fonts);
             spans.push({ ...span, text: word, font, width });
-            spans.push({ ...span, text: " ", font, width: Font.get_width(font, " ", fonts) });
+            if (index < words.length - 1) {
+                spans.push({ ...span, text: " ", font, width: Font.get_width(font, " ", fonts) });
+            }
         });
     }
     const text_width = spans.reduce((acc, span) => acc + span.width, 0);
@@ -239,7 +242,7 @@ function break_lines(e, font_dict) {
     const lines = [];
     // todo: I'm sure this implementation is pretty buggy. Note to future me, fix
     // this.
-    const words = e.item.split(/\s+/);
+    const words = e.text.split(/\s+/);
     const widths = words.map((word) => Font.get_width(e.font, word, font_dict));
     const space_width = Font.get_width(e.font, " ", font_dict);
     let start = 0;
@@ -281,21 +284,20 @@ function instantiate(e, section, fields) {
         return e;
     }
     const itemType = fields.find(f => f.name === e.item);
-    console.log(`Found item type: ${JSON.stringify(itemType)}`);
     if (itemType.type.tag === "MarkdownString") {
-        console.log(`Found markdown string: ${e.item}`);
         e.is_markdown = true;
     }
     const text = section.get(e.item);
+    console.log(`Instantiating ${e.item} with ${JSON.stringify(text)}`);
     if (text === undefined) {
-        return withIsRef(withItem(e, ""), false);
+        return (0, Utils_1.with_)(e, { is_ref: false, text: "" });
     }
     else {
         if (text.tag === "Url") {
-            return withIsRef(withUrl(withItem(e, text.value.text), text.value.url), false);
+            return (0, Utils_1.with_)(e, { is_ref: false, text: text.value.text, url: text.value.url });
         }
         else {
-            return withIsRef(withItem(e, Resume_1.ItemContent.toString(text)), false);
+            return (0, Utils_1.with_)(e, { is_ref: false, text: Resume_1.ItemContent.toString(text) });
         }
     }
 }

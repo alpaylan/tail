@@ -44,6 +44,7 @@ export type Span = {
 export type t = {
     tag: "Elem";
     item: string;
+    text?: string;
     spans?: Span[];
     url: string | null;
     is_ref: boolean;
@@ -162,22 +163,18 @@ function flattenToken(t: marked.Token, sp: SpanProps): Span[] {
         .returnType<Span[]>()
         .with({ type: "paragraph", tokens: P.select("tokens") },
             ({ tokens }) => {
-                // console.log("[paragraph]", tokens);
                 return flatten(tokens, sp);
             })
         .with({ type: "strong", tokens: P.select("tokens") },
             ({ tokens }) => {
-                // console.log("[strong]", tokens);
                 return flatten(tokens, { ...sp, is_bold: true });
             })
         .with({ type: "em", tokens: P.select("tokens") },
             ({ tokens }) => {
-                // console.log("[em]", tokens);
                 return flatten(tokens, { ...sp, is_italic: true });
             })
         .with({ type: "codespan", text: P.select("text") },
             ({ text }) => {
-                // console.log("[codespan]", text);
                 return [{ ...sp, is_code: true, text, link: null }];
             })
         .with({ type: "text", tokens: P.select("tokens") },
@@ -218,7 +215,7 @@ export function parseMarkdownItem(item: string): Span[] {
 }
 
 export function fillFonts(e: Elem, fonts: FontDict): Elem {
-    const simpleSpans = e.is_markdown ? parseMarkdownItem(e.item) : [{ ...defaultSpanProps(), text: e.item, font: e.font, link: null }];
+    const simpleSpans = e.is_markdown ? parseMarkdownItem(e.text) : [{ ...defaultSpanProps(), text: e.text, font: e.font, link: null }];
     const spans: Span[] = [];
     for (const span of simpleSpans) {
         const font = e.is_markdown ? with_(e.font, ({
@@ -226,9 +223,14 @@ export function fillFonts(e: Elem, fonts: FontDict): Elem {
             weight: span.is_bold ? "Bold" : "Medium",
         })) : e.font;
 
-        if (span.text === " " || span.text === "\n") {
-            const width = Font.get_width(font, span.text, fonts);
+        if (span.text === " ") {
+            const width = Font.get_width(font, "-", fonts);
             spans.push({ ...span, font, width });
+            continue;
+        }
+
+        if (span.text === "\n\n") {
+            spans.push({ ...span, font, width: 0 });
             continue;
         }
 
@@ -279,7 +281,7 @@ export function break_lines(e: Elem, font_dict: FontDict): Layout.t[] {
 
     // todo: I'm sure this implementation is pretty buggy. Note to future me, fix
     // this.
-    const words = e.item.split(/\s+/);
+    const words = e.text.split(/\s+/);
     const widths = words.map((word: string) => Font.get_width(e.font, word, font_dict));
     const space_width = Font.get_width(e.font, " ", font_dict);
 
@@ -327,21 +329,19 @@ export function instantiate(e: Elem, section: Map<string, ItemContent>, fields: 
     }
 
     const itemType = fields.find(f => f.name === e.item);
-    console.log(`Found item type: ${JSON.stringify(itemType)}`);
     if (itemType.type.tag === "MarkdownString") {
-        console.log(`Found markdown string: ${e.item}`);
         e.is_markdown = true;
     }
 
     const text = section.get(e.item);
-
+    console.log(`Instantiating ${e.item} with ${JSON.stringify(text)}`);
     if (text === undefined) {
-        return withIsRef(withItem(e, ""), false);
+        return with_(e, { is_ref: false, text: ""});
     } else {
         if (text.tag === "Url") {
-            return withIsRef(withUrl(withItem(e, text.value.text), text.value.url), false);
+            return with_(e, { is_ref: false, text: text.value.text, url: text.value.url });
         } else {
-            return withIsRef(withItem(e, ItemContent.toString(text)), false);
+            return with_(e, { is_ref: false, text: ItemContent.toString(text) });
         }
     }
 }

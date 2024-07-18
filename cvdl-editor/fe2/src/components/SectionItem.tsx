@@ -53,7 +53,7 @@ const SectionItem = ({ section, item, itemContent }: { section: string, item: nu
     const state = useContext(EditorContext);
     const dispatch = useContext(DocumentDispatchContext);
     const editorPath = state?.editorPath;
-    const showAll = editorPath?.tag === "item" && editorPath.section === section && editorPath.item === item;
+    const showAll = (editorPath?.tag === "item" || editorPath?.tag === "field") && editorPath.section === section && editorPath.item === item;
     const toggleShowAll = () => {
         if (showAll) {
             dispatch!({ type: "set-editor-path", path: { tag: "section", section: section } });
@@ -64,7 +64,7 @@ const SectionItem = ({ section, item, itemContent }: { section: string, item: nu
 
     return (
         <div
-            id={state?.resume.sections.find((s) => s.section_name === section)?.items[item].id ?? undefined}
+            id={`${section}-${item}`}
             className={`bordered-full ${!showAll ? 'clickable' : ''}`}
             style={{
                 display: "flex",

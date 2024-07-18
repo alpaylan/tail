@@ -11,9 +11,9 @@ const storage = new LocalStorage();
 
 export type EditorState = {
   resume: Resume,
-  editorPath: ElementPath,
   resumeName: string,
-  editHistory: DocumentAction[]
+  editorPath: ElementPath,
+  editHistory: DocumentAction[],
 };
 
 export const EditorContext = createContext<EditorState | null>(null);
@@ -145,10 +145,20 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 
   if (action.type === 'set-editor-path') {
     path = action.path;
-    if (path.tag === "section" || path.tag === "item") {
+    if (path.tag === "section") {
       setTimeout(() => {
         // @ts-ignore
         document.getElementById(path.section)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 200);
+    } else if (path.tag === "item") {
+      setTimeout(() => {
+        // @ts-ignore
+        document.getElementById(path.section + "-" + path.item)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 200);
+    } else if (path.tag === "field") {
+      setTimeout(() => {
+        // @ts-ignore
+        document.getElementById(path.section + "-" + path.item + "-" + path.field)?.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 200);
     }
   }
@@ -313,13 +323,13 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
     const newSection = new ResumeSection();
     const storage = new LocalStorage();
     storage.load_layout_schema(action.layout_schema).then((layout_schema) => {
-    newSection.data_schema = layout_schema.data_schema_name;
-    newSection.section_name = action.section_name;
-    newSection.layout_schema = action.layout_schema;
-    newState.sections.push(newSection);
-    if (!undoing) {
-      editHistory.push({ type: "delete-section", section_name: action.section_name });
-    }
+      newSection.data_schema = layout_schema.data_schema_name;
+      newSection.section_name = action.section_name;
+      newSection.layout_schema = action.layout_schema;
+      newState.sections.push(newSection);
+      if (!undoing) {
+        editHistory.push({ type: "delete-section", section_name: action.section_name });
+      }
     });
   }
 
