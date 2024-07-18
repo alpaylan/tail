@@ -211,8 +211,8 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, tracker: Trac
             if (!layout.bounding_box) {
                 return;
             }
-
-            mergeSpans(element.spans!).forEach((span) => {
+            const spans = element.alignment === "Justified" ? element.spans! : mergeSpans(element.spans!);
+            spans.forEach((span) => {
 
                 if (span.text === "") {
                     return;

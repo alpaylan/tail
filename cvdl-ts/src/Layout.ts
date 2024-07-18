@@ -432,30 +432,51 @@ export function computeTextboxPositions(
             }
 
             const height = Font.get_height(elem.font, font_dict);
-            const width = Width.get_fixed_unchecked(elem.text_width);
+            // const width = Width.get_fixed_unchecked(elem.text_width);
             top_left = top_left.move_y_by(elem.margin.top).move_x_by(elem.margin.left);
             let line = 1;
             let cursor = top_left.x;
             elem.spans.forEach(span => {
-                if (cursor - top_left.x + span.width > Width.get_fixed_unchecked(elem.width) - elem.margin.right  || span.text === "\n\n") {
+                if (cursor - top_left.x + span.width > Width.get_fixed_unchecked(elem.width) - elem.margin.right || span.text === "\n\n") {
                     cursor = top_left.x;
                     line += 1;
                 }
                 span.bbox = new Box(new Point(cursor - top_left.x, (line - 1) * height), new Point(cursor + span.width, line * height));
                 span.line = line;
                 cursor += span.width;
-
             });
-            // switch (elem.alignment) {
-            //     case "Center":
-            //         top_left = top_left.move_x_by((Width.get_fixed_unchecked(elem.width) - width) / 2.0);
-            //         break;
-            //     case "Right":
-            //         top_left = top_left.move_x_by(Width.get_fixed_unchecked(elem.width) - width);
-            //         break;
-            // }
 
-            const textbox = new Box(top_left, top_left.move_x_by(width).move_y_by(height * line));
+            const lineWidths = elem.spans.reduce((acc, span) => {
+                acc[span.line - 1].width += span.width;
+                return acc;
+            }, Array.from({ length: line }, (_, i) => ({ line: i + 1, width: 0 })));
+
+            switch (elem.alignment) {
+                case "Center":
+                    elem.spans.forEach(span => {
+                        span.bbox = span.bbox.move_x_by((Width.get_fixed_unchecked(elem.width) - lineWidths[span.line - 1].width) / 2.0);
+                    });
+                    break;
+                case "Right":
+                    elem.spans.forEach(span => {
+                        span.bbox = span.bbox.move_x_by(Width.get_fixed_unchecked(elem.width) - lineWidths[span.line - 1].width);
+                    });
+                    break;
+                case "Justified": {
+                    for (let i = 1; i < line; i++) {
+                        const lineSpans = elem.spans.filter(span => span.line === i && span.text !== "\n\n" && span.text !== "\n" && span.text !== " ");
+                        const totalWidth = lineSpans.reduce((acc, span) => acc + span.width, 0);
+                        const perSpace = (Width.get_fixed_unchecked(elem.width) - totalWidth) / (lineSpans.length - 1);
+                        let cursor = 0;
+                        lineSpans.forEach(span => {
+                            span.bbox = span.bbox.move_x_by(cursor - span.bbox.top_left.x);
+                            cursor += span.width + perSpace;
+                        });
+                    }
+                }
+            }
+
+            const textbox = new Box(top_left, top_left.move_x_by(Width.get_fixed_unchecked(elem.width)).move_y_by(height * line));
             return { depth: top_left.y + height * line, renderedLayout: { ...l, bounding_box: textbox } };
 
         }

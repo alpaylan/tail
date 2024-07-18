@@ -86,7 +86,6 @@ function App() {
       return;
     }
     const data_schema_loader = () => {
-      console.error(storage);
       storage.list_data_schemas().then((dataSchemaNames: string[]) => {
         Promise.all(dataSchemaNames.map((schema) => new LocalStorage().load_data_schema(schema))).then((dataSchemas: DataSchema[]) => {
           setDataSchemas(dataSchemas);
