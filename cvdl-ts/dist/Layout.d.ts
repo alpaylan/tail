@@ -1,6 +1,3 @@
-import * as Margin from "./Margin";
-import * as Alignment from "./Alignment";
-import * as Width from "./Width";
 import * as Font from "./Font";
 import { ItemContent } from "./Resume";
 import { Box } from "./Box";
@@ -37,9 +34,6 @@ export declare function isContainer(l: Layout): boolean;
 export declare function isFill(l: Layout): boolean;
 export declare function isRef(l: Layout): boolean;
 export declare function fonts(l: Layout): Font.t[];
-export declare function withMargin(l: Layout, margin: Margin.t): Layout;
-export declare function withAlignment(l: Layout, alignment: Alignment.t): Layout;
-export declare function withWidth(l: Layout, width: Width.t): Layout;
 export declare function totalElementsWidth(l: Layout): number;
 export declare function isInstantiated(l: Layout): boolean;
 export declare function instantiate(l: Layout, section: Map<string, ItemContent>, fields: Field.t[]): Layout;
@@ -47,7 +41,6 @@ export declare function boundWidth(l: Layout, width: number): Layout;
 export declare function scaleWidth(l: Layout, document_width: number): Layout;
 export declare function normalize(l: Layout, width: number, font_dict: FontDict): Layout;
 export declare function fillFonts(l: Layout, font_dict: FontDict): Layout;
-export declare function breakLines(l: Layout, font_dict: FontDict): Layout;
 export declare function computeBoxes(l: Layout, font_dict: FontDict): RenderedLayout;
 export declare function computeTextboxPositions(l: Layout, top_left: Point, font_dict: FontDict): {
     depth: number;

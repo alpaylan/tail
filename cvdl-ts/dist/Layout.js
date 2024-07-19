@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ColorMap = exports.computeTextboxPositions = exports.computeBoxes = exports.breakLines = exports.fillFonts = exports.normalize = exports.scaleWidth = exports.boundWidth = exports.instantiate = exports.isInstantiated = exports.totalElementsWidth = exports.withWidth = exports.withAlignment = exports.withMargin = exports.fonts = exports.isRef = exports.isFill = exports.isContainer = exports.toJson = exports.tag_ = exports.type_ = exports.fromJson = exports.empty = exports.default_ = void 0;
+exports.ColorMap = exports.computeTextboxPositions = exports.computeBoxes = exports.fillFonts = exports.normalize = exports.scaleWidth = exports.boundWidth = exports.instantiate = exports.isInstantiated = exports.totalElementsWidth = exports.fonts = exports.isRef = exports.isFill = exports.isContainer = exports.toJson = exports.tag_ = exports.type_ = exports.fromJson = exports.empty = exports.default_ = void 0;
 const Width = __importStar(require("./Width"));
 const Font = __importStar(require("./Font"));
 const Box_1 = require("./Box");
@@ -31,11 +31,12 @@ const Point_1 = require("./Point");
 const Stack = __importStar(require("./Stack"));
 const Row = __importStar(require("./Row"));
 const Elem = __importStar(require("./Elem"));
+const Utils_1 = require("./Utils");
 function default_(tag) {
     switch (tag) {
         case "Stack": return Stack.default_();
         case "FlexRow": return Row.default_();
-        case "FrozenRow": return Row.withFrozen(Row.default_(), true);
+        case "FrozenRow": return (0, Utils_1.with_)(Row.default_(), { is_frozen: true });
         case "Text": return Elem.default_();
         case "Ref": return Elem.asRef(Elem.default_());
     }
@@ -157,39 +158,6 @@ function fonts(l) {
     }
 }
 exports.fonts = fonts;
-function withMargin(l, margin) {
-    switch (l.tag) {
-        case "Stack":
-            return Stack.withMargin(l, margin);
-        case "Row":
-            return Row.withMargin(l, margin);
-        case "Elem":
-            return Elem.withMargin(l, margin);
-    }
-}
-exports.withMargin = withMargin;
-function withAlignment(l, alignment) {
-    switch (l.tag) {
-        case "Stack":
-            return Stack.withAlignment(l, alignment);
-        case "Row":
-            return Row.withAlignment(l, alignment);
-        case "Elem":
-            return Elem.withAlignment(l, alignment);
-    }
-}
-exports.withAlignment = withAlignment;
-function withWidth(l, width) {
-    switch (l.tag) {
-        case "Stack":
-            return Stack.withWidth(l, width);
-        case "Row":
-            return Row.withWidth(l, width);
-        case "Elem":
-            return Elem.withWidth(l, width);
-    }
-}
-exports.withWidth = withWidth;
 function totalElementsWidth(l) {
     switch (l.tag) {
         case "Stack":
@@ -213,9 +181,8 @@ exports.isInstantiated = isInstantiated;
 function instantiate(l, section, fields) {
     switch (l.tag) {
         case "Stack":
-            return Stack.withElements(l, l.elements.map(e => instantiate(e, section, fields)));
         case "Row":
-            return Row.withElements(l, l.elements.map(e => instantiate(e, section, fields)));
+            return (0, Utils_1.with_)(l, { elements: l.elements.map(e => instantiate(e, section, fields)) });
         case "Elem":
             return Elem.instantiate(l, section, fields);
     }
@@ -266,10 +233,7 @@ function normalize(l, width, font_dict) {
     const bounded_layout = boundWidth(scaled_layout, width);
     console.debug("Widths are bounded. Filling fonts...");
     const font_filled_layout = fillFonts(bounded_layout, font_dict);
-    console.debug("Fonts filled. Breaking lines...");
-    // const broken_layout = breakLines(font_filled_layout, font_dict);
-    console.debug("Lines broken.");
-    // return broken_layout;
+    console.debug("Fonts filled.");
     return font_filled_layout;
 }
 exports.normalize = normalize;
@@ -286,7 +250,7 @@ function fillFonts(l, font_dict) {
                 const total_width = totalElementsWidth(l);
                 if (total_width <= Width.get_fixed_unchecked(l.width)) {
                     // throw `Cannot fill fonts of row with width ${JSON.stringify(this.width())} and total width ${total_width}`
-                    return withWidth(l, Width.absolute(total_width));
+                    return (0, Utils_1.with_)(l, { width: Width.absolute(total_width) });
                 }
             }
             return l;
@@ -296,47 +260,6 @@ function fillFonts(l, font_dict) {
     }
 }
 exports.fillFonts = fillFonts;
-function breakLines(l, font_dict) {
-    switch (l.tag) {
-        case "Stack": {
-            const stack = l;
-            return Stack.withElements(stack, stack.elements.map(e => breakLines(e, font_dict)));
-        }
-        case "Row": {
-            const row = l;
-            if (row.is_frozen) {
-                const total_width = row
-                    .elements
-                    .map(e => Width.get_fixed_unchecked(e.width))
-                    .reduce((a, b) => a + b, 0.0);
-                if (total_width > Width.get_fixed_unchecked(row.width)) {
-                    throw `Cannot break lines of frozen row with width ${row.width} and total width ${total_width}`;
-                }
-                else {
-                    row.elements = row.elements.map(e => breakLines(e, font_dict));
-                }
-            }
-            else {
-                const lines = Row.breakLines(row, font_dict);
-                return Stack.stack(lines, row.margin, row.alignment, row.width, false);
-            }
-            return row;
-        }
-        case "Elem": {
-            if (isRef(l)) {
-                throw new Error("Cannot break lines of uninstantiated layout");
-            }
-            const elem = l;
-            const lines = Elem.break_lines(elem, font_dict);
-            // Make last line left if it's justified
-            if (lines[lines.length - 1].alignment === "Justified") {
-                lines[lines.length - 1] = withAlignment(lines[lines.length - 1], "Left");
-            }
-            return Stack.stack(lines, elem.margin, elem.alignment, elem.width, false);
-        }
-    }
-}
-exports.breakLines = breakLines;
 function computeBoxes(l, font_dict) {
     const top_left = new Point_1.Point(0.0, 0.0);
     return computeTextboxPositions(l, top_left, font_dict).renderedLayout;
@@ -356,9 +279,10 @@ function computeTextboxPositions(l, top_left, font_dict) {
                 top_left = top_left.move_y_to(depth);
                 renderedElements.push(result.renderedLayout);
             }
+            depth += stack.margin.bottom;
             return {
                 depth, renderedLayout: {
-                    ...l, bounding_box: new Box_1.Box(originalTopLeft, top_left.move_x_by(Width.get_fixed_unchecked(stack.width))), elements: renderedElements
+                    ...l, bounding_box: new Box_1.Box(originalTopLeft, top_left.move_x_by(Width.get_fixed_unchecked(stack.width)).move_y_by(stack.margin.bottom)), elements: renderedElements
                 }
             };
         }
@@ -386,6 +310,7 @@ function computeTextboxPositions(l, top_left, font_dict) {
                     top_left.move_x_by(Width.get_fixed_unchecked(element.width) + per_elem_space);
                 renderedElements.push(result.renderedLayout);
             }
+            depth += row.margin.bottom;
             return {
                 depth, renderedLayout: {
                     ...l, bounding_box: new Box_1.Box(originalTopLeft, originalTopLeft.move_y_by(depth).move_x_by(Width.get_fixed_unchecked(row.width))), elements: renderedElements
@@ -398,7 +323,6 @@ function computeTextboxPositions(l, top_left, font_dict) {
                 throw new Error("Cannot compute textbox positions of uninstantiated layout");
             }
             const height = Font.get_height(elem.font, font_dict);
-            // const width = Width.get_fixed_unchecked(elem.text_width);
             top_left = top_left.move_y_by(elem.margin.top).move_x_by(elem.margin.left);
             let line = 1;
             let cursor = top_left.x;
@@ -427,8 +351,6 @@ function computeTextboxPositions(l, top_left, font_dict) {
                     });
                     break;
                 case "Justified": {
-                    // console.error("Justified alignment is not supported yet");
-                    const spans = [];
                     for (let i = 1; i < line; i++) {
                         const lineSpans = elem.spans.filter(span => span.line === i && span.text !== "\n\n" && span.text !== "\n" && span.text !== " ");
                         const totalWidth = lineSpans.reduce((acc, span) => acc + span.width, 0);
@@ -438,15 +360,11 @@ function computeTextboxPositions(l, top_left, font_dict) {
                             span.bbox = span.bbox.move_x_by(cursor - span.bbox.top_left.x);
                             cursor += span.width + perSpace;
                         });
-                        // console.error(lineSpans);
-                        // spans.push(...lineSpans);
                     }
-                    // spans.push(...elem.spans.filter(span => span.line === line));
-                    // elem.spans = spans;
                 }
             }
-            const textbox = new Box_1.Box(top_left, top_left.move_x_by(Width.get_fixed_unchecked(elem.width)).move_y_by(height * line));
-            return { depth: top_left.y + height * line, renderedLayout: { ...l, bounding_box: textbox } };
+            const textbox = new Box_1.Box(top_left, top_left.move_x_by(Width.get_fixed_unchecked(elem.width)).move_y_by(height * line + elem.margin.bottom));
+            return { depth: top_left.y + height * line + elem.margin.bottom, renderedLayout: { ...l, bounding_box: textbox } };
         }
     }
 }

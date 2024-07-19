@@ -5,7 +5,7 @@ import { Resume } from "cvdl-ts/dist/Resume";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { ResumeLayout } from "cvdl-ts/dist/ResumeLayout";
-import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
+import { Storage } from "cvdl-ts/dist/Storage";
 import { Dispatch } from "react";
 import { EditorAction, EditorState } from "@/components/State";
 import { ColorMap } from "cvdl-ts/dist/Layout";
@@ -23,11 +23,11 @@ export type RenderProps = {
     data_schemas?: DataSchema[],
     layout_schemas?: LayoutSchema[],
     resume_layout?: ResumeLayout,
-    storage: LocalStorage,
+    storage: Storage,
     fontDict?: FontDict,
+    debug: boolean,
     state: EditorState,
     dispatch: Dispatch<EditorAction>
-    debug: boolean,
 }
 
 export const render = async (
@@ -77,60 +77,36 @@ export const render = async (
     console.info(`Rendering time: ${end_time - start_time}ms`);
 
     // Add the fonts to the document(@TODO: DO NOT HARDCODE THE FONTS)
-    document.fonts.add(new FontFace("Exo-Bold", "url(https://d2bnplhbawocbk.cloudfront.net/data/fonts/Exo-Bold.ttf)"));
-    document.fonts.add(new FontFace("Exo-Medium", "url(https://d2bnplhbawocbk.cloudfront.net/data/fonts/Exo-Medium.ttf)"));
-    document.fonts.add(new FontFace("Roboto-Bold", "url(https://d2bnplhbawocbk.cloudfront.net/data/fonts/Roboto-Bold.ttf)"));
-    document.fonts.add(new FontFace("Roboto-Medium", "url(https://d2bnplhbawocbk.cloudfront.net/data/fonts/Roboto-Medium.ttf)"));
+    try {
+        console.log("Registering fonts...");
+        for (const [font_name, font] of fontDict.fonts.entries()) {
+            console.log(`Registering font ${font_name}`);
+            // @ts-ignore
+            document.fonts.add(new FontFace(font_name, font.stream.buffer));
+        }
+    } catch (e) {
+        console.error(e);
+    }
 
     console.log("Rendering the document...");
 
-    // Add bounding boxes to the document
-    const tracker = {
+    let tracker = {
         page: 0,
-        pageContainer: getPageContainer(0, resume_layout.width, resume_layout.height),
         path: null,
+        pageContainer: container,
         height: 0,
         state,
         dispatch,
-        resume_layout,
+        layout: resume_layout,
         fontDict,
-    }
+    };
 
-    // Add rulers to the document at every 10 pixels
-    // for (let i = 0; i < resume_layout.height; i += 10) {
-    //     const ruler = document.createElement("div");
-    //     ruler.style.cssText = `
-    //         position: absolute;
-    //         left: 0;
-    //         top: ${i}px;
-    //         width: 100%;
-    //         height: 1px;
-    //         background-color: grey;
-    //     `;
-    //     tracker.pageContainer.appendChild(ruler);
-    // }
-
-
-    // for (let i = 0; i < resume_layout.width; i += 10) {
-    //     const ruler = document.createElement("div");
-    //     ruler.style.cssText = `
-    //         position: absolute;
-    //         left: ${i}px;
-    //         top: 0;
-    //         width: 1px;
-    //         height: 100%;
-    //         background-color: grey;
-    //     `;
-    //     tracker.pageContainer.appendChild(ruler);
-    // }
-
-
+    tracker.pageContainer = getPageContainer(tracker.page, tracker);
 
     for (const layout of layouts) {
         renderSectionLayout(layout, tracker);
         tracker.height += layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;
     }
-
 
     console.log("Rendering is completed. Saving the document...");
 
@@ -141,15 +117,15 @@ export const render = async (
 type Tracker = {
     page: number,
     pageContainer: HTMLElement,
-    path: ElementPath | null,
     height: number,
+    layout: ResumeLayout,
+    fontDict: FontDict,
     state: EditorState,
     dispatch: Dispatch<EditorAction>,
-    resume_layout: ResumeLayout,
-    fontDict: FontDict,
+    path: ElementPath | null,
 }
 
-const getPageContainer = (page: number, width: number, height: number) => {
+const getPageContainer = (page: number, tracker: Tracker) => {
     if (document.getElementById(`page-${page}`)) {
         return document.getElementById(`page-${page}`)!;
     } else {
@@ -157,8 +133,8 @@ const getPageContainer = (page: number, width: number, height: number) => {
         pageContainer.id = `page-${page}`;
         pageContainer.style.cssText = `
             position: relative;
-            width: ${width}px;
-            height: ${height}px;
+            width: ${tracker.layout.width}px;
+            height: ${tracker.layout.height}px;
             border: 1px solid black;
         `;
         document.getElementById("pdf-container")!.appendChild(pageContainer);
@@ -208,22 +184,30 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, tracker: Trac
         }
         case "Elem": {
             const element = layout as Elem.t;
+
             if (!layout.bounding_box) {
                 return;
             }
             const spans = element.alignment === "Justified" ? element.spans! : mergeSpans(element.spans!);
             spans.forEach((span) => {
 
-                if (span.text === "") {
+                if (span.text === "" || span.text === " " || span.text === "\n" || span.text === "\n\n") {
                     return;
                 }
 
+                const absoluteY = layout.bounding_box.top_left.y + tracker.height + span.bbox!.top_left.y;
+                let page = Math.floor(absoluteY / (tracker.layout.height - tracker.layout.margin.top - tracker.layout.margin.bottom));
+                const currentPageY = absoluteY % (tracker.layout.height - tracker.layout.margin.top - tracker.layout.margin.bottom);
+                const y = currentPageY + tracker.layout.margin.top;
+                const x = layout.bounding_box.top_left.x + tracker.layout.margin.left + span.bbox!.top_left.x;
+
+                tracker.pageContainer = getPageContainer(page, tracker);
                 const spanElem = document.createElement("span");
                 spanElem.innerText = span.text;
                 spanElem.style.cssText = `
                     position: absolute;
-                    left: ${layout.bounding_box.top_left.x + tracker.resume_layout.margin.left + span.bbox!.top_left.x}px;
-                    top: ${layout.bounding_box.top_left.y + tracker.resume_layout.margin.top + tracker.height + span.bbox!.top_left.y}px;
+                    left: ${x}px;
+                    top: ${y}px;
                     width: ${span.bbox!.width()}px;
                     height: ${span.bbox!.height()}px;
                     font-family: "${Font.full_name(span.font!)}", sans-serif;
@@ -232,7 +216,6 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, tracker: Trac
                     font-weight: ${span.font!.weight};
                     background-color: ${ColorMap[element.background_color]};
                 `;
-
 
                 spanElem.addEventListener("mouseover", () => {
                     spanElem.style.backgroundColor = "lightgray";
@@ -245,7 +228,8 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, tracker: Trac
                 });
 
                 // console.error("Setting Click Path for", span.text, "to", tracker.path);
-                spanElem.addEventListener("click", () => {
+                spanElem.addEventListener("click", (e) => {
+                    e.stopPropagation();
                     const path = layout.path ?? tracker.path ?? { tag: "none" };
 
                     if (path.tag === "section") {
@@ -267,16 +251,21 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, tracker: Trac
                 });
 
                 if (span.is_code) {
-                //     // Add a rounded rectangle around the code
-                //     spanElem.style.borderRadius = "5px";
-                //     spanElem.style.border = "1px solid black";
-                //     spanElem.style.padding = `0 ${span.font?.size! / 5}px`;
-                //     spanElem.style.backgroundColor = "rgba(0, 0, 0, 0.05)";
-                    spanElem.style.backgroundColor = "rgba(0, 0, 0, 0.1)";
+                    const roundedRectangleElem = document.createElement("div");
+                    roundedRectangleElem.style.cssText = `
+                        position: absolute;
+                        left: ${x - span.font!.size / 5}px;
+                        top: ${y}px;
+                        width: ${span.bbox!.width() + span.font!.size / 5 * 2}px;
+                        height: ${span.bbox!.height()}px;
+                        border-radius: 5px;
+                        border: 1px solid black;
+                        background-color: rgba(0, 0, 0, 0.05);
+                    `;
+                    tracker.pageContainer.appendChild(roundedRectangleElem);
                 }
                 tracker.pageContainer.appendChild(spanElem);
             });
-            // tracker.pageContainer.appendChild(domElem);
             break;
         }
     }

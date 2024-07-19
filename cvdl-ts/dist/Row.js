@@ -23,8 +23,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.breakLines = exports.scaleWidth = exports.boundWidth = exports.elementsWidth = exports.withFill = exports.withFrozen = exports.withWidth = exports.withAlignment = exports.withMargin = exports.withElements = exports.default_ = exports.copy = exports.row = exports.from = void 0;
+exports.scaleWidth = exports.boundWidth = exports.elementsWidth = exports.default_ = exports.row = exports.from = void 0;
 const _1 = require(".");
+const Utils_1 = require("./Utils");
 const Layout = __importStar(require("./Layout"));
 function from(w) {
     return { ...default_(), ...w };
@@ -42,12 +43,6 @@ function row(elements, margin, alignment, width, is_frozen, is_fill) {
     };
 }
 exports.row = row;
-function copy(r) {
-    return {
-        ...r,
-    };
-}
-exports.copy = copy;
 function default_() {
     return {
         tag: "Row",
@@ -60,48 +55,6 @@ function default_() {
     };
 }
 exports.default_ = default_;
-function withElements(r, elements) {
-    return {
-        ...r,
-        elements,
-    };
-}
-exports.withElements = withElements;
-function withMargin(r, margin) {
-    return {
-        ...r,
-        margin,
-    };
-}
-exports.withMargin = withMargin;
-function withAlignment(r, alignment) {
-    return {
-        ...r,
-        alignment,
-    };
-}
-exports.withAlignment = withAlignment;
-function withWidth(r, width) {
-    return {
-        ...r,
-        width,
-    };
-}
-exports.withWidth = withWidth;
-function withFrozen(r, is_frozen) {
-    return {
-        ...r,
-        is_frozen,
-    };
-}
-exports.withFrozen = withFrozen;
-function withFill(r, is_fill) {
-    return {
-        ...r,
-        is_fill,
-    };
-}
-exports.withFill = withFill;
 function elementsWidth(r) {
     return r.elements.map(e => _1.Width.get_fixed_unchecked(e.width)).reduce((a, b) => a + b, 0.0);
 }
@@ -117,29 +70,9 @@ function boundWidth(r, width) {
 }
 exports.boundWidth = boundWidth;
 function scaleWidth(r, w) {
-    return withWidth(withElements(r, r.elements.map(e => Layout.scaleWidth(e, w))), _1.Width.scale(r.width, w));
+    return (0, Utils_1.with_)(r, {
+        elements: r.elements.map(e => Layout.scaleWidth(e, w)),
+        width: _1.Width.scale(r.width, w)
+    });
 }
 exports.scaleWidth = scaleWidth;
-function breakLines(r, font_dict) {
-    const lines = [];
-    let current_line = [];
-    let current_width = 0.0;
-    const elements = r
-        .elements
-        .map(e => Layout.breakLines(e, font_dict));
-    for (const element of elements) {
-        const element_width = _1.Width.get_fixed_unchecked(element.width);
-        if (current_width + element_width > _1.Width.get_fixed_unchecked(r.width)) {
-            lines.push(withElements(r, current_line));
-            current_line = [];
-            current_width = 0.0;
-        }
-        current_line.push(element);
-        current_width += element_width;
-    }
-    if (current_line.length > 0) {
-        lines.push(withElements(r, current_line));
-    }
-    return lines;
-}
-exports.breakLines = breakLines;

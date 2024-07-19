@@ -4,15 +4,25 @@ import { useContext, useEffect, useState } from "react";
 import { DocumentDispatchContext, EditorContext } from "./State";
 
 
-const AddNewSection = (props: { dataSchemas: DataSchema[], layoutSchemas: LayoutSchema[] }) => {
+const firstDataSchema = (dataSchemas?: DataSchema[]) => {
+  if (!dataSchemas) {
+    return "";
+  }
+  if (dataSchemas.length === 0) {
+    return "";
+  }
+  return dataSchemas[0].schema_name;
+}
+
+const AddNewSection = (props: { dataSchemas?: DataSchema[], layoutSchemas?: LayoutSchema[] }) => {
   const state = useContext(EditorContext);
   const dispatch = useContext(DocumentDispatchContext);
   const [addingSection, setAddingSection] = useState<boolean>(false);
   const [sectionName, setSectionName] = useState<string>("");
-  const [dataSchema, setDataSchema] = useState<string>(props.dataSchemas[0].schema_name ?? "");
+  const [dataSchema, setDataSchema] = useState<string>(firstDataSchema(props.dataSchemas));
   const getAvailableLayoutSchemas = (dataSchema: string) => {
-    return props.layoutSchemas.filter((schema) => schema.data_schema_name === dataSchema);
-  }
+    return (props.layoutSchemas ?? []).filter((schema) => schema.data_schema_name === dataSchema);
+  };
   const availableLayoutSchemas = getAvailableLayoutSchemas(dataSchema);
   const [layoutSchema, setLayoutSchema] = useState<string>(availableLayoutSchemas.length > 0 ? availableLayoutSchemas[0].schema_name : "");
 
@@ -70,7 +80,7 @@ const AddNewSection = (props: { dataSchemas: DataSchema[], layoutSchemas: Layout
               const availableLayoutSchemas = getAvailableLayoutSchemas(e.target.value);
               setLayoutSchema(availableLayoutSchemas.length > 0 ? availableLayoutSchemas[0].schema_name : "");
             }}>
-              {props.dataSchemas.map((schema) => {
+              {(props.dataSchemas ?? []).map((schema) => {
                 return <option key={schema.schema_name} value={schema.schema_name}>{schema.schema_name}</option>
               })}
             </select>

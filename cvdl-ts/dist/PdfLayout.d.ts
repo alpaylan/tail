@@ -22,5 +22,13 @@ export type RenderProps = {
     debug: boolean;
 };
 export declare const render: ({ resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict }: RenderProps) => Promise<RenderResult>;
+type Tracker = {
+    page: number;
+    pageContainer: PDFKit.PDFDocument;
+    height: number;
+    layout: ResumeLayout;
+    fontDict: FontDict;
+};
 export declare const mergeSpans: (spans: Elem.Span[]) => Elem.Span[];
-export declare const renderSectionLayout: (layout: Layout.RenderedLayout, resume_layout: ResumeLayout, current_height: number, doc: PDFKit.PDFDocument) => void;
+export declare const renderSectionLayout: (layout: Layout.RenderedLayout, tracker: Tracker) => void;
+export {};

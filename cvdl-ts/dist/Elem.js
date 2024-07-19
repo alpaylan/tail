@@ -23,10 +23,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.instantiate = exports.boundWidth = exports.break_lines = exports.justifiedLines = exports.fillFonts = exports.parseMarkdownItem = exports.scaleWidth = exports.withBackgroundColor = exports.withWidth = exports.withAlignment = exports.withMargin = exports.withFont = exports.withTextWidth = exports.withIsFill = exports.asRef = exports.withIsRef = exports.withUrl = exports.withItem = exports.from = exports.default_ = exports.copy = exports.elem = void 0;
+exports.instantiate = exports.boundWidth = exports.fillFonts = exports.parseMarkdownItem = exports.scaleWidth = exports.withBackgroundColor = exports.withWidth = exports.withAlignment = exports.withMargin = exports.withFont = exports.withTextWidth = exports.withIsFill = exports.asRef = exports.withIsRef = exports.withUrl = exports.withItem = exports.from = exports.default_ = exports.copy = exports.elem = void 0;
 const Font = __importStar(require("./Font"));
 const _1 = require(".");
-const Row_1 = require("./Row");
 const Resume_1 = require("./Resume");
 const marked = __importStar(require("marked"));
 const ts_pattern_1 = require("ts-pattern");
@@ -220,56 +219,6 @@ function fillFonts(e, fonts) {
     }
 }
 exports.fillFonts = fillFonts;
-function justifiedLines(e, lines, font_dict) {
-    const rowLines = [];
-    for (const line of lines.slice(0, -1)) {
-        const words = line.item.split(/\s+/);
-        const r = (0, Row_1.row)([], line.margin, line.alignment, line.width, false, false);
-        words.forEach(word => {
-            const word_width = Font.get_width(e.font, word, font_dict);
-            r.elements.push(elem(word, null, false, false, false, _1.Width.absolute(word_width), this.font, _1.Margin.default_(), _1.Alignment.default_(), _1.Width.absolute(word_width), this.background_color));
-        });
-        rowLines.push(Row_1.row);
-    }
-    rowLines.push((0, Row_1.row)([withAlignment(lines[lines.length - 1], "Left")], lines[0].margin, "Left", lines[0].width, false, false));
-    return rowLines;
-}
-exports.justifiedLines = justifiedLines;
-function break_lines(e, font_dict) {
-    if (_1.Width.get_fixed_unchecked(e.text_width) <= _1.Width.get_fixed_unchecked(e.width)) {
-        return [e];
-    }
-    const lines = [];
-    // todo: I'm sure this implementation is pretty buggy. Note to future me, fix
-    // this.
-    const words = e.text.split(/\s+/);
-    const widths = words.map((word) => Font.get_width(e.font, word, font_dict));
-    const space_width = Font.get_width(e.font, " ", font_dict);
-    let start = 0;
-    let width = widths[0];
-    const max_width = _1.Width.get_fixed_unchecked(e.width);
-    for (let i = 1; i < words.length; i++) {
-        const candidate_width = width + space_width + widths[i];
-        if (candidate_width > max_width) {
-            const line = words.slice(start, i).join(" ");
-            const line_width = Font.get_width(e.font, line, font_dict);
-            lines.push(withTextWidth(withItem(e, line), _1.Width.absolute(line_width)));
-            start = i;
-            width = widths[i];
-        }
-        else {
-            width += space_width + widths[i];
-        }
-    }
-    const line = words.slice(start).join(" ");
-    const line_width = Font.get_width(e.font, line, font_dict);
-    lines.push(withTextWidth(withItem(e, line), _1.Width.absolute(line_width)));
-    if (e.alignment === "Justified") {
-        return justifiedLines(e, lines, font_dict);
-    }
-    return lines;
-}
-exports.break_lines = break_lines;
 function boundWidth(e, width) {
     if (!_1.Width.is_fill(e.width)) {
         return withIsFill(withWidth(e, _1.Width.absolute(Math.min(_1.Width.get_fixed_unchecked(e.width), width))), false);

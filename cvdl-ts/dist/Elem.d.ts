@@ -1,8 +1,7 @@
 import * as Font from "./Font";
-import { Alignment, Layout, Margin, Width } from ".";
+import { Alignment, Margin, Width } from ".";
 import { Color } from "./Layout";
 import { FontDict } from "./AnyLayout";
-import * as Row from "./Row";
 import { ItemContent } from "./Resume";
 import { Field } from "./DataSchema";
 import { Optional } from "./Utils";
@@ -50,7 +49,7 @@ export declare function copy(e: Elem): {
     margin: Margin.t;
     alignment: Alignment.t;
     width: Width.t;
-    background_color: Layout.Color;
+    background_color: Color;
 };
 export declare function default_(): Elem;
 export declare function from(w: Optional<Elem>): Elem;
@@ -68,8 +67,6 @@ export declare function withBackgroundColor(e: Elem, background_color: Color): E
 export declare function scaleWidth(e: Elem, scale: number): Elem;
 export declare function parseMarkdownItem(item: string): Span[];
 export declare function fillFonts(e: Elem, fonts: FontDict): Elem;
-export declare function justifiedLines(e: Elem, lines: Elem[], font_dict: FontDict): Row.t[];
-export declare function break_lines(e: Elem, font_dict: FontDict): Layout.t[];
 export declare function boundWidth(e: Elem, width: number): Elem;
 export declare function instantiate(e: Elem, section: Map<string, ItemContent>, fields: Field.t[]): Elem;
 export {};

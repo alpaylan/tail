@@ -1,6 +1,6 @@
 
 import { Alignment, Layout, Margin, Width } from ".";
-import { Optional } from "./Utils";
+import { Optional, with_ } from "./Utils";
 
 export type t = {
     tag: "Stack";
@@ -27,12 +27,6 @@ export function stack(elements: Layout.t[], margin: Margin.t, alignment: Alignme
     };
 }
 
-export function copy(s: Stack): Stack {
-    return {
-        ...s,
-    };
-}
-
 export function default_(): Stack {
     return {
         tag: "Stack",
@@ -44,40 +38,6 @@ export function default_(): Stack {
     };
 }
 
-export function withElements(s: Stack, elements: Layout.t[]): Stack {
-    return {
-        ...s,
-        elements,
-    };
-}
-
-export function withMargin(s: Stack, margin: Margin.t): Stack {
-    return {
-        ...s,
-        margin,
-    };
-}
-
-export function withAlignment(s: Stack, alignment: Alignment.t): Stack {
-    return {
-        ...s,
-        alignment,
-    };
-}
-
-export function withWidth(s: Stack, width: Width.t): Stack {
-    return {
-        ...s,
-        width,
-    };
-}
-
-export function withIsFill(s: Stack, is_fill: boolean): Stack {
-    return {
-        ...s,
-        is_fill,
-    };
-}
 
 export function boundWidth(s: Stack, width: number): Stack {
     const bound = s.width.tag === "Absolute" ? Math.min(s.width.value, width)
@@ -86,11 +46,11 @@ export function boundWidth(s: Stack, width: number): Stack {
     if (bound === null) {
         throw new Error("Cannot bound width of non-unitized widths!")
     }
-    return withWidth(withElements(s, s.elements.map(e => Layout.boundWidth(e, bound))), Width.absolute(bound));
+    return with_(s, { elements: s.elements.map(e => Layout.boundWidth(e, bound)), width: Width.absolute(bound) });
 }
 
 export function scaleWidth(s: Stack, scale: number): Stack {
-    return withWidth(withElements(s, s.elements.map(e => Layout.scaleWidth(e, scale))), Width.scale(s.width, scale));
+    return with_(s, { elements: s.elements.map(e => Layout.scaleWidth(e, scale)), width: Width.scale(s.width, scale) });
 }
 
 

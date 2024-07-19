@@ -1,5 +1,4 @@
 import { Alignment, Margin, Width } from ".";
-import { FontDict } from "./AnyLayout";
 import { Optional } from "./Utils";
 import * as Layout from "./Layout";
 export type t = {
@@ -14,16 +13,8 @@ export type t = {
 type Row = t;
 export declare function from(w: Optional<Row>): Row;
 export declare function row(elements: Layout.t[], margin: Margin.t, alignment: Alignment.t, width: Width.t, is_frozen: boolean, is_fill: boolean): Row;
-export declare function copy(r: Row): Row;
 export declare function default_(): Row;
-export declare function withElements(r: Row, elements: Layout.t[]): Row;
-export declare function withMargin(r: Row, margin: Margin.t): Row;
-export declare function withAlignment(r: Row, alignment: Alignment.t): Row;
-export declare function withWidth(r: Row, width: Width.t): Row;
-export declare function withFrozen(r: Row, is_frozen: boolean): Row;
-export declare function withFill(r: Row, is_fill: boolean): Row;
 export declare function elementsWidth(r: Row): number;
 export declare function boundWidth(r: Row, width: number): Row;
 export declare function scaleWidth(r: Row, w: number): Row;
-export declare function breakLines(r: Row, font_dict: FontDict): Row[];
 export {};

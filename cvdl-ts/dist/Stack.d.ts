@@ -11,13 +11,7 @@ export type t = {
 type Stack = t;
 export declare function from(w: Optional<Stack>): Stack;
 export declare function stack(elements: Layout.t[], margin: Margin.t, alignment: Alignment.t, width: Width.t, is_fill: boolean): Stack;
-export declare function copy(s: Stack): Stack;
 export declare function default_(): Stack;
-export declare function withElements(s: Stack, elements: Layout.t[]): Stack;
-export declare function withMargin(s: Stack, margin: Margin.t): Stack;
-export declare function withAlignment(s: Stack, alignment: Alignment.t): Stack;
-export declare function withWidth(s: Stack, width: Width.t): Stack;
-export declare function withIsFill(s: Stack, is_fill: boolean): Stack;
 export declare function boundWidth(s: Stack, width: number): Stack;
 export declare function scaleWidth(s: Stack, scale: number): Stack;
 export {};

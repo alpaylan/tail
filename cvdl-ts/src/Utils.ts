@@ -8,4 +8,9 @@ export function with_<T>(e: T, w: Optional<T>): T {
     return { ...e, ...w };
 }
 
-export const EPSILON = 5;
+export function copy<T>(s: T): T {
+    return {
+        ...s,
+    };
+}
+

@@ -1,10 +1,8 @@
 
 import * as Font from "./Font";
-import { Alignment, Layout, Margin, Width } from ".";
+import { Alignment, Margin, Width } from ".";
 import { Color } from "./Layout";
 import { FontDict } from "./AnyLayout";
-import { row } from "./Row";
-import * as Row from "./Row";
 import { ItemContent } from "./Resume";
 import * as marked from "marked";
 import { match, P } from "ts-pattern";
@@ -255,63 +253,6 @@ export function fillFonts(e: Elem, fonts: FontDict): Elem {
     } else {
         return with_(e, { text_width: Width.absolute(text_width), spans });
     }
-}
-
-export function justifiedLines(e: Elem, lines: Elem[], font_dict: FontDict): Row.t[] {
-    const rowLines = [];
-    for (const line of lines.slice(0, -1)) {
-        const words = line.item.split(/\s+/);
-        const r = row([], line.margin, line.alignment, line.width, false, false);
-        words.forEach(word => {
-            const word_width = Font.get_width(e.font, word, font_dict);
-            r.elements.push(elem(word, null, false, false, false, Width.absolute(word_width), this.font, Margin.default_(), Alignment.default_(), Width.absolute(word_width), this.background_color));
-        });
-        rowLines.push(row);
-    }
-    rowLines.push(row([withAlignment(lines[lines.length - 1], "Left")], lines[0].margin, "Left", lines[0].width, false, false));
-    return rowLines;
-}
-
-export function break_lines(e: Elem, font_dict: FontDict): Layout.t[] {
-    if (Width.get_fixed_unchecked(e.text_width) <= Width.get_fixed_unchecked(e.width)) {
-        return [e]
-    }
-
-    const lines: Elem[] = [];
-
-    // todo: I'm sure this implementation is pretty buggy. Note to future me, fix
-    // this.
-    const words = e.text.split(/\s+/);
-    const widths = words.map((word: string) => Font.get_width(e.font, word, font_dict));
-    const space_width = Font.get_width(e.font, " ", font_dict);
-
-    let start = 0;
-    let width = widths[0];
-    const max_width = Width.get_fixed_unchecked(e.width);
-    for (let i = 1; i < words.length; i++) {
-        const candidate_width = width + space_width + widths[i];
-        if (candidate_width > max_width) {
-            const line = words.slice(start, i).join(" ");
-            const line_width = Font.get_width(e.font, line, font_dict);
-            lines.push(withTextWidth(withItem(e, line), Width.absolute(line_width)));
-            start = i;
-            width = widths[i];
-        } else {
-            width += space_width + widths[i];
-        }
-    }
-
-    const line = words.slice(start).join(" ");
-    const line_width = Font.get_width(e.font, line, font_dict);
-    lines.push(
-        withTextWidth(withItem(e, line), Width.absolute(line_width)),
-    );
-
-    if (e.alignment === "Justified") {
-        return justifiedLines(e, lines, font_dict);
-    }
-
-    return lines;
 }
 
 export function boundWidth(e: Elem, width: number): Elem {

@@ -5,13 +5,10 @@ import { Resume } from "./Resume";
 import { DataSchema } from "./DataSchema";
 import { LayoutSchema } from "./LayoutSchema";
 import { ResumeLayout } from "./ResumeLayout";
-// import { LocalStorage } from "./LocalStorage";
 import { Storage } from "./Storage";
 
 import * as Elem from "./Elem";
 import { Font, Layout } from ".";
-
-
 
 export type RenderResult = {
     blob: Blob,
@@ -61,14 +58,11 @@ export const render = async (
         fontDict = new FontDict();
     }
 
-
-
     let end_time = Date.now();
 
     console.info(`Loading time: ${end_time - start_time}ms`);
 
     const doc = new PdfDocument();
-    // doc.pipe(fs.createWriteStream('output.pdf'));
     const stream = doc.pipe(blobStream());
 
     start_time = Date.now();
@@ -94,23 +88,17 @@ export const render = async (
     }
     console.log("Rendering the document...");
 
-    let current_height = 0;
-
-    // Add rulers to the document at every 10 pixels
-    doc.strokeColor("grey");
-    for (let i = 0; i < resume_layout.height; i += 10) {
-        doc.moveTo(0, i).lineTo(resume_layout.width, i).stroke();
+    const tracker: Tracker = {
+        page: 0,
+        pageContainer: doc,
+        height: 0,
+        layout: resume_layout,
+        fontDict: fontDict,
     }
-
-    for(let i = 0; i < resume_layout.width; i += 10) {
-        doc.moveTo(i, 0).lineTo(i, resume_layout.height).stroke();
-    }
-    doc.strokeColor("black");
-
 
     for (const layout of layouts) {
-        renderSectionLayout(layout, resume_layout, current_height, doc);
-        current_height += layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;
+        renderSectionLayout(layout, tracker);
+        tracker.height += layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;
     }
 
     console.log("Rendering is completed. Saving the document...");
@@ -129,6 +117,24 @@ export const render = async (
         });
     });
 
+}
+
+type Tracker = {
+    page: number,
+    pageContainer: PDFKit.PDFDocument,
+    height: number,
+    layout: ResumeLayout,
+    fontDict: FontDict,
+}
+
+const getPageContainer = (page: number, tracker: Tracker) => {
+    if (page > tracker.page) {
+        tracker.page = page;
+        tracker.pageContainer.addPage({
+            size: [tracker.layout.width, tracker.layout.height],
+        });
+    }
+    return tracker.pageContainer;
 }
 
 export const mergeSpans = (spans: Elem.Span[]): Elem.Span[] => {
@@ -152,65 +158,73 @@ export const mergeSpans = (spans: Elem.Span[]): Elem.Span[] => {
     return merged_spans;
 }
 
-export const renderSectionLayout = (layout: Layout.RenderedLayout, resume_layout: ResumeLayout, current_height: number, doc: PDFKit.PDFDocument) => {
+export const renderSectionLayout = (layout: Layout.RenderedLayout, tracker: Tracker) => {
     switch (layout.tag) {
         case "Stack": {
             const stack = layout as Layout.RenderedStack;
             for (const elem of stack.elements) {
-                renderSectionLayout(elem, resume_layout, current_height, doc);
+                renderSectionLayout(elem, tracker);
             }
             break;
         }
         case "Row": {
             const row = layout as Layout.RenderedRow;
             for (const elem of row.elements) {
-                renderSectionLayout(elem, resume_layout, current_height, doc);
+                renderSectionLayout(elem, tracker);
             }
             break;
         }
         case "Elem": {
             const elem = layout as Elem.t;
 
-            elem.spans.forEach((span) => {
-                console.log("Rendering span:", span);
-                doc.
+            if (!layout.bounding_box) {
+                return;
+            }
+
+            const spans = elem.alignment === "Justified" ? elem.spans! : mergeSpans(elem.spans!);
+            spans.forEach((span) => {
+
+                if (span.text === "" || span.text === " " || span.text === "\n" || span.text === "\n\n") {
+                    return;
+                }
+
+                const absoluteY = layout.bounding_box.top_left.y + tracker.height + span.bbox!.top_left.y;
+                const page = Math.floor(absoluteY / (tracker.layout.height - tracker.layout.margin.top - tracker.layout.margin.bottom));
+                const currentPageY = absoluteY % (tracker.layout.height - tracker.layout.margin.top - tracker.layout.margin.bottom);
+                const y = currentPageY + tracker.layout.margin.top;
+                const x = layout.bounding_box.top_left.x + tracker.layout.margin.left + span.bbox!.top_left.x;
+
+                tracker.pageContainer = getPageContainer(page, tracker);
+
+                tracker.pageContainer.
                     font(Font.full_name(span.font)).
                     fontSize(span.font.size).
-                    text(span.text, 
-                        layout.bounding_box.top_left.x 
-                            + resume_layout.margin.left 
-                            + span.bbox.top_left.x, 
-                        layout.bounding_box.top_left.y 
-                            + resume_layout.margin.top 
-                            + current_height 
-                            + span.bbox.top_left.y, 
-                    { lineBreak: false });
+                    text(span.text,
+                        x,
+                        y,
+                        { lineBreak: false });
 
                 if (span.is_code) {
                     // Add a rounded rectangle around the code
-                    doc.roundedRect(
-                        layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 5,
-                        layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y,
+                    tracker.pageContainer.roundedRect(
+                        layout.bounding_box.top_left.x + tracker.layout.margin.left + span.bbox.top_left.x - span.font.size / 5,
+                        layout.bounding_box.top_left.y + tracker.layout.margin.top + tracker.height + span.bbox.top_left.y,
                         span.bbox.width() + span.font.size / 5 * 2,
                         span.bbox.height(),
                         5
                     ).stroke();
                     // Add a background color to the code
-                    doc.fillColor("black");
-                    doc.fillOpacity(0.05);
-                    doc.rect(
-                        layout.bounding_box.top_left.x + resume_layout.margin.left + span.bbox.top_left.x - span.font.size / 5,
-                        layout.bounding_box.top_left.y + resume_layout.margin.top + current_height + span.bbox.top_left.y,
+                    tracker.pageContainer.fillColor("black");
+                    tracker.pageContainer.fillOpacity(0.05);
+                    tracker.pageContainer.rect(
+                        layout.bounding_box.top_left.x + tracker.layout.margin.left + span.bbox.top_left.x - span.font.size / 5,
+                        layout.bounding_box.top_left.y + tracker.layout.margin.top + tracker.height + span.bbox.top_left.y,
                         span.bbox.width() + span.font.size / 5 * 2,
                         span.bbox.height()
                     ).fill();
-                    doc.fillOpacity(1);
+                    tracker.pageContainer.fillOpacity(1);
                 }
             });
-            // doc.
-            //     font(Font.full_name(elem.font)).
-            //     fontSize(elem.font.size).
-            //     text(elem.item, layout.bounding_box.top_left.x + resume_layout.margin.left, layout.bounding_box.top_left.y + resume_layout.margin.top + current_height, { lineBreak: false });
             break;
         }
     }

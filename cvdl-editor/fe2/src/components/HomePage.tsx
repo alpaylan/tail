@@ -3,7 +3,7 @@
 import { useEffect, useReducer, useState } from 'react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
-import { ElementPath, FontDict } from 'cvdl-ts/dist/AnyLayout';
+import { FontDict } from 'cvdl-ts/dist/AnyLayout';
 import { render as pdfRender } from 'cvdl-ts/dist/PdfLayout';
 import { LocalStorage } from 'cvdl-ts/dist/LocalStorage';
 import { Resume } from 'cvdl-ts/dist/Resume';
@@ -75,11 +75,17 @@ function App() {
     if (!storageInitiated) {
       return;
     }
+    try {
+      storage.load_resume(resume).then((data: Resume) => {
+        dispatch({ type: "load", value: data });
+      });
+      
+    } catch (e) {
+      console.error(e);
+    }
 
-    new LocalStorage().load_resume(resume).then((data: Resume) => {
-      dispatch({ type: "load", value: data });
-    });
   }, [resume, storageInitiated]);
+
 
   useEffect(() => {
     if (!storageInitiated) {
@@ -87,7 +93,7 @@ function App() {
     }
     const data_schema_loader = () => {
       storage.list_data_schemas().then((dataSchemaNames: string[]) => {
-        Promise.all(dataSchemaNames.map((schema) => new LocalStorage().load_data_schema(schema))).then((dataSchemas: DataSchema[]) => {
+        Promise.all(dataSchemaNames.map((schema) => storage.load_data_schema(schema))).then((dataSchemas: DataSchema[]) => {
           setDataSchemas(dataSchemas);
         });
       });
@@ -95,7 +101,7 @@ function App() {
 
     const layout_schema_loader = () => {
       storage.list_layout_schemas().then((layoutSchemaNames: string[]) => {
-        Promise.all(layoutSchemaNames.map((schema) => new LocalStorage().load_layout_schema(schema))).then((layoutSchemas: LayoutSchema[]) => {
+        Promise.all(layoutSchemaNames.map((schema) => storage.load_layout_schema(schema))).then((layoutSchemas: LayoutSchema[]) => {
           setLayoutSchemas(layoutSchemas);
         });
       });
@@ -318,7 +324,7 @@ function App() {
               {currentTab === "content-editor" &&
                 <div>
                   <h1>Content Editor</h1>
-                  {(layoutSchemas && dataSchemas) && <AddNewSection layoutSchemas={layoutSchemas!} dataSchemas={dataSchemas!} />}
+                  {(layoutSchemas !== null && dataSchemas !== null) && <AddNewSection layoutSchemas={layoutSchemas} dataSchemas={dataSchemas} />}
                   {(state.resume && layoutSchemas) &&
                     state.resume.sections.map((section, index) => {
                       return (
