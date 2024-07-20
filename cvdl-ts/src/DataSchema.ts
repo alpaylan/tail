@@ -14,6 +14,7 @@ export module DateFormat {
         | "Mon YYYY"
         | "Mon DD, YYYY"
         | "YYYY"
+        | "unknown";
 
     export const formats = [
         "YYYY-MM-DD",
@@ -27,7 +28,8 @@ export module DateFormat {
         "Month DD, YYYY",
         "Mon YYYY",
         "Mon DD, YYYY",
-        "YYYY"
+        "YYYY",
+        "unknown"
     ] as const;
 
     export const print = (date: string, format: t): string => {

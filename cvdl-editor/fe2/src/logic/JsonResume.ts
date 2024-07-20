@@ -154,9 +154,9 @@ const jsonResumeWork: DataSchema = new DataSchema("json-resume-work",
         // url?: string;
         { name: 'url', type: { tag: 'String' } },
         // startDate?: string;
-        { name: 'startDate', type: { tag: 'Date' } },
+        { name: 'startDate', type: { tag: 'Date', format: "unknown" } },
         // endDate?: string;
-        { name: 'endDate', type: { tag: 'Date' } },
+        { name: 'endDate', type: { tag: 'Date', format: "unknown" } },
         // summary?: string;
         { name: 'summary', type: { tag: 'String' } },
         // highlights?: string[];
@@ -199,9 +199,9 @@ const jsonResumeVolunteer: DataSchema = new DataSchema("json-resume-volunteer",
         // url?: string;
         { name: 'url', type: { tag: 'String' } },
         // startDate?: string;
-        { name: 'startDate', type: { tag: 'Date' } },
+        { name: 'startDate', type: { tag: 'Date', format: "unknown" } },
         // endDate?: string;
-        { name: 'endDate', type: { tag: 'Date' } },
+        { name: 'endDate', type: { tag: 'Date', format: "unknown" } },
         // summary?: string;
         { name: 'summary', type: { tag: 'String' } },
         // highlights?: string[];
@@ -237,9 +237,9 @@ const jsonResumeEducation: DataSchema = new DataSchema("json-resume-education",
         // studyType?: string;
         { name: 'studyType', type: { tag: 'String' } },
         // startDate?: string;
-        { name: 'startDate', type: { tag: 'Date' } },
+        { name: 'startDate', type: { tag: 'Date', format: "unknown" } },
         // endDate?: string;
-        { name: 'endDate', type: { tag: 'Date' } },
+        { name: 'endDate', type: { tag: 'Date', format: "unknown" } },
         // score?: string;
         { name: 'score', type: { tag: 'String' } },
         // courses?: string[];
@@ -269,7 +269,7 @@ const jsonResumeAwards: DataSchema = new DataSchema("json-resume-awards",
         // title?: string;
         { name: 'title', type: { tag: 'String' } },
         // date?: string;
-        { name: 'date', type: { tag: 'Date' } },
+        { name: 'date', type: { tag: 'Date', format: "unknown" } },
         // awarder?: string;
         { name: 'awarder', type: { tag: 'String' } },
         // summary?: string;
@@ -299,7 +299,7 @@ const jsonResumeCertificates: DataSchema = new DataSchema("json-resume-certifica
         // name?: string;
         { name: 'name', type: { tag: 'String' } },
         // date?: string;
-        { name: 'date', type: { tag: 'Date' } },
+        { name: 'date', type: { tag: 'Date', format: "unknown" } },
         // issuer?: string;
         { name: 'issuer', type: { tag: 'String' } },
         // url?: string;
@@ -331,7 +331,7 @@ const jsonResumePublications: DataSchema = new DataSchema("json-resume-publicati
         // publisher?: string;
         { name: 'publisher', type: { tag: 'String' } },
         // releaseDate?: string;
-        { name: 'releaseDate', type: { tag: 'Date' } },
+        { name: 'releaseDate', type: { tag: 'Date', format: "unknown" } },
         // url?: string;
         { name: 'url', type: { tag: 'String' } },
         // summary?: string;
@@ -449,9 +449,9 @@ const jsonResumeProjects: DataSchema = new DataSchema("json-resume-projects",
         // name?: string;
         { name: 'name', type: { tag: 'String' } },
         // startDate?: string;
-        { name: 'startDate', type: { tag: 'Date' } },
+        { name: 'startDate', type: { tag: 'Date', format: "unknown" } },
         // endDate?: string;
-        { name: 'endDate', type: { tag: 'Date' } },
+        { name: 'endDate', type: { tag: 'Date', format: "unknown" } },
         // description?: string;
         { name: 'description', type: { tag: 'String' } },
         // highlights?: string[];

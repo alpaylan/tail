@@ -15,7 +15,8 @@ var DateFormat;
         "Month DD, YYYY",
         "Mon YYYY",
         "Mon DD, YYYY",
-        "YYYY"
+        "YYYY",
+        "unknown"
     ];
     DateFormat.print = (date, format) => {
         console.error(date);

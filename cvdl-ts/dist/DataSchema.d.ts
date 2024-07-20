@@ -1,6 +1,6 @@
 export declare namespace DateFormat {
-    type t = "YYYY-MM-DD" | "MM-DD-YYYY" | "DD-MM-YYYY" | "YYYY/MM/DD" | "MM/DD/YYYY" | "DD/MM/YYYY" | "Month, YYYY" | "DD Month, YYYY" | "Month DD, YYYY" | "Mon YYYY" | "Mon DD, YYYY" | "YYYY";
-    const formats: readonly ["YYYY-MM-DD", "MM-DD-YYYY", "DD-MM-YYYY", "YYYY/MM/DD", "MM/DD/YYYY", "DD/MM/YYYY", "Month, YYYY", "DD Month, YYYY", "Month DD, YYYY", "Mon YYYY", "Mon DD, YYYY", "YYYY"];
+    type t = "YYYY-MM-DD" | "MM-DD-YYYY" | "DD-MM-YYYY" | "YYYY/MM/DD" | "MM/DD/YYYY" | "DD/MM/YYYY" | "Month, YYYY" | "DD Month, YYYY" | "Month DD, YYYY" | "Mon YYYY" | "Mon DD, YYYY" | "YYYY" | "unknown";
+    const formats: readonly ["YYYY-MM-DD", "MM-DD-YYYY", "DD-MM-YYYY", "YYYY/MM/DD", "MM/DD/YYYY", "DD/MM/YYYY", "Month, YYYY", "DD Month, YYYY", "Month DD, YYYY", "Mon YYYY", "Mon DD, YYYY", "YYYY", "unknown"];
     const print: (date: string, format: t) => string;
     const parse: (date: string) => string;
 }
