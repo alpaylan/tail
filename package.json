@@ -1,0 +1,8 @@
+{
+  "name": "tail",
+  "private": true,
+  "workspaces": [
+    "cvdl-ts",
+    "cvdl-editor/fe2"
+  ]
+}
