@@ -62,15 +62,16 @@ h2 {
   transition: background 0.2s;
 }
 
-input[type="text"],
-input[type="number"] {
+input,
+textarea {
   border: 1px solid rgb(var(--foreground-rgb));
   border-radius: 5px;
   padding: 5px 10px;
   margin-bottom: 5px;
 }
 
-input[type="text"]:focus {
+input,
+textarea:focus {
   outline: none;
   border: 1px solid rgb(var(--foreground-rgb));
   box-shadow: 0 0 5px rgba(var(--foreground-rgb), 0.5);

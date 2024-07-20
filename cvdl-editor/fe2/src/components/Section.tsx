@@ -1,5 +1,5 @@
 
-import { DataSchema } from 'cvdl-ts/dist/DataSchema';
+import { DataSchema, DocumentDataType } from 'cvdl-ts/dist/DataSchema';
 import { ItemContent, ResumeSection } from 'cvdl-ts/dist/Resume';
 import SectionItemField from './SectionItemField';
 import { useContext, useState } from 'react';
@@ -11,6 +11,7 @@ import { ElementPath } from 'cvdl-ts/dist/AnyLayout';
 export type FieldProps = {
     name: string;
     value: string;
+    type: DocumentDataType.t;
     isActive: boolean;
 }
 
@@ -31,6 +32,7 @@ const computeSectionContent = (section: ResumeSection, dataSchema?: DataSchema):
             itemContent.push({
                 name,
                 value,
+                type: field.type,
                 isActive
             });
         })
@@ -121,7 +123,7 @@ const Section = ({ section, dataSchemas, layoutSchemas }: { section: ResumeSecti
                     {
                         dataSchema?.header_schema.map((field) => {
                             return (
-                                <SectionItemField key={field.name} section={section.section_name} item={-1} field={{ name: field.name, value: ItemContent.toString(section.data.get(field.name) ?? ItemContent.None()), isActive: true }} />
+                                <SectionItemField key={field.name} section={section.section_name} item={-1} field={{ name: field.name, value: ItemContent.toString(section.data.get(field.name) ?? ItemContent.None()), isActive: true, type: field.type }} />
                             )
                         })
                     }

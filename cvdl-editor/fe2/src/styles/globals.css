@@ -77,6 +77,13 @@ input[type="text"]:focus {
   box-shadow: 0 0 5px rgba(var(--foreground-rgb), 0.5);
 }
 
+textarea {
+  border: 1px solid rgb(var(--foreground-rgb));
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin-bottom: 5px;
+}
+
 button {
   color: rgb(var(--foreground-rgb));
   

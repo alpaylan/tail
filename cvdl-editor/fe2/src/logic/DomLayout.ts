@@ -191,7 +191,7 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, tracker: Trac
             const spans = element.alignment === "Justified" ? element.spans! : mergeSpans(element.spans!);
             spans.forEach((span) => {
 
-                if (span.text === "" || span.text === " " || span.text === "\n" || span.text === "\n\n") {
+                if (!span || span.text === "" || span.text === " " || span.text === "\n" || span.text === "\n\n") {
                     return;
                 }
 

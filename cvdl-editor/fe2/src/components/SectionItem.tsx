@@ -1,16 +1,7 @@
 import SectionItemField from './SectionItemField';
 import { useContext, useState } from 'react';
 import { DocumentDispatchContext, EditorContext } from "@/components/State"
-
-export type FieldProps = {
-    name: string;
-    value: string;
-    isActive: boolean;
-}
-
-export type ItemProps = FieldProps[];
-export type SectionProps = ItemProps[];
-
+import { ItemProps } from './Section';
 
 const ItemHeader = ({ itemContent, showAll, section, item, moveUp, moveDown, copy }: {
     itemContent: ItemProps,
