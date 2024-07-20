@@ -1,6 +1,10 @@
 // Use DOM as a backend for the CVDL layout engine.
 
-import { ElementPath, FontDict, render as anyRender } from "cvdl-ts/dist/AnyLayout";
+import {
+	ElementPath,
+	FontDict,
+	render as anyRender,
+} from "cvdl-ts/dist/AnyLayout";
 import { Resume } from "cvdl-ts/dist/Resume";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
@@ -13,198 +17,250 @@ import { Font, Layout } from "cvdl-ts";
 import * as Elem from "cvdl-ts/dist/Elem";
 
 export type RenderResult = {
-    blob: Blob,
-    fontDict: FontDict,
-}
+	blob: Blob;
+	fontDict: FontDict;
+};
 
 export type RenderProps = {
-    resume_name?: string,
-    resume?: Resume,
-    data_schemas?: DataSchema[],
-    layout_schemas?: LayoutSchema[],
-    resume_layout?: ResumeLayout,
-    storage: Storage,
-    fontDict?: FontDict,
-    debug: boolean,
-    state: EditorState,
-    dispatch: Dispatch<EditorAction>
-}
+	resume_name?: string;
+	resume?: Resume;
+	data_schemas?: DataSchema[];
+	layout_schemas?: LayoutSchema[];
+	resume_layout?: ResumeLayout;
+	storage: Storage;
+	fontDict?: FontDict;
+	debug: boolean;
+	state: EditorState;
+	dispatch: Dispatch<EditorAction>;
+};
 
-export const render = async (
-    { resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict, state, dispatch, debug = false }: RenderProps
-) => {
-    let start_time = Date.now();
+export const render = async ({
+	resume_name,
+	resume,
+	data_schemas,
+	layout_schemas,
+	resume_layout,
+	storage,
+	fontDict,
+	state,
+	dispatch,
+	debug = false,
+}: RenderProps) => {
+	let start_time = Date.now();
 
-    if (!resume && !resume_name) {
-        throw "Rendering requires either resume_name or resume";
-    }
+	if (!resume && !resume_name) {
+		throw "Rendering requires either resume_name or resume";
+	}
 
-    if (!resume) {
-        if (!resume_name) {
-            throw "Rendering requires resume_name";
-        }
-        resume = await storage.load_resume(resume_name);
-    }
+	if (!resume) {
+		if (!resume_name) {
+			throw "Rendering requires resume_name";
+		}
+		resume = await storage.load_resume(resume_name);
+	}
 
-    if (!data_schemas) {
-        data_schemas = await Promise.all(resume.data_schemas().map((schema) => storage.load_data_schema(schema)));
-    }
+	if (!data_schemas) {
+		data_schemas = await Promise.all(
+			resume.data_schemas().map((schema) => storage.load_data_schema(schema)),
+		);
+	}
 
-    if (!layout_schemas) {
-        layout_schemas = await Promise.all(resume.layout_schemas().map((schema) => storage.load_layout_schema(schema)));
-    }
+	if (!layout_schemas) {
+		layout_schemas = await Promise.all(
+			resume
+				.layout_schemas()
+				.map((schema) => storage.load_layout_schema(schema)),
+		);
+	}
 
-    if (!resume_layout) {
-        resume_layout = await storage.load_resume_layout(resume.resume_layout());
-    }
+	if (!resume_layout) {
+		resume_layout = await storage.load_resume_layout(resume.resume_layout());
+	}
 
-    if (!fontDict) {
-        fontDict = new FontDict();
-    }
+	if (!fontDict) {
+		fontDict = new FontDict();
+	}
 
-    let end_time = Date.now();
+	let end_time = Date.now();
 
-    console.info(`Loading time: ${end_time - start_time}ms`);
+	console.info(`Loading time: ${end_time - start_time}ms`);
 
-    let container = document.getElementById("pdf-container")!;
-    container.innerHTML = "";
+	let container = document.getElementById("pdf-container")!;
+	container.innerHTML = "";
 
-    start_time = Date.now();
+	start_time = Date.now();
 
-    const layouts = await
-        anyRender({ layout_schemas, resume, data_schemas, resume_layout, storage, fontDict });
-    end_time = Date.now();
-    console.info(`Rendering time: ${end_time - start_time}ms`);
+	const layouts = await anyRender({
+		layout_schemas,
+		resume,
+		data_schemas,
+		resume_layout,
+		storage,
+		fontDict,
+	});
+	end_time = Date.now();
+	console.info(`Rendering time: ${end_time - start_time}ms`);
 
-    // Add the fonts to the document(@TODO: DO NOT HARDCODE THE FONTS)
-    try {
-        console.log("Registering fonts...");
-        for (const [font_name, font] of fontDict.fonts.entries()) {
-            console.log(`Registering font ${font_name}`);
-            // @ts-ignore
-            document.fonts.add(new FontFace(font_name, font.stream.buffer));
-        }
-    } catch (e) {
-        console.error(e);
-    }
+	// Add the fonts to the document(@TODO: DO NOT HARDCODE THE FONTS)
+	try {
+		console.log("Registering fonts...");
+		for (const [font_name, font] of fontDict.fonts.entries()) {
+			console.log(`Registering font ${font_name}`);
+			// @ts-ignore
+			document.fonts.add(new FontFace(font_name, font.stream.buffer));
+		}
+	} catch (e) {
+		console.error(e);
+	}
 
-    console.log("Rendering the document...");
+	console.log("Rendering the document...");
 
-    let tracker = {
-        page: 0,
-        path: null,
-        pageContainer: container,
-        height: 0,
-        state,
-        dispatch,
-        layout: resume_layout,
-        fontDict,
-    };
+	let tracker = {
+		page: 0,
+		path: null,
+		pageContainer: container,
+		height: 0,
+		state,
+		dispatch,
+		layout: resume_layout,
+		fontDict,
+	};
 
-    tracker.pageContainer = getPageContainer(tracker.page, tracker);
+	tracker.pageContainer = getPageContainer(tracker.page, tracker);
 
-    for (const layout of layouts) {
-        renderSectionLayout(layout, tracker);
-        tracker.height += layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;
-    }
+	for (const layout of layouts) {
+		renderSectionLayout(layout, tracker);
+		tracker.height +=
+			layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;
+	}
 
-    console.log("Rendering is completed. Saving the document...");
+	console.log("Rendering is completed. Saving the document...");
 
-    console.log("Document is saved to output.pdf");
-}
-
+	console.log("Document is saved to output.pdf");
+};
 
 type Tracker = {
-    page: number,
-    pageContainer: HTMLElement,
-    height: number,
-    layout: ResumeLayout,
-    fontDict: FontDict,
-    state: EditorState,
-    dispatch: Dispatch<EditorAction>,
-    path: ElementPath | null,
-}
+	page: number;
+	pageContainer: HTMLElement;
+	height: number;
+	layout: ResumeLayout;
+	fontDict: FontDict;
+	state: EditorState;
+	dispatch: Dispatch<EditorAction>;
+	path: ElementPath | null;
+};
 
 const getPageContainer = (page: number, tracker: Tracker) => {
-    if (document.getElementById(`page-${page}`)) {
-        return document.getElementById(`page-${page}`)!;
-    } else {
-        let pageContainer = document.createElement("div");
-        pageContainer.id = `page-${page}`;
-        pageContainer.style.cssText = `
+	if (document.getElementById(`page-${page}`)) {
+		return document.getElementById(`page-${page}`)!;
+	} else {
+		let pageContainer = document.createElement("div");
+		pageContainer.id = `page-${page}`;
+		pageContainer.style.cssText = `
             position: relative;
             width: ${tracker.layout.width}px;
             height: ${tracker.layout.height}px;
             border: 1px solid black;
         `;
-        document.getElementById("pdf-container")!.appendChild(pageContainer);
-        return pageContainer;
-    }
-}
-
+		document.getElementById("pdf-container")!.appendChild(pageContainer);
+		return pageContainer;
+	}
+};
 
 export const mergeSpans = (spans: Elem.Span[]): Elem.Span[] => {
-    const merged_spans: Elem.Span[] = [];
-    let currentSpan = spans[0];
-    for (let i = 1; i < spans.length; i++) {
-        if (currentSpan.bbox!.top_left.y === spans[i].bbox!.top_left.y
-            && currentSpan.font === spans[i].font
-            && currentSpan.is_code === spans[i].is_code
-            && currentSpan.is_bold === spans[i].is_bold
-            && currentSpan.is_italic === spans[i].is_italic
-        ) {
-            currentSpan.text += spans[i].text;
-            currentSpan.bbox!.bottom_right = spans[i].bbox!.bottom_right;
-        } else {
-            merged_spans.push(currentSpan);
-            currentSpan = spans[i];
-        }
-    }
-    merged_spans.push(currentSpan);
-    return merged_spans;
-}
+	const merged_spans: Elem.Span[] = [];
+	let currentSpan = spans[0];
+	for (let i = 1; i < spans.length; i++) {
+		if (
+			currentSpan.bbox!.top_left.y === spans[i].bbox!.top_left.y &&
+			currentSpan.font === spans[i].font &&
+			currentSpan.is_code === spans[i].is_code &&
+			currentSpan.is_bold === spans[i].is_bold &&
+			currentSpan.is_italic === spans[i].is_italic
+		) {
+			currentSpan.text += spans[i].text;
+			currentSpan.bbox!.bottom_right = spans[i].bbox!.bottom_right;
+		} else {
+			merged_spans.push(currentSpan);
+			currentSpan = spans[i];
+		}
+	}
+	merged_spans.push(currentSpan);
+	return merged_spans;
+};
 
+export const renderSectionLayout = (
+	layout: Layout.RenderedLayout,
+	tracker: Tracker,
+) => {
+	switch (layout.tag) {
+		case "Stack": {
+			const stack = layout as Layout.RenderedStack;
+			for (const elem of stack.elements) {
+				renderSectionLayout(elem, {
+					...tracker,
+					path: layout.path ?? tracker.path,
+				});
+			}
+			break;
+		}
+		case "Row": {
+			const row = layout as Layout.RenderedRow;
 
-export const renderSectionLayout = (layout: Layout.RenderedLayout, tracker: Tracker) => {
-    switch (layout.tag) {
-        case "Stack": {
-            const stack = layout as Layout.RenderedStack;
-            for (const elem of stack.elements) {
-                renderSectionLayout(elem, { ...tracker, path: layout.path ?? tracker.path });
-            }
-            break;
-        }
-        case "Row": {
-            const row = layout as Layout.RenderedRow;
+			for (const elem of row.elements) {
+				renderSectionLayout(elem, {
+					...tracker,
+					path: layout.path ?? tracker.path,
+				});
+			}
+			break;
+		}
+		case "Elem": {
+			const element = layout as Elem.t;
 
-            for (const elem of row.elements) {
-                renderSectionLayout(elem, { ...tracker, path: layout.path ?? tracker.path });
-            }
-            break;
-        }
-        case "Elem": {
-            const element = layout as Elem.t;
+			if (!layout.bounding_box) {
+				return;
+			}
+			const spans =
+				element.alignment === "Justified"
+					? element.spans!
+					: mergeSpans(element.spans!);
+			spans.forEach((span) => {
+				if (
+					!span ||
+					span.text === "" ||
+					span.text === " " ||
+					span.text === "\n" ||
+					span.text === "\n\n"
+				) {
+					return;
+				}
 
-            if (!layout.bounding_box) {
-                return;
-            }
-            const spans = element.alignment === "Justified" ? element.spans! : mergeSpans(element.spans!);
-            spans.forEach((span) => {
+				const absoluteY =
+					layout.bounding_box.top_left.y +
+					tracker.height +
+					span.bbox!.top_left.y;
+				let page = Math.floor(
+					absoluteY /
+						(tracker.layout.height -
+							tracker.layout.margin.top -
+							tracker.layout.margin.bottom),
+				);
+				const currentPageY =
+					absoluteY %
+					(tracker.layout.height -
+						tracker.layout.margin.top -
+						tracker.layout.margin.bottom);
+				const y = currentPageY + tracker.layout.margin.top;
+				const x =
+					layout.bounding_box.top_left.x +
+					tracker.layout.margin.left +
+					span.bbox!.top_left.x;
 
-                if (!span || span.text === "" || span.text === " " || span.text === "\n" || span.text === "\n\n") {
-                    return;
-                }
-
-                const absoluteY = layout.bounding_box.top_left.y + tracker.height + span.bbox!.top_left.y;
-                let page = Math.floor(absoluteY / (tracker.layout.height - tracker.layout.margin.top - tracker.layout.margin.bottom));
-                const currentPageY = absoluteY % (tracker.layout.height - tracker.layout.margin.top - tracker.layout.margin.bottom);
-                const y = currentPageY + tracker.layout.margin.top;
-                const x = layout.bounding_box.top_left.x + tracker.layout.margin.left + span.bbox!.top_left.x;
-
-                tracker.pageContainer = getPageContainer(page, tracker);
-                const spanElem = document.createElement("span");
-                spanElem.innerText = span.text;
-                spanElem.style.cssText = `
+				tracker.pageContainer = getPageContainer(page, tracker);
+				const spanElem = document.createElement("span");
+				spanElem.innerText = span.text;
+				spanElem.style.cssText = `
                     position: absolute;
                     left: ${x}px;
                     top: ${y}px;
@@ -217,56 +273,64 @@ export const renderSectionLayout = (layout: Layout.RenderedLayout, tracker: Trac
                     background-color: ${ColorMap[element.background_color]};
                 `;
 
-                spanElem.addEventListener("mouseover", () => {
-                    spanElem.style.backgroundColor = "lightgray";
-                    spanElem.style.cursor = "pointer";
-                });
+				spanElem.addEventListener("mouseover", () => {
+					spanElem.style.backgroundColor = "lightgray";
+					spanElem.style.cursor = "pointer";
+				});
 
-                spanElem.addEventListener("mouseout", () => {
-                    spanElem.style.backgroundColor = ColorMap[element.background_color];
-                    spanElem.style.animation = "none";
-                });
+				spanElem.addEventListener("mouseout", () => {
+					spanElem.style.backgroundColor = ColorMap[element.background_color];
+					spanElem.style.animation = "none";
+				});
 
-                // console.error("Setting Click Path for", span.text, "to", tracker.path);
-                spanElem.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    const path = layout.path ?? tracker.path ?? { tag: "none" };
+				// console.error("Setting Click Path for", span.text, "to", tracker.path);
+				spanElem.addEventListener("click", (e) => {
+					e.stopPropagation();
+					const path = layout.path ?? tracker.path ?? { tag: "none" };
 
-                    if (path.tag === "section") {
-                        console.error("Setting path to section", { ...path, tag: "field", field: element.item });
-                        tracker.dispatch({
-                            type: "set-editor-path",
-                            path: { ...path }
-                        });
-                        return;
-                    } else if (path.tag === "item") {
-                        console.error("Setting path to field", { ...path, tag: "field", field: element.item });
-                        tracker.dispatch({
-                            type: "set-editor-path",
-                            path: { ...path, tag: "field", field: element.item }
-                        });
-                    } else {
-                        console.error("Cannot path to item", tracker.path, element.item);
-                    }
-                });
+					if (path.tag === "section") {
+						console.error("Setting path to section", {
+							...path,
+							tag: "field",
+							field: element.item,
+						});
+						tracker.dispatch({
+							type: "set-editor-path",
+							path: { ...path },
+						});
+						return;
+					} else if (path.tag === "item") {
+						console.error("Setting path to field", {
+							...path,
+							tag: "field",
+							field: element.item,
+						});
+						tracker.dispatch({
+							type: "set-editor-path",
+							path: { ...path, tag: "field", field: element.item },
+						});
+					} else {
+						console.error("Cannot path to item", tracker.path, element.item);
+					}
+				});
 
-                if (span.is_code) {
-                    const roundedRectangleElem = document.createElement("div");
-                    roundedRectangleElem.style.cssText = `
+				if (span.is_code) {
+					const roundedRectangleElem = document.createElement("div");
+					roundedRectangleElem.style.cssText = `
                         position: absolute;
                         left: ${x - span.font!.size / 5}px;
                         top: ${y}px;
-                        width: ${span.bbox!.width() + span.font!.size / 5 * 2}px;
+                        width: ${span.bbox!.width() + (span.font!.size / 5) * 2}px;
                         height: ${span.bbox!.height()}px;
                         border-radius: 5px;
                         border: 1px solid black;
                         background-color: rgba(0, 0, 0, 0.05);
                     `;
-                    tracker.pageContainer.appendChild(roundedRectangleElem);
-                }
-                tracker.pageContainer.appendChild(spanElem);
-            });
-            break;
-        }
-    }
-}
+					tracker.pageContainer.appendChild(roundedRectangleElem);
+				}
+				tracker.pageContainer.appendChild(spanElem);
+			});
+			break;
+		}
+	}
+};
