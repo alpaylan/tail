@@ -5,6 +5,7 @@ import { Storage } from "./Storage";
 
 import { Resume } from "./Resume";
 import { vertical_margin, ResumeLayout } from "./ResumeLayout";
+import * as Utils from "./Utils";
 
 import * as fontkit from 'fontkit';
 import { Font, Layout } from ".";
@@ -40,19 +41,25 @@ export class FontDict {
     constructor() {
         this.fonts = new Map();
     }
-
     
     async load_fonts_from_schema(schema: LayoutSchema, storage: Storage) {
-        for (const font of schema.fonts()) {
-            const fontName = Font.full_name(font);
-            console.log(`Loading font ${fontName}`);
-            if (this.fonts.has(fontName)) {
-                console.log(`Font ${fontName} is already loaded`);
-                continue;
+        for (const font of [...schema.fonts(), Utils.with_(Font.default_(), { name: "JetBrainsMono" })]) {
+            const variants = Font.variants(font);
+            for (const variant of variants) {
+                const fontName = Font.full_name(variant);
+                console.log(`Loading font ${fontName}`);
+                if (this.fonts.has(fontName)) {
+                    console.log(`Font ${fontName} is already loaded`);
+                    continue;
+                }
+                try {
+                    const font_data = await storage.load_font(variant);
+                    const fontkit_font = fontkit.create(font_data);
+                    this.fonts.set(fontName, fontkit_font);
+                } catch (e) {                 
+                    console.error(`Error loading font ${fontName}: ${e}`);
+                }
             }
-            const font_data = await storage.load_font(font);
-            const fontkit_font = fontkit.create(font_data);
-            this.fonts.set(fontName, fontkit_font);
         }
     }
 

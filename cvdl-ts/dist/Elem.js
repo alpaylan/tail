@@ -185,9 +185,11 @@ function fillFonts(e, fonts) {
     const spans = [];
     for (const span of simpleSpans) {
         const font = e.is_markdown ? (0, Utils_1.with_)(e.font, ({
-            // style: span.is_italic ? "Italic" : "Normal",
-            weight: span.is_bold ? "Bold" : "Medium",
+            style: span.is_italic ? "Italic" : e.font.style,
+            weight: span.is_bold ? "Bold" : e.font.weight,
+            name: span.is_code ? "JetBrainsMono" : e.font.name
         })) : e.font;
+        console.log(`Font: ${JSON.stringify(font)}`, span.text);
         if (span.text === " ") {
             const width = Font.get_width(font, "-", fonts);
             spans.push({ ...span, font, width });

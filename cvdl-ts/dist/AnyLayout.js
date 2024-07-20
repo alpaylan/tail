@@ -25,6 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.render = exports.FontDict = void 0;
 const ResumeLayout_1 = require("./ResumeLayout");
+const Utils = __importStar(require("./Utils"));
 const fontkit = __importStar(require("fontkit"));
 const _1 = require(".");
 class FontDict {
@@ -32,16 +33,24 @@ class FontDict {
         this.fonts = new Map();
     }
     async load_fonts_from_schema(schema, storage) {
-        for (const font of schema.fonts()) {
-            const fontName = _1.Font.full_name(font);
-            console.log(`Loading font ${fontName}`);
-            if (this.fonts.has(fontName)) {
-                console.log(`Font ${fontName} is already loaded`);
-                continue;
+        for (const font of [...schema.fonts(), Utils.with_(_1.Font.default_(), { name: "JetBrainsMono" })]) {
+            const variants = _1.Font.variants(font);
+            for (const variant of variants) {
+                const fontName = _1.Font.full_name(variant);
+                console.log(`Loading font ${fontName}`);
+                if (this.fonts.has(fontName)) {
+                    console.log(`Font ${fontName} is already loaded`);
+                    continue;
+                }
+                try {
+                    const font_data = await storage.load_font(variant);
+                    const fontkit_font = fontkit.create(font_data);
+                    this.fonts.set(fontName, fontkit_font);
+                }
+                catch (e) {
+                    console.error(`Error loading font ${fontName}: ${e}`);
+                }
             }
-            const font_data = await storage.load_font(font);
-            const fontkit_font = fontkit.create(font_data);
-            this.fonts.set(fontName, fontkit_font);
         }
     }
     get_font(name) {

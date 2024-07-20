@@ -40,6 +40,20 @@ export function default_(): Font {
     };
 }
 
+export function variants(f: Font): Font[] {
+    const fonts = [];
+    for (const weight of FontWeights) {
+        for (const style of FontStyles) {
+            fonts.push({
+                ...f,
+                weight,
+                style,
+            });
+        }
+    }
+    return fonts;
+}
+
 export function full_name(f: Font): string {
     return f.name + "-" + f.weight + (f.style === "Italic" ? "Italic" : "");
 }
@@ -61,11 +75,33 @@ export type FontSource =
 
 
 export type FontWeight =
+    | "ExtraLight"
     | "Light"
+    | "Thin"
     | "Medium"
+    | "Regular"
+    | "SemiBold"
     | "Bold"
+    | "Black"
+    | "ExtraBold"
 
+export const FontWeights = [
+    "ExtraLight",
+    "Light",
+    "Thin",
+    "Medium",
+    "Regular",
+    "SemiBold",
+    "Bold",
+    "Black",
+    "ExtraBold",
+] as const;
 
 export type FontStyle =
     | "Normal"
     | "Italic"
+
+export const FontStyles = [
+    "Normal",
+    "Italic",
+] as const;

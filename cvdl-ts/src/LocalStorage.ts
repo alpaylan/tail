@@ -138,6 +138,7 @@ export class LocalStorage implements Storage {
         if (!localStorage.getItem(path)) {
             const response = await fetch(`https://d2bnplhbawocbk.cloudfront.net/data/${path}`);
             const font_data = await response.arrayBuffer();
+            // localStorage.setItem(path, font_data.toString());
             return Buffer.from(font_data);
         }
 

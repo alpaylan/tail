@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.get_height = exports.get_width = exports.full_name = exports.default_ = exports.fromJson = exports.font = void 0;
+exports.FontStyles = exports.FontWeights = exports.get_height = exports.get_width = exports.full_name = exports.variants = exports.default_ = exports.fromJson = exports.font = void 0;
 function font(name, size, weight, style, source) {
     return {
         name,
@@ -32,6 +32,20 @@ function default_() {
     };
 }
 exports.default_ = default_;
+function variants(f) {
+    const fonts = [];
+    for (const weight of exports.FontWeights) {
+        for (const style of exports.FontStyles) {
+            fonts.push({
+                ...f,
+                weight,
+                style,
+            });
+        }
+    }
+    return fonts;
+}
+exports.variants = variants;
 function full_name(f) {
     return f.name + "-" + f.weight + (f.style === "Italic" ? "Italic" : "");
 }
@@ -46,3 +60,18 @@ function get_height(f, fonts) {
     return (font.bbox.height / font.unitsPerEm) * f.size;
 }
 exports.get_height = get_height;
+exports.FontWeights = [
+    "ExtraLight",
+    "Light",
+    "Thin",
+    "Medium",
+    "Regular",
+    "SemiBold",
+    "Bold",
+    "Black",
+    "ExtraBold",
+];
+exports.FontStyles = [
+    "Normal",
+    "Italic",
+];

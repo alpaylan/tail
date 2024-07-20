@@ -217,9 +217,12 @@ export function fillFonts(e: Elem, fonts: FontDict): Elem {
     const spans: Span[] = [];
     for (const span of simpleSpans) {
         const font = e.is_markdown ? with_(e.font, ({
-            // style: span.is_italic ? "Italic" : "Normal",
-            weight: span.is_bold ? "Bold" : "Medium",
+            style: span.is_italic ? "Italic" : e.font.style,
+            weight: span.is_bold ? "Bold" : e.font.weight,
+            name: span.is_code ? "JetBrainsMono" : e.font.name
         })) : e.font;
+
+        console.log(`Font: ${JSON.stringify(font)}`, span.text);
 
         if (span.text === " ") {
             const width = Font.get_width(font, "-", fonts);
