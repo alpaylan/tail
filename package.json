@@ -2,6 +2,9 @@
 	"name": "tail",
 	"private": true,
 	"workspaces": ["cvdl-ts", "cvdl-editor/fe2"],
+	"scripts": {
+		"format": "biome format --write ./cvdl-editor/fe2 ./cvdl-ts"
+	},
 	"devDependencies": {
 		"@biomejs/biome": "1.8.3"
 	}
