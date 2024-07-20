@@ -2,8 +2,8 @@
 
 import { redirect } from "next/navigation";
 
-export default async function UserPage({ params }: { params: { slug: string }}) {
-    redirect(`/?user=${params.slug}`);
+export default async function UserPage({
+	params,
+}: { params: { slug: string } }) {
+	redirect(`/?user=${params.slug}`);
 }
-
-

@@ -1,4 +1,3 @@
-
 // import * as Margin from "./Margin";
 // import * as Alignment from "./Alignment";
 // import * as Width from "./Width";
@@ -10,7 +9,6 @@
 
 // export type ContainerType = Stack | Row;
 // export type LayoutType = Stack | Row | Elem;
-
 
 // export class SectionLayout {
 //     inner: Stack | Row | Elem;
@@ -47,7 +45,6 @@
 //         return new SectionLayout(Stack.default_());
 //     }
 
-
 //     static fromJson(json: unknown): SectionLayout {
 //         const key = Object.keys(json)[0];
 //         switch (key) {
@@ -61,7 +58,7 @@
 //                 container.width = Width.fromJson(json[key].width);
 //                 return new SectionLayout(container);
 //             }
-//             case 'Ref': 
+//             case 'Ref':
 //             case 'Text': {
 //                 const inner = SectionLayout.constrMap(key) as Elem;
 //                 inner.item = json[key].item;
@@ -111,7 +108,6 @@
 //         }
 //     }
 
-
 //     width(): Width.t {
 //         return this.inner.width;
 //     }
@@ -138,7 +134,6 @@
 //     type_(): "Stack" | "Row" | "Elem" {
 //         return this.inner.tag;
 //     }
-
 
 //     tag_(): "Stack" | "FlexRow" | "FrozenRow" | "Ref" | "Text" {
 //         switch (this.type_()) {
@@ -184,7 +179,6 @@
 //             return Width.get_fixed_unchecked(this.width());
 //         }
 //     }
-
 
 //     is_instantiated(): boolean {
 //         if (this.is_container()) {
@@ -352,7 +346,6 @@
 
 //         }
 //     }
-
 
 //     compute_boxes(font_dict: FontDict): [ElementBox, SectionLayout] {
 //         const textbox_positions: [Box, Elem][] = [];
@@ -621,15 +614,14 @@
 //     }
 // }
 
-
 // export type Color =
 //     "Transparent" // transparent
-//     | "Light Yellow" // "#FFC96F" 
-//     | "Light Brown" // "#ECB176" 
-//     | "Light Green" // "#F6FAB9" 
-//     | "Light Beige" // "#F6EEC9" 
-//     | "Light Blue" // "#EEF7FF" 
-//     | "Blue" // "#4793AF" 
+//     | "Light Yellow" // "#FFC96F"
+//     | "Light Brown" // "#ECB176"
+//     | "Light Green" // "#F6FAB9"
+//     | "Light Beige" // "#F6EEC9"
+//     | "Light Blue" // "#EEF7FF"
+//     | "Blue" // "#4793AF"
 
 // export const ColorMap = {
 //     "Transparent": "transparent",
@@ -640,7 +632,6 @@
 //     "Light Blue": "#EEF7FF",
 //     "Blue": "#4793AF",
 // }
-
 
 // export class Elem {
 //     tag: "Elem";
@@ -816,5 +807,4 @@
 //     }
 
 // }
-
 
