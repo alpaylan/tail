@@ -1,8 +1,8 @@
 {
-  "name": "tail",
-  "private": true,
-  "workspaces": [
-    "cvdl-ts",
-    "cvdl-editor/fe2"
-  ]
+	"name": "tail",
+	"private": true,
+	"workspaces": ["cvdl-ts", "cvdl-editor/fe2"],
+	"devDependencies": {
+		"@biomejs/biome": "1.8.3"
+	}
 }
