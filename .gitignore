@@ -4,3 +4,6 @@ lambdaconf/
 tail-latex/
 .DS_Store
 tail-coq/
+
+# dependencies
+/node_modules
