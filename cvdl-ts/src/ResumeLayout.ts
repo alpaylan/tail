@@ -10,7 +10,6 @@ export module ColumnType {
 		if (typeof json === "string" && json === "SingleColumn") {
 			return { tag: "SingleColumn" };
 		}
-
 		if (
 			typeof json === "object" &&
 			json !== null &&

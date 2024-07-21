@@ -81,7 +81,7 @@ class FileStorage {
     }
     async list_resumes() {
         const files = fs_1.default.readdirSync(this.dir + "/resumes");
-        return Promise.resolve(files.map(file => file.replace(".json", "")));
+        return Promise.resolve(files.map((file) => file.replace(".json", "")));
     }
     async list_data_schemas() {
         const data_schemas = fs_1.default.readFileSync(this.dir + "/data-schemas.json");

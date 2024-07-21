@@ -9,17 +9,16 @@ import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { useContext, useEffect, useState } from "react";
 import * as Layout from "cvdl-ts/dist/Layout";
 import * as Elem from "cvdl-ts/dist/Elem";
-import * as Row from "cvdl-ts/dist/Row";
 import * as Stack from "cvdl-ts/dist/Stack";
-import { Container } from "postcss";
+import * as Font from "cvdl-ts/dist/Font";
 
 type LensStep =
 	| {
-			attribute: string;
-	  }
+		attribute: string;
+	}
 	| {
-			index: number;
-	  };
+		index: number;
+	};
 
 type Lens = LensStep[];
 
@@ -437,7 +436,15 @@ const ElemControlPanel = (props: {
 							props.setLayout(props.layout);
 						}}
 					>
-						<option value="Exo">Exo</option>
+						{
+							Font.AvailableFonts.map((font) => {
+								return (
+									<option key={font} value={font}>
+										{font}
+									</option>
+								);
+							})
+						}
 					</select>
 				</div>
 				<div className="panel-item">
@@ -465,9 +472,15 @@ const ElemControlPanel = (props: {
 							props.setLayout(props.layout);
 						}}
 					>
-						<option value="Thin">Thin</option>
-						<option value="Medium">Medium</option>
-						<option value="Bold">Bold</option>
+						{
+							Font.FontWeights.map((weight) => {
+								return (
+									<option key={weight} value={weight}>
+										{weight}
+									</option>
+								);
+							})
+						}
 					</select>
 				</div>
 				<div className="panel-item">
@@ -480,9 +493,15 @@ const ElemControlPanel = (props: {
 							props.setLayout(props.layout);
 						}}
 					>
-						<option value="Italic">Italic</option>
-						<option value="Normal">Normal</option>
-						<option value="Oblique">Oblique</option>
+						{
+							Font.FontStyles.map((style) => {
+								return (
+									<option key={style} value={style}>
+										{style}
+									</option>
+								);
+							})
+						}
 					</select>
 				</div>
 				<div className="panel-item">
@@ -922,14 +941,14 @@ const AddNewLayout = (props: {
 									setAddingSection(!addingSection);
 									const newLayout = props.copy
 										? props.layoutSchemas.find(
-												(schema) => schema.schema_name === layoutSchema,
-											)!
+											(schema) => schema.schema_name === layoutSchema,
+										)!
 										: new LayoutSchema(
-												sectionName,
-												dataSchema,
-												Stack.default_(),
-												Stack.default_(),
-											);
+											sectionName,
+											dataSchema,
+											Stack.default_(),
+											Stack.default_(),
+										);
 									newLayout.data_schema_name = dataSchema;
 									newLayout.schema_name = sectionName;
 

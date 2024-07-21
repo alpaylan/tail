@@ -17,12 +17,12 @@ class Resume {
         if (!("layout" in resume) || !("sections" in resume)) {
             throw new Error("Resume must have a layout");
         }
-        return new Resume(resume.layout, resume.sections.map(section => ResumeSection.fromJson(section)));
+        return new Resume(resume.layout, resume.sections.map((section) => ResumeSection.fromJson(section)));
     }
     toJson() {
         return {
             layout: this.layout,
-            sections: this.sections.map(section => section.toJson()),
+            sections: this.sections.map((section) => section.toJson()),
         };
     }
     static reducer(state, action) {
@@ -34,10 +34,10 @@ class Resume {
         }
     }
     data_schemas() {
-        return this.sections.map(section => section.data_schema);
+        return this.sections.map((section) => section.data_schema);
     }
     layout_schemas() {
-        return this.sections.map(section => section.layout_schema);
+        return this.sections.map((section) => section.layout_schema);
     }
     resume_layout() {
         return this.layout;
@@ -64,7 +64,7 @@ class ResumeSection {
             data_schema: this.data_schema,
             layout_schema: this.layout_schema,
             data: Object.fromEntries(this.data),
-            items: this.items.map(item => Item.toJson(item)),
+            items: this.items.map((item) => Item.toJson(item)),
         };
     }
     static fromJson(json) {
@@ -75,7 +75,11 @@ class ResumeSection {
         if (json === null) {
             throw new Error("ResumeSection must not be null");
         }
-        if (!("section_name" in json) || !("data_schema" in json) || !("layout_schema" in json) || !("data" in json) || !("items" in json)) {
+        if (!("section_name" in json) ||
+            !("data_schema" in json) ||
+            !("layout_schema" in json) ||
+            !("data" in json) ||
+            !("items" in json)) {
             throw new Error("ResumeSection must have a section_name, data_schema, layout_schema, and data");
         }
         section.section_name = json.section_name;
@@ -84,11 +88,11 @@ class ResumeSection {
         const data = new Map(Object.entries(json.data));
         // @ts-ignore
         section.data = new Map([...data].map(([key, value]) => [key, ItemContent.fromJson(value)]));
-        section.items = json.items.map(item => {
+        section.items = json.items.map((item) => {
             const data = new Map(Object.entries(item.fields));
             return {
                 id: item.id,
-                fields: new Map([...data].map(([key, value]) => [key, ItemContent.fromJson(value)]))
+                fields: new Map([...data].map(([key, value]) => [key, ItemContent.fromJson(value)])),
             };
         });
         return section;
@@ -109,7 +113,7 @@ var Item;
         }
         const item = {
             id: json.id,
-            fields: new Map(Object.entries(json.fields))
+            fields: new Map(Object.entries(json.fields)),
         };
         return item;
     }
@@ -117,7 +121,7 @@ var Item;
     function toJson(item) {
         return {
             id: item.id,
-            fields: Object.fromEntries(item.fields)
+            fields: Object.fromEntries(item.fields),
         };
     }
     Item.toJson = toJson;
@@ -135,21 +139,33 @@ var ItemContent;
         if (Array.isArray(json)) {
             return { tag: "List", value: json.map(fromJson) };
         }
-        if (typeof json === "object" && ("tag" in json) && json.tag === "None") {
+        if (typeof json === "object" && "tag" in json && json.tag === "None") {
             return { tag: "None" };
         }
-        if (typeof json === "object" && ("tag" in json) && ("value" in json)) {
+        if (typeof json === "object" && "tag" in json && "value" in json) {
             switch (json.tag) {
                 case "String":
                     return { tag: "String", value: json.value };
                 case "List":
-                    return { tag: "List", value: json.value.map(fromJson) };
+                    return {
+                        tag: "List",
+                        value: json.value.map(fromJson),
+                    };
                 case "Url":
-                    return { tag: "Url", value: { url: json.value.url, text: json.value.text } };
+                    return {
+                        tag: "Url",
+                        value: {
+                            url: json.value.url,
+                            text: json.value.text,
+                        },
+                    };
             }
         }
-        else if (typeof json === "object" && ("url" in json) && ("text" in json)) {
-            return { tag: "Url", value: { url: json.url, text: json.text } };
+        else if (typeof json === "object" && "url" in json && "text" in json) {
+            return {
+                tag: "Url",
+                value: { url: json.url, text: json.text },
+            };
         }
         throw new Error(`Invalid ItemContent(${JSON.stringify(json)}): ItemContent must be a string, an array, or an object`);
     }

@@ -13,7 +13,6 @@ export class Resume {
 		if (typeof resume !== "object") {
 			throw new Error("Resume must be an object");
 		}
-
 		if (resume === null) {
 			throw new Error("Resume must not be null");
 		}

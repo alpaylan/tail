@@ -177,6 +177,10 @@ export class LocalStorage implements Storage {
 		return Promise.resolve();
 	}
 	
+    save_resume_layout(resume_layout: ResumeLayout): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+
 	async load_font(font: Font.t): Promise<Buffer> {
 		const path = `fonts/${Font.full_name(font)}.ttf`;
 		if (!localStorage.getItem(path)) {

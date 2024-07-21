@@ -8,7 +8,7 @@ const blob_stream_1 = __importDefault(require("blob-stream"));
 const AnyLayout_1 = require("./AnyLayout");
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const _1 = require(".");
-const render = async ({ resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict }) => {
+const render = async ({ resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict, }) => {
     let start_time = Date.now();
     if (!resume && !resume_name) {
         throw "Rendering requires either resume_name or resume";
@@ -23,7 +23,9 @@ const render = async ({ resume_name, resume, data_schemas, layout_schemas, resum
         data_schemas = await Promise.all(resume.data_schemas().map((schema) => storage.load_data_schema(schema)));
     }
     if (!layout_schemas) {
-        layout_schemas = await Promise.all(resume.layout_schemas().map((schema) => storage.load_layout_schema(schema)));
+        layout_schemas = await Promise.all(resume
+            .layout_schemas()
+            .map((schema) => storage.load_layout_schema(schema)));
     }
     if (!resume_layout) {
         resume_layout = await storage.load_resume_layout(resume.resume_layout());
@@ -36,7 +38,14 @@ const render = async ({ resume_name, resume, data_schemas, layout_schemas, resum
     const doc = new pdfkit_1.default();
     const stream = doc.pipe((0, blob_stream_1.default)());
     start_time = Date.now();
-    const layouts = await (0, AnyLayout_1.render)({ layout_schemas, resume, data_schemas, resume_layout, storage, fontDict });
+    const layouts = await (0, AnyLayout_1.render)({
+        layout_schemas,
+        resume,
+        data_schemas,
+        resume_layout,
+        storage,
+        fontDict,
+    });
     end_time = Date.now();
     console.info(`Rendering time: ${end_time - start_time}ms`);
     console.log("Constructing printpdf font dictionary...");
@@ -64,7 +73,8 @@ const render = async ({ resume_name, resume, data_schemas, layout_schemas, resum
     };
     for (const layout of layouts) {
         (0, exports.renderSectionLayout)(layout, tracker);
-        tracker.height += layout.bounding_box.height() + layout.margin.top + layout.margin.bottom;
+        tracker.height +=
+            layout.bounding_box.height() + layout.margin.top + layout.margin.bottom;
     }
     console.log("Rendering is completed. Saving the document...");
     console.log("Document is saved to output.pdf");
@@ -92,11 +102,11 @@ const mergeSpans = (spans) => {
     const merged_spans = [];
     let currentSpan = spans[0];
     for (let i = 1; i < spans.length; i++) {
-        if (currentSpan.bbox.top_left.y === spans[i].bbox.top_left.y
-            && currentSpan.font === spans[i].font
-            && currentSpan.is_code === spans[i].is_code
-            && currentSpan.is_bold === spans[i].is_bold
-            && currentSpan.is_italic === spans[i].is_italic) {
+        if (currentSpan.bbox.top_left.y === spans[i].bbox.top_left.y &&
+            currentSpan.font === spans[i].font &&
+            currentSpan.is_code === spans[i].is_code &&
+            currentSpan.is_bold === spans[i].is_bold &&
+            currentSpan.is_italic === spans[i].is_italic) {
             currentSpan.text += spans[i].text;
             currentSpan.bbox.bottom_right = spans[i].bbox.bottom_right;
         }
@@ -132,26 +142,55 @@ const renderSectionLayout = (layout, tracker) => {
             }
             const spans = elem.alignment === "Justified" ? elem.spans : (0, exports.mergeSpans)(elem.spans);
             spans.forEach((span) => {
-                if (span.text === "" || span.text === " " || span.text === "\n" || span.text === "\n\n") {
+                if (span.text === "" ||
+                    span.text === " " ||
+                    span.text === "\n" ||
+                    span.text === "\n\n") {
                     return;
                 }
-                const absoluteY = layout.bounding_box.top_left.y + tracker.height + span.bbox.top_left.y;
-                const page = Math.floor(absoluteY / (tracker.layout.height - tracker.layout.margin.top - tracker.layout.margin.bottom));
-                const currentPageY = absoluteY % (tracker.layout.height - tracker.layout.margin.top - tracker.layout.margin.bottom);
+                const absoluteY = layout.bounding_box.top_left.y +
+                    tracker.height +
+                    span.bbox.top_left.y;
+                const page = Math.floor(absoluteY /
+                    (tracker.layout.height -
+                        tracker.layout.margin.top -
+                        tracker.layout.margin.bottom));
+                const currentPageY = absoluteY %
+                    (tracker.layout.height -
+                        tracker.layout.margin.top -
+                        tracker.layout.margin.bottom);
                 const y = currentPageY + tracker.layout.margin.top;
-                const x = layout.bounding_box.top_left.x + tracker.layout.margin.left + span.bbox.top_left.x;
+                const x = layout.bounding_box.top_left.x +
+                    tracker.layout.margin.left +
+                    span.bbox.top_left.x;
                 tracker.pageContainer = getPageContainer(page, tracker);
-                tracker.pageContainer.
-                    font(_1.Font.full_name(span.font)).
-                    fontSize(span.font.size).
-                    text(span.text, x, y, { lineBreak: false });
+                tracker.pageContainer
+                    .font(_1.Font.full_name(span.font))
+                    .fontSize(span.font.size)
+                    .text(span.text, x, y, { lineBreak: false });
                 if (span.is_code) {
                     // Add a rounded rectangle around the code
-                    tracker.pageContainer.roundedRect(layout.bounding_box.top_left.x + tracker.layout.margin.left + span.bbox.top_left.x - span.font.size / 5, layout.bounding_box.top_left.y + tracker.layout.margin.top + tracker.height + span.bbox.top_left.y, span.bbox.width() + span.font.size / 5 * 2, span.bbox.height(), 5).stroke();
+                    tracker.pageContainer
+                        .roundedRect(layout.bounding_box.top_left.x +
+                        tracker.layout.margin.left +
+                        span.bbox.top_left.x -
+                        span.font.size / 5, layout.bounding_box.top_left.y +
+                        tracker.layout.margin.top +
+                        tracker.height +
+                        span.bbox.top_left.y, span.bbox.width() + (span.font.size / 5) * 2, span.bbox.height(), 5)
+                        .stroke();
                     // Add a background color to the code
                     tracker.pageContainer.fillColor("black");
                     tracker.pageContainer.fillOpacity(0.05);
-                    tracker.pageContainer.rect(layout.bounding_box.top_left.x + tracker.layout.margin.left + span.bbox.top_left.x - span.font.size / 5, layout.bounding_box.top_left.y + tracker.layout.margin.top + tracker.height + span.bbox.top_left.y, span.bbox.width() + span.font.size / 5 * 2, span.bbox.height()).fill();
+                    tracker.pageContainer
+                        .rect(layout.bounding_box.top_left.x +
+                        tracker.layout.margin.left +
+                        span.bbox.top_left.x -
+                        span.font.size / 5, layout.bounding_box.top_left.y +
+                        tracker.layout.margin.top +
+                        tracker.height +
+                        span.bbox.top_left.y, span.bbox.width() + (span.font.size / 5) * 2, span.bbox.height())
+                        .fill();
                     tracker.pageContainer.fillOpacity(1);
                 }
             });

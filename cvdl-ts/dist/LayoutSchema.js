@@ -49,7 +49,7 @@ class LayoutSchema {
             schema_name: this.schema_name,
             data_schema_name: this.data_schema_name,
             header_layout_schema: Layout.toJson(this.header_layout_schema),
-            item_layout_schema: Layout.toJson(this.item_layout_schema)
+            item_layout_schema: Layout.toJson(this.item_layout_schema),
         };
     }
 }

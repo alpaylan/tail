@@ -155,7 +155,7 @@ const SectionItem = ({
 									.filter((ic) => !ic.isActive)
 									.map((field, index) => {
 										return (
-											<div key={index}>
+											<div key={fields.length + index}>
 												<button
 													className="bordered"
 													onClick={() => {

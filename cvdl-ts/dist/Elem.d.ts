@@ -40,7 +40,7 @@ export declare function copy(e: Elem): {
     item: string;
     text?: string;
     spans?: Span[];
-    url: string;
+    url: string | null;
     is_ref: boolean;
     is_fill: boolean;
     is_markdown: boolean;

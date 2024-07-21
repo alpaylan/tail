@@ -3,19 +3,19 @@ import { LayoutSchema } from "./LayoutSchema";
 import { Storage } from "./Storage";
 import { Resume } from "./Resume";
 import { ResumeLayout } from "./ResumeLayout";
-import * as fontkit from 'fontkit';
+import * as fontkit from "fontkit";
 import { Layout } from ".";
 export type ElementPath = {
-    tag: 'none';
+    tag: "none";
 } | {
-    tag: 'section';
+    tag: "section";
     section: string;
 } | {
-    tag: 'item';
+    tag: "item";
     section: string;
     item: number;
 } | {
-    tag: 'field';
+    tag: "field";
     section: string;
     item: number;
     field: string;
@@ -34,4 +34,4 @@ export declare class FontDict {
     load_fonts_from_schema(schema: LayoutSchema, storage: Storage): Promise<void>;
     get_font(name: string): fontkit.Font;
 }
-export declare function render({ resume, layout_schemas, data_schemas, resume_layout, storage, fontDict }: RenderProps): Promise<Layout.RenderedLayout[]>;
+export declare function render({ resume, layout_schemas, data_schemas, resume_layout, storage, fontDict, }: RenderProps): Promise<Layout.RenderedLayout[]>;

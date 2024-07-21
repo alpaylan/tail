@@ -23,9 +23,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.render = exports.FontDict = void 0;
+exports.FontDict = void 0;
+exports.render = render;
 const ResumeLayout_1 = require("./ResumeLayout");
-const Utils = __importStar(require("./Utils"));
 const fontkit = __importStar(require("fontkit"));
 const _1 = require(".");
 class FontDict {
@@ -33,23 +33,20 @@ class FontDict {
         this.fonts = new Map();
     }
     async load_fonts_from_schema(schema, storage) {
-        for (const font of [...schema.fonts(), Utils.with_(_1.Font.default_(), { name: "JetBrainsMono" })]) {
-            const variants = _1.Font.variants(font);
-            for (const variant of variants) {
-                const fontName = _1.Font.full_name(variant);
-                console.log(`Loading font ${fontName}`);
-                if (this.fonts.has(fontName)) {
-                    console.log(`Font ${fontName} is already loaded`);
-                    continue;
-                }
-                try {
-                    const font_data = await storage.load_font(variant);
-                    const fontkit_font = fontkit.create(font_data);
-                    this.fonts.set(fontName, fontkit_font);
-                }
-                catch (e) {
-                    console.error(`Error loading font ${fontName}: ${e}`);
-                }
+        for (const font of [...schema.fonts()]) {
+            const fontName = _1.Font.full_name(font);
+            console.error(`Loading font ${fontName}`);
+            if (this.fonts.has(fontName)) {
+                console.error(`Font ${fontName} is already loaded`);
+                continue;
+            }
+            try {
+                const font_data = await storage.load_font(font);
+                const fontkit_font = fontkit.create(font_data);
+                this.fonts.set(fontName, fontkit_font);
+            }
+            catch (e) {
+                console.error(`Error loading font ${fontName}: ${e}`);
             }
         }
     }
@@ -62,21 +59,20 @@ class FontDict {
     }
 }
 exports.FontDict = FontDict;
-async function render({ resume, layout_schemas, data_schemas, resume_layout, storage, fontDict }) {
+async function render({ resume, layout_schemas, data_schemas, resume_layout, storage, fontDict, }) {
     // Compute the total usable width by subtracting the margins from the document width
-    const width = resume_layout.width - (resume_layout.margin.left + resume_layout.margin.right);
+    const width = resume_layout.width -
+        (resume_layout.margin.left + resume_layout.margin.right);
     // If the resume is double column, then the usable width is halved
     const column_width = resume_layout.column_type.tag === "SingleColumn"
         ? width
-        : (width - (0, ResumeLayout_1.vertical_margin)(resume_layout.column_type) / 2.0);
+        : width - (0, ResumeLayout_1.vertical_margin)(resume_layout.column_type) / 2.0;
     const layouts = [];
-    console.error("Rendering sections...");
     for (const section of resume.sections) {
         // Render Section Header
         // 1. Find the layout schema for the section
         console.info("Computing section: ", section.section_name);
-        const layout_schema = layout_schemas
-            .find(s => s.schema_name === section.layout_schema);
+        const layout_schema = layout_schemas.find((s) => s.schema_name === section.layout_schema);
         if (layout_schema === undefined) {
             throw new Error(`Could not find layout schema ${section.layout_schema}`);
         }
@@ -85,14 +81,14 @@ async function render({ resume, layout_schemas, data_schemas, resume_layout, sto
         let end_time = Date.now();
         console.info(`Font loading time: ${end_time - start_time}ms for section ${section.section_name}`);
         // 2. Find the data schema for the section
-        const data_schema = data_schemas.find(s => s.schema_name === section.data_schema);
+        const data_schema = data_schemas.find((s) => s.schema_name === section.data_schema);
         if (data_schema === undefined) {
             throw new Error(`Could not find data schema ${section.data_schema}`);
         }
         start_time = Date.now();
         // 3. Render the header
         const layout = _1.Layout.computeBoxes(_1.Layout.normalize(_1.Layout.instantiate(layout_schema.header_layout_schema, section.data, data_schema.header_schema), column_width, fontDict), fontDict);
-        layout.path = { tag: 'section', section: section.section_name };
+        layout.path = { tag: "section", section: section.section_name };
         console.info("Header is computed");
         layouts.push(layout);
         end_time = Date.now();
@@ -102,7 +98,7 @@ async function render({ resume, layout_schemas, data_schemas, resume_layout, sto
         for (const [index, item] of section.items.entries()) {
             // 3. Render the item
             const layout = _1.Layout.computeBoxes(_1.Layout.normalize(_1.Layout.instantiate(layout_schema.item_layout_schema, item.fields, data_schema.item_schema), column_width, fontDict), fontDict);
-            layout.path = { tag: 'item', section: section.section_name, item: index };
+            layout.path = { tag: "item", section: section.section_name, item: index };
             layouts.push(layout);
         }
         end_time = Date.now();
@@ -111,4 +107,3 @@ async function render({ resume, layout_schemas, data_schemas, resume_layout, sto
     console.log("Position calculations are completed.");
     return layouts;
 }
-exports.render = render;

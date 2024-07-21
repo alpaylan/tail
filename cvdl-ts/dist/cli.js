@@ -16,7 +16,15 @@ const resume = Resume_1.Resume.fromJson(JSON.parse((0, fs_1.readFileSync)(resume
 const resumeLayout = resumeLayouts.filter((layout) => layout.schema_name === resume.resume_layout())[0];
 const fontDict = new AnyLayout_1.FontDict();
 const storage = new FileStorage_1.FileStorage("assets/fonts/");
-(0, PdfLayout_1.render)({ resume, data_schemas: dataSchemas, layout_schemas: layoutSchemas, resume_layout: resumeLayout, fontDict, storage, debug: false }).then((result) => {
+(0, PdfLayout_1.render)({
+    resume,
+    data_schemas: dataSchemas,
+    layout_schemas: layoutSchemas,
+    resume_layout: resumeLayout,
+    fontDict,
+    storage,
+    debug: false,
+}).then((result) => {
     result.blob.arrayBuffer().then((buffer) => {
         (0, fs_1.writeFileSync)("output.pdf", Buffer.from(buffer));
     });

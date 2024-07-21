@@ -1,6 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FontStyles = exports.FontWeights = exports.get_height = exports.get_width = exports.full_name = exports.variants = exports.default_ = exports.fromJson = exports.font = void 0;
+exports.AvailableFonts = exports.FontStyles = exports.FontWeights = void 0;
+exports.font = font;
+exports.fromJson = fromJson;
+exports.default_ = default_;
+exports.variants = variants;
+exports.full_name = full_name;
+exports.get_width = get_width;
+exports.get_height = get_height;
 function font(name, size, weight, style, source) {
     return {
         name,
@@ -10,7 +17,6 @@ function font(name, size, weight, style, source) {
         source,
     };
 }
-exports.font = font;
 function fromJson(json) {
     return {
         ...default_(),
@@ -21,7 +27,6 @@ function fromJson(json) {
         source: json["source"],
     };
 }
-exports.fromJson = fromJson;
 function default_() {
     return {
         name: "Exo",
@@ -31,7 +36,6 @@ function default_() {
         source: "System",
     };
 }
-exports.default_ = default_;
 function variants(f) {
     const fonts = [];
     for (const weight of exports.FontWeights) {
@@ -45,21 +49,21 @@ function variants(f) {
     }
     return fonts;
 }
-exports.variants = variants;
 function full_name(f) {
     return f.name + "-" + f.weight + (f.style === "Italic" ? "Italic" : "");
 }
-exports.full_name = full_name;
 function get_width(f, text, fonts) {
     const font = fonts.get_font(full_name(f));
-    return (font.layout(text).glyphs.reduce((acc, glyph) => acc + glyph.advanceWidth, 0) / font.unitsPerEm) * f.size;
+    return ((font
+        .layout(text)
+        .glyphs.reduce((acc, glyph) => acc + glyph.advanceWidth, 0) /
+        font.unitsPerEm) *
+        f.size);
 }
-exports.get_width = get_width;
 function get_height(f, fonts) {
     const font = fonts.get_font(full_name(f));
     return (font.bbox.height / font.unitsPerEm) * f.size;
 }
-exports.get_height = get_height;
 exports.FontWeights = [
     "ExtraLight",
     "Light",
@@ -74,4 +78,16 @@ exports.FontWeights = [
 exports.FontStyles = [
     "Normal",
     "Italic",
+];
+exports.AvailableFonts = [
+    "EBGaramond",
+    "Exo",
+    "Inter",
+    "JetBrainsMono",
+    "Montserrat",
+    "Merriweather",
+    "NotoSerif",
+    "OpenSans",
+    "Roboto",
+    "RobotoMono",
 ];

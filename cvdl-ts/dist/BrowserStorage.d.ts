@@ -1,13 +1,10 @@
-import { Resume } from "./Resume";
 import { DataSchema } from "./DataSchema";
+import * as Font from "./Font";
 import { LayoutSchema } from "./LayoutSchema";
+import { Resume } from "./Resume";
 import { ResumeLayout } from "./ResumeLayout";
 import { Storage } from "./Storage";
-import * as Font from "./Font";
-export declare class FileStorage implements Storage {
-    dir: string;
-    constructor(dir: string);
-    load_font(font: Font.t): Promise<Buffer>;
+export declare class BrowserStorage implements Storage {
     initiate_storage(): Promise<void>;
     list_resumes(): Promise<string[]>;
     list_data_schemas(): Promise<string[]>;
@@ -21,4 +18,5 @@ export declare class FileStorage implements Storage {
     save_data_schema(data_schema: DataSchema): Promise<void>;
     save_layout_schema(layout_schema: LayoutSchema): Promise<void>;
     save_resume_layout(resume_layout: ResumeLayout): Promise<void>;
+    load_font(font: Font.t): Promise<Buffer>;
 }

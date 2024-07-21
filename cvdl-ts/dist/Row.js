@@ -23,14 +23,18 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.scaleWidth = exports.boundWidth = exports.elementsWidth = exports.default_ = exports.row = exports.from = void 0;
+exports.from = from;
+exports.row = row;
+exports.default_ = default_;
+exports.elementsWidth = elementsWidth;
+exports.boundWidth = boundWidth;
+exports.scaleWidth = scaleWidth;
 const _1 = require(".");
 const Utils_1 = require("./Utils");
 const Layout = __importStar(require("./Layout"));
 function from(w) {
     return { ...default_(), ...w };
 }
-exports.from = from;
 function row(elements, margin, alignment, width, is_frozen, is_fill) {
     return {
         tag: "Row",
@@ -42,7 +46,6 @@ function row(elements, margin, alignment, width, is_frozen, is_fill) {
         is_fill,
     };
 }
-exports.row = row;
 function default_() {
     return {
         tag: "Row",
@@ -54,25 +57,25 @@ function default_() {
         is_fill: false,
     };
 }
-exports.default_ = default_;
 function elementsWidth(r) {
-    return r.elements.map(e => _1.Width.get_fixed_unchecked(e.width)).reduce((a, b) => a + b, 0.0);
+    return r.elements
+        .map((e) => _1.Width.get_fixed_unchecked(e.width))
+        .reduce((a, b) => a + b, 0.0);
 }
-exports.elementsWidth = elementsWidth;
 function boundWidth(r, width) {
-    const bound = r.width.tag === "Absolute" ? Math.min(r.width.value, width)
-        : r.width.tag === "Fill" ? width
+    const bound = r.width.tag === "Absolute"
+        ? Math.min(r.width.value, width)
+        : r.width.tag === "Fill"
+            ? width
             : null;
     if (bound === null) {
         throw new Error("Cannot bound width of non-unitized widths!");
     }
-    return row(r.elements.map(e => Layout.boundWidth(e, bound)), r.margin, r.alignment, _1.Width.absolute(bound), r.is_frozen, _1.Width.is_fill(r.width));
+    return row(r.elements.map((e) => Layout.boundWidth(e, bound)), r.margin, r.alignment, _1.Width.absolute(bound), r.is_frozen, _1.Width.is_fill(r.width));
 }
-exports.boundWidth = boundWidth;
 function scaleWidth(r, w) {
     return (0, Utils_1.with_)(r, {
-        elements: r.elements.map(e => Layout.scaleWidth(e, w)),
-        width: _1.Width.scale(r.width, w)
+        elements: r.elements.map((e) => Layout.scaleWidth(e, w)),
+        width: _1.Width.scale(r.width, w),
     });
 }
-exports.scaleWidth = scaleWidth;

@@ -19,4 +19,5 @@ export type FontWeight = "ExtraLight" | "Light" | "Thin" | "Medium" | "Regular" 
 export declare const FontWeights: readonly ["ExtraLight", "Light", "Thin", "Medium", "Regular", "SemiBold", "Bold", "Black", "ExtraBold"];
 export type FontStyle = "Normal" | "Italic";
 export declare const FontStyles: readonly ["Normal", "Italic"];
+export declare const AvailableFonts: readonly ["EBGaramond", "Exo", "Inter", "JetBrainsMono", "Montserrat", "Merriweather", "NotoSerif", "OpenSans", "Roboto", "RobotoMono"];
 export {};

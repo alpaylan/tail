@@ -1,4 +1,3 @@
-/// <reference types="pdfkit" />
 import { FontDict } from "./AnyLayout";
 import { Resume } from "./Resume";
 import { DataSchema } from "./DataSchema";
@@ -21,7 +20,7 @@ export type RenderProps = {
     fontDict?: FontDict;
     debug: boolean;
 };
-export declare const render: ({ resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict }: RenderProps) => Promise<RenderResult>;
+export declare const render: ({ resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict, }: RenderProps) => Promise<RenderResult>;
 type Tracker = {
     page: number;
     pageContainer: PDFKit.PDFDocument;

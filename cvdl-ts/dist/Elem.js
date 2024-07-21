@@ -23,7 +23,26 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.instantiate = exports.boundWidth = exports.fillFonts = exports.parseMarkdownItem = exports.scaleWidth = exports.withBackgroundColor = exports.withWidth = exports.withAlignment = exports.withMargin = exports.withFont = exports.withTextWidth = exports.withIsFill = exports.asRef = exports.withIsRef = exports.withUrl = exports.withItem = exports.from = exports.default_ = exports.copy = exports.elem = void 0;
+exports.elem = elem;
+exports.copy = copy;
+exports.default_ = default_;
+exports.from = from;
+exports.withItem = withItem;
+exports.withUrl = withUrl;
+exports.withIsRef = withIsRef;
+exports.asRef = asRef;
+exports.withIsFill = withIsFill;
+exports.withTextWidth = withTextWidth;
+exports.withFont = withFont;
+exports.withMargin = withMargin;
+exports.withAlignment = withAlignment;
+exports.withWidth = withWidth;
+exports.withBackgroundColor = withBackgroundColor;
+exports.scaleWidth = scaleWidth;
+exports.parseMarkdownItem = parseMarkdownItem;
+exports.fillFonts = fillFonts;
+exports.boundWidth = boundWidth;
+exports.instantiate = instantiate;
 const Font = __importStar(require("./Font"));
 const _1 = require(".");
 const Resume_1 = require("./Resume");
@@ -54,11 +73,9 @@ function elem(item, url, is_ref, is_fill, is_markdown, text_width, font, margin,
         background_color,
     };
 }
-exports.elem = elem;
 function copy(e) {
     return { ...e };
 }
-exports.copy = copy;
 function default_() {
     return {
         tag: "Elem",
@@ -75,59 +92,45 @@ function default_() {
         background_color: "Transparent",
     };
 }
-exports.default_ = default_;
 function from(w) {
     return { ...default_(), ...w };
 }
-exports.from = from;
 function withItem(e, item) {
     return { ...e, item };
 }
-exports.withItem = withItem;
 function withUrl(e, url) {
     return { ...e, url };
 }
-exports.withUrl = withUrl;
 function withIsRef(e, is_ref) {
     return { ...e, is_ref };
 }
-exports.withIsRef = withIsRef;
 function asRef(e) {
     return withIsRef(e, true);
 }
-exports.asRef = asRef;
 function withIsFill(e, is_fill) {
     return { ...e, is_fill };
 }
-exports.withIsFill = withIsFill;
 function withTextWidth(e, text_width) {
     return { ...e, text_width };
 }
-exports.withTextWidth = withTextWidth;
 function withFont(e, font) {
     return { ...e, font };
 }
-exports.withFont = withFont;
 function withMargin(e, margin) {
     return { ...e, margin };
 }
-exports.withMargin = withMargin;
 function withAlignment(e, alignment) {
     return { ...e, alignment };
 }
-exports.withAlignment = withAlignment;
 function withWidth(e, width) {
     return { ...e, width };
 }
-exports.withWidth = withWidth;
 function withBackgroundColor(e, background_color) {
     return { ...e, background_color };
 }
-exports.withBackgroundColor = withBackgroundColor;
 function scaleWidth(e, scale) {
     return withWidth(e, _1.Width.scale(e.width, scale));
 }
-exports.scaleWidth = scaleWidth;
 function flatten(ts, sp) {
     const spans = [];
     for (const t of ts) {
@@ -179,7 +182,6 @@ function parseMarkdownItem(item) {
     }
     return spans;
 }
-exports.parseMarkdownItem = parseMarkdownItem;
 function fillFonts(e, fonts) {
     const simpleSpans = e.is_markdown ? parseMarkdownItem(e.text) : [{ ...defaultSpanProps(), text: e.text, font: e.font, link: null }];
     const spans = [];
@@ -204,7 +206,12 @@ function fillFonts(e, fonts) {
             const width = Font.get_width(font, word, fonts);
             spans.push({ ...span, text: word, font, width });
             if (index < words.length - 1) {
-                spans.push({ ...span, text: " ", font, width: Font.get_width(font, " ", fonts) });
+                spans.push({
+                    ...span,
+                    text: " ",
+                    font,
+                    width: Font.get_width(font, " ", fonts),
+                });
             }
         });
     }
@@ -213,14 +220,13 @@ function fillFonts(e, fonts) {
         return (0, Utils_1.with_)(e, {
             width: _1.Width.absolute(Math.min(_1.Width.get_fixed_unchecked(e.width), text_width)),
             text_width: _1.Width.absolute(text_width),
-            spans
+            spans,
         });
     }
     else {
         return (0, Utils_1.with_)(e, { text_width: _1.Width.absolute(text_width), spans });
     }
 }
-exports.fillFonts = fillFonts;
 function boundWidth(e, width) {
     if (!_1.Width.is_fill(e.width)) {
         return withIsFill(withWidth(e, _1.Width.absolute(Math.min(_1.Width.get_fixed_unchecked(e.width), width))), false);
@@ -229,12 +235,11 @@ function boundWidth(e, width) {
         return withIsFill(withWidth(e, _1.Width.absolute(width)), true);
     }
 }
-exports.boundWidth = boundWidth;
 function instantiate(e, section, fields) {
     if (!e.is_ref) {
         return e;
     }
-    const itemType = fields.find(f => f.name === e.item);
+    const itemType = fields.find((f) => f.name === e.item);
     if (itemType.type.tag === "MarkdownString") {
         e.is_markdown = true;
     }
@@ -245,11 +250,14 @@ function instantiate(e, section, fields) {
     }
     else {
         if (text.tag === "Url") {
-            return (0, Utils_1.with_)(e, { is_ref: false, text: text.value.text, url: text.value.url });
+            return (0, Utils_1.with_)(e, {
+                is_ref: false,
+                text: text.value.text,
+                url: text.value.url,
+            });
         }
         else {
             return (0, Utils_1.with_)(e, { is_ref: false, text: Resume_1.ItemContent.toString(text) });
         }
     }
 }
-exports.instantiate = instantiate;

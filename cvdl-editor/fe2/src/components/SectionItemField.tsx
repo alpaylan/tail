@@ -88,7 +88,6 @@ const DateEditor = ({
 			/>
 			<select
 				value={dateFormat}
-				defaultValue={field.type.format}
 				onChange={(e) => {
 					setDateFormat(e.target.value as DateFormat.t);
 					dispatch!({
@@ -230,10 +229,10 @@ const SectionItemField = ({
 					<MarkdownEditor section={section} item={item} field={field} />
 				))
 				.with({ tag: "Date" }, () => (
-					<DateEditor
+					<DefaultEditor
 						section={section}
 						item={item}
-						field={field as FieldProps & { type: DocumentDataType.Date }}
+						field={field as FieldProps}
 					/>
 				))
 				.with({ tag: "List" }, () => (
