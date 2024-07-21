@@ -29,7 +29,7 @@ const LayoutSchema_1 = require("./LayoutSchema");
 const ResumeLayout_1 = require("./ResumeLayout");
 class RemoteStorage {
     constructor(url) {
-        this.url = "";
+        this.url = '';
         this.url = url;
     }
     initiate_storage() {
@@ -77,17 +77,21 @@ class RemoteStorage {
         return new ResumeLayout_1.ResumeLayout(schema.schema_name, schema.column_type, schema.margin, schema.width, schema.height);
     }
     // Saving Functions
-    async save_resume(resume_name, resume_data) { }
-    async save_data_schema(data_schema) { }
-    async save_layout_schema(layout_schema) { }
-    async save_resume_layout(resume_layout) { }
+    async save_resume(resume_name, resume_data) {
+    }
+    async save_data_schema(data_schema) {
+    }
+    async save_layout_schema(layout_schema) {
+    }
+    async save_resume_layout(resume_layout) {
+    }
     async load_font(font) {
         const response = await fetch(this.url + "/font/", {
-            method: "POST",
+            method: 'POST',
             headers: {
-                "Content-Type": "application/json",
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(font),
+            body: JSON.stringify(font)
         });
         const font_data = await response.arrayBuffer();
         return Buffer.from(font_data);

@@ -83,7 +83,6 @@ export function get_height(f: Font, fonts: FontDict): number {
 	return (font.bbox.height / font.unitsPerEm) * f.size;
 }
 
-
 export type FontSource = "Local" | "System" | "Remote";
 
 export type FontWeight =
@@ -116,17 +115,4 @@ export type FontStyle =
 export const FontStyles = [
     "Normal",
     "Italic",
-] as const;
-
-export const AvailableFonts = [
-	"EBGaramond",
-	"Exo",
-	"Inter",
-	"JetBrainsMono",
-	"Montserrat",
-	"Merriweather",
-	"NotoSerif",
-	"OpenSans",
-	"Roboto",
-	"RobotoMono",
 ] as const;

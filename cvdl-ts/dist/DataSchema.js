@@ -16,9 +16,10 @@ var DateFormat;
         "Mon YYYY",
         "Mon DD, YYYY",
         "YYYY",
-        "unknown",
+        "unknown"
     ];
     DateFormat.print = (date, format) => {
+        console.error(date);
         const d = new Date(date + "T00:00:00");
         const year = d.getFullYear();
         const month = d.getMonth() + 1;
@@ -28,12 +29,13 @@ var DateFormat;
         result = result.replace("YY", year.toString().slice(-2));
         result = result.replace("MM", month.toString().padStart(2, "0"));
         result = result.replace("DD", day.toString().padStart(2, "0"));
-        result = result.replace("Month", d.toLocaleString("default", { month: "long" }));
-        result = result.replace("Mon", d.toLocaleString("default", { month: "short" }));
+        result = result.replace("Month", d.toLocaleString('default', { month: 'long' }));
+        result = result.replace("Mon", d.toLocaleString('default', { month: 'short' }));
         return result;
     };
     DateFormat.parse = (date) => {
         const d = new Date(date + "T00:00:00");
+        console.error(d);
         if (isNaN(d.getTime())) {
             return "";
         }
@@ -44,10 +46,7 @@ var DocumentDataType;
 (function (DocumentDataType) {
     function parse(s) {
         if (s === "Date") {
-            return {
-                tag: "Date",
-                format: s.length > 4 ? s.slice(5, -1).trim() : "YYYY-MM-DD",
-            };
+            return { tag: "Date", format: s.length > 4 ? s.slice(5, -1).trim() : "YYYY-MM-DD" };
         }
         else if (s === "String") {
             return { tag: "String" };
@@ -62,13 +61,7 @@ var DocumentDataType;
             return { tag: "List", value: parse(s.slice(5, -1).trim()) };
         }
         else if (s.includes("|")) {
-            return {
-                tag: "Types",
-                value: s
-                    .split("|")
-                    .map((s) => s.trim())
-                    .map(parse),
-            };
+            return { tag: "Types", value: s.split("|").map((s) => s.trim()).map(parse) };
         }
         else {
             throw new Error("Invalid DocumentDataType: " + s);
@@ -134,9 +127,7 @@ class DataSchema {
         if (typeof json !== "object" || json === null) {
             throw new Error("DataSchema must be an object");
         }
-        if (!("schema_name" in json) ||
-            !("header_schema" in json) ||
-            !("item_schema" in json)) {
+        if (!("schema_name" in json) || !("header_schema" in json) || !("item_schema" in json)) {
             throw new Error("DataSchema must have a schema_name, header_schema, and item_schema");
         }
         return new DataSchema(json.schema_name, json.header_schema.map(Field.fromJson), json.item_schema.map(Field.fromJson));

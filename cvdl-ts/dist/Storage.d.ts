@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { DataSchema } from "./DataSchema";
 import * as Font from "./Font";
 import { LayoutSchema } from "./LayoutSchema";

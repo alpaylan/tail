@@ -5,7 +5,7 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { FontDict } from "cvdl-ts/dist/AnyLayout";
 import { render as pdfRender } from "cvdl-ts/dist/PdfLayout";
-import { IndexedDB } from "cvdl-ts/dist/IndexedDB";
+import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { Resume } from "cvdl-ts/dist/Resume";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { ResumeLayout } from "cvdl-ts/dist/ResumeLayout";
@@ -28,11 +28,10 @@ import {
 	EditorContext,
 } from "./State";
 import AddNewSection from "./AddNewSection";
-import { BrowserStorage } from "cvdl-ts/dist/BrowserStorage";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
-export const storage = new BrowserStorage();
+const storage = new LocalStorage();
 
 function App() {
 	console.log = () => {};
@@ -62,7 +61,7 @@ function App() {
 
 	useEffect(() => {
 		require("../registerStaticFiles.js");
-		storage.initiate_storage().then(() => {
+		new LocalStorage().initiate_storage().then(() => {
 			setStorageInitiated(true);
 		});
 
@@ -83,7 +82,7 @@ function App() {
 				});
 			}
 		}
-	});
+	}, []);
 
 	useEffect(() => {
 		if (!storageInitiated) {
@@ -149,11 +148,10 @@ function App() {
 		if (!storageInitiated) {
 			return;
 		}
-
 		domRender({
 			resume_name: resume,
 			resume: state.resume!,
-			storage,
+			storage: new LocalStorage(),
 			fontDict,
 			state,
 			dispatch,

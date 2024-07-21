@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { Resume } from "./Resume";
 import { DataSchema } from "./DataSchema";
 import { LayoutSchema } from "./LayoutSchema";

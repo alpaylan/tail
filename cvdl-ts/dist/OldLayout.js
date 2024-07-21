@@ -50,7 +50,7 @@
 //                 container.width = Width.fromJson(json[key].width);
 //                 return new SectionLayout(container);
 //             }
-//             case 'Ref':
+//             case 'Ref': 
 //             case 'Text': {
 //                 const inner = SectionLayout.constrMap(key) as Elem;
 //                 inner.item = json[key].item;
@@ -525,12 +525,12 @@
 // }
 // export type Color =
 //     "Transparent" // transparent
-//     | "Light Yellow" // "#FFC96F"
-//     | "Light Brown" // "#ECB176"
-//     | "Light Green" // "#F6FAB9"
-//     | "Light Beige" // "#F6EEC9"
-//     | "Light Blue" // "#EEF7FF"
-//     | "Blue" // "#4793AF"
+//     | "Light Yellow" // "#FFC96F" 
+//     | "Light Brown" // "#ECB176" 
+//     | "Light Green" // "#F6FAB9" 
+//     | "Light Beige" // "#F6EEC9" 
+//     | "Light Blue" // "#EEF7FF" 
+//     | "Blue" // "#4793AF" 
 // export const ColorMap = {
 //     "Transparent": "transparent",
 //     "Light Yellow": "#FFC96F",

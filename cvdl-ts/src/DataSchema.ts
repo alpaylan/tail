@@ -31,6 +31,7 @@ export module DateFormat {
 	] as const;
 
 	export const print = (date: string, format: t): string => {
+		console.error(date);
 		const d = new Date(date + "T00:00:00");
 		const year = d.getFullYear();
 		const month = d.getMonth() + 1;
@@ -54,6 +55,7 @@ export module DateFormat {
 
 	export const parse = (date: string): string => {
 		const d = new Date(date + "T00:00:00");
+		console.error(d);
 		if (isNaN(d.getTime())) {
 			return "";
 		}

@@ -1,248 +1,327 @@
 
-import { FontDict } from "./AnyLayout";
 import { DataSchema } from "./DataSchema";
 import * as Font from "./Font";
 import { LayoutSchema } from "./LayoutSchema";
 import { Resume } from "./Resume";
 import { ResumeLayout } from "./ResumeLayout";
 import { Storage } from "./Storage";
-import { Dexie } from "dexie";
-import * as fontkit from "fontkit";
 
 export class IndexedDB implements Storage {
     async initiate_storage(): Promise<void> {
-        const resumes = new Dexie("resumes") as Dexie & { resumes: Dexie.Table<{ name: string, data: Resume }> };
-        resumes.version(1).stores({
-            resumes: "name",
-        });
+        const resumes = indexedDB.open("resumes", 1);
 
-        resumes.resumes.get("Default").then((resume) => {
-            if (!resume) {
+        resumes.onupgradeneeded = () => {
+            const db = resumes.result;
+            db.createObjectStore("resumes", { keyPath: "name" });
+        };
+
+        resumes.onsuccess = () => {
+            const db = resumes.result;
+            const transaction = db.transaction("resumes", "readwrite");
+            const store = transaction.objectStore("resumes");
+
+            if (!store.get("Default")) {
                 fetch("https://d2bnplhbawocbk.cloudfront.net/data/resumes/resume5.json").then((response) => {
                     response.json().then((resume) => {
-                        resumes.resumes.add({ name: "Default", data: resume });
+                        store.add({ name: "Default", data: resume });
                     });
                 });
             }
-        }).catch((error) => {
-            console.error("Error getting resume", error);
-        });
+        };
 
+        const data_schemas = indexedDB.open("data_schemas", 1);
 
-        const data_schemas = new Dexie("data_schemas") as Dexie & { data_schemas: Dexie.Table<DataSchema> };
+        data_schemas.onupgradeneeded = () => {
+            const db = data_schemas.result;
+            db.createObjectStore("data_schemas", { keyPath: "schema_name" });
+        };
 
-        data_schemas.version(1).stores({
-            data_schemas: "schema_name",
-        });
+        data_schemas.onsuccess = () => {
+            const db = data_schemas.result;
+            const transaction = db.transaction("data_schemas", "readwrite");
+            const store = transaction.objectStore("data_schemas");
 
-        data_schemas.data_schemas.toArray().then((schemas) => {
-            if (schemas.length === 0) {
+            if (!store.get("Default")) {
                 fetch("https://d2bnplhbawocbk.cloudfront.net/data/data-schemas.json").then((response) => {
-                    response.json().then((schemas) => {
-                        for (const schema of schemas) {
-                            data_schemas.data_schemas.add(schema);
-                        }
+                    response.json().then((data_schemas) => {
+                        store.add(data_schemas);
                     });
                 });
             }
-        });
+        };
+        
+        const section_layouts = indexedDB.open("section_layouts", 1);
 
+        section_layouts.onupgradeneeded = () => {
+            const db = section_layouts.result;
+            db.createObjectStore("section_layouts", { keyPath: "schema_name" });
+        };
 
-        const section_layouts = new Dexie("section_layouts") as Dexie & { section_layouts: Dexie.Table<LayoutSchema> };
+        section_layouts.onsuccess = () => {
+            const db = section_layouts.result;
+            const transaction = db.transaction("section_layouts", "readwrite");
+            const store = transaction.objectStore("section_layouts");
 
-        section_layouts.version(1).stores({
-            section_layouts: "schema_name",
-        });
-
-        section_layouts.section_layouts.toArray().then((schemas) => {
-            if (schemas.length === 0) {
+            if (!store.get("Default")) {
                 fetch("https://d2bnplhbawocbk.cloudfront.net/data/layout-schemas3.json").then((response) => {
-                    response.json().then((schemas) => {
-                        for (const schema of schemas) {
-                            section_layouts.section_layouts.add(schema);
-                        }
+                    response.json().then((section_layouts) => {
+                        store.add(section_layouts);
                     });
                 });
             }
-        });
+        };
 
-        const resume_layouts = new Dexie("resume_layouts") as Dexie & { resume_layouts: Dexie.Table<ResumeLayout> };
+        const resume_layouts = indexedDB.open("resume_layouts", 1);
 
-        resume_layouts.version(1).stores({
-            resume_layouts: "schema_name",
-        });
+        resume_layouts.onupgradeneeded = () => {
+            const db = resume_layouts.result;
+            db.createObjectStore("resume_layouts", { keyPath: "schema_name" });
+        };
 
-        resume_layouts.resume_layouts.toArray().then((layouts) => {
-            if (layouts.length === 0) {
+        resume_layouts.onsuccess = () => {
+            const db = resume_layouts.result;
+            const transaction = db.transaction("resume_layouts", "readwrite");
+            const store = transaction.objectStore("resume_layouts");
+
+            if (!store.get("Default")) {
                 fetch("https://d2bnplhbawocbk.cloudfront.net/data/resume-layouts.json").then((response) => {
-                    response.json().then((layouts) => {
-                        for (const layout of layouts) {
-                            resume_layouts.resume_layouts.add(layout);
-                        }
+                    response.json().then((resume_layouts) => {
+                        store.add(resume_layouts);
                     });
                 });
             }
-        });
+        };
     }
 
 
     list_resumes(): Promise<string[]> {
-        const resumes = new Dexie("resumes") as Dexie & { resumes: Dexie.Table<{ name: string, data: Resume }> };
-        resumes.version(1).stores({
-            resumes: "name",
-        });
+        const resumes = indexedDB.open("resumes", 1);
 
-        return resumes.resumes.toArray().then((resumes) => {
-            return resumes.map((resume) => resume.name);
-        });
+        resumes.onsuccess = () => {
+            const db = resumes.result;
+            const transaction = db.transaction("resumes", "readwrite");
+            const store = transaction.objectStore("resumes");
+
+            const request = store.getAll();
+            request.onsuccess = () => {
+                return request.result.map((resume: any) => resume.name);
+            };
+        };
+
+        return Promise.resolve([]);
     }
 
     list_data_schemas(): Promise<string[]> {
-        const data_schemas = new Dexie("data_schemas") as Dexie & { data_schemas: Dexie.Table<DataSchema> };
-        data_schemas.version(1).stores({
-            data_schemas: "schema_name",
-        });
+        const data_schemas = indexedDB.open("data_schemas", 1);
 
-        return data_schemas.data_schemas.toArray().then((schemas) => {
-            return schemas.map((schema) => schema.schema_name);
-        });
+        data_schemas.onsuccess = () => {
+            const db = data_schemas.result;
+            const transaction = db.transaction("data_schemas", "readwrite");
+            const store = transaction.objectStore("data_schemas");
+
+            const request = store.getAll();
+            request.onsuccess = () => {
+                return request.result.map((schema: any) => schema.schema_name);
+            };
+        };
+
+        return Promise.resolve([]);
     }
 
     list_layout_schemas(): Promise<string[]> {
-        const section_layouts = new Dexie("section_layouts") as Dexie & { section_layouts: Dexie.Table<LayoutSchema> };
-        section_layouts.version(1).stores({
-            section_layouts: "schema_name",
-        });
+        const section_layouts = indexedDB.open("section_layouts", 1);
 
-        return section_layouts.section_layouts.toArray().then((schemas) => {
-            return schemas.map((schema) => schema.schema_name);
-        });
+        section_layouts.onsuccess = () => {
+            const db = section_layouts.result;
+            const transaction = db.transaction("section_layouts", "readwrite");
+            const store = transaction.objectStore("section_layouts");
+
+            const request = store.getAll();
+            request.onsuccess = () => {
+                return request.result.map((schema: any) => schema.schema_name);
+            };
+        };
+
+        return Promise.resolve([]);
     }
 
     list_resume_layouts(): Promise<string[]> {
-        const resume_layouts = new Dexie("resume_layouts") as Dexie & { resume_layouts: Dexie.Table<ResumeLayout> };
-        resume_layouts.version(1).stores({
-            resume_layouts: "schema_name",
-        });
+        const resume_layouts = indexedDB.open("resume_layouts", 1);
 
-        return resume_layouts.resume_layouts.toArray().then((layouts) => {
-            return layouts.map((layout) => layout.schema_name);
-        });
+        resume_layouts.onsuccess = () => {
+            const db = resume_layouts.result;
+            const transaction = db.transaction("resume_layouts", "readwrite");
+            const store = transaction.objectStore("resume_layouts");
+
+            const request = store.getAll();
+            request.onsuccess = () => {
+                return request.result.map((schema: any) => schema.schema_name);
+            };
+        };
+
+        return Promise.resolve([]);
     }
 
     load_resume(resume_name: string): Promise<Resume> {
-        const resumes = new Dexie("resumes") as Dexie & { resumes: Dexie.Table<{ name: string, data: Resume }> };
-        resumes.version(1).stores({
-            resumes: "name",
-        });
+        const resumes = indexedDB.open("resumes", 1);
 
-        return resumes.resumes.get(resume_name).then((resume) => {
-            return Resume.fromJson(resume.data);
-        });
+        resumes.onsuccess = () => {
+            const db = resumes.result;
+            const transaction = db.transaction("resumes", "readwrite");
+            const store = transaction.objectStore("resumes");
+
+            const request = store.get(resume_name);
+            request.onsuccess = () => {
+                return Resume.fromJson(request.result.data);
+            };
+        };
+
+        return Promise.resolve(Resume.fromJson({}));
     }
 
     load_data_schema(schema_name: string): Promise<DataSchema> {
-        const data_schemas = new Dexie("data_schemas") as Dexie & { data_schemas: Dexie.Table<DataSchema> };
-        data_schemas.version(1).stores({
-            data_schemas: "schema_name",
-        });
+        const data_schemas = indexedDB.open("data_schemas", 1);
 
-        return data_schemas.data_schemas.get(schema_name).then((schema) => {
-            return DataSchema.fromJson(schema);
-        });
+        data_schemas.onsuccess = () => {
+            const db = data_schemas.result;
+            const transaction = db.transaction("data_schemas", "readwrite");
+            const store = transaction.objectStore("data_schemas");
+
+            const request = store.get(schema_name);
+            request.onsuccess = () => {
+                return DataSchema.fromJson(request.result);
+            };
+        };
+
+        return Promise.resolve(DataSchema.fromJson({}));
     }
 
     load_layout_schema(schema_name: string): Promise<LayoutSchema> {
-        const section_layouts = new Dexie("section_layouts") as Dexie & { section_layouts: Dexie.Table<LayoutSchema> };
-        section_layouts.version(1).stores({
-            section_layouts: "schema_name",
-        });
+        const section_layouts = indexedDB.open("section_layouts", 1);
 
-        return section_layouts.section_layouts.get(schema_name).then((schema) => {
-            return LayoutSchema.fromJson(schema);
-        });
+        section_layouts.onsuccess = () => {
+            const db = section_layouts.result;
+            const transaction = db.transaction("section_layouts", "readwrite");
+            const store = transaction.objectStore("section_layouts");
+
+            const request = store.get(schema_name);
+            request.onsuccess = () => {
+                return LayoutSchema.fromJson(request.result);
+            };
+        };
+
+        return Promise.resolve(LayoutSchema.fromJson({}));
     }
 
     load_resume_layout(schema_name: string): Promise<ResumeLayout> {
-        const resume_layouts = new Dexie("resume_layouts") as Dexie & { resume_layouts: Dexie.Table<ResumeLayout> };
-        resume_layouts.version(1).stores({
-            resume_layouts: "schema_name",
-        });
+        const resume_layouts = indexedDB.open("resume_layouts", 1);
 
-        return resume_layouts.resume_layouts.get(schema_name).then((layout) => {
-            return ResumeLayout.fromJson(layout);
-        });
+        resume_layouts.onsuccess = () => {
+            const db = resume_layouts.result;
+            const transaction = db.transaction("resume_layouts", "readwrite");
+            const store = transaction.objectStore("resume_layouts");
+
+            const request = store.get(schema_name);
+            request.onsuccess = () => {
+                return ResumeLayout.fromJson(request.result);
+            };
+        };
+
+        return Promise.resolve(ResumeLayout.fromJson({}));
     }
 
     save_resume(resume_name: string, resume_data: Resume): Promise<void> {
-        const resumes = new Dexie("resumes") as Dexie & { resumes: Dexie.Table<{ name: string, data: Resume }> };
-        resumes.version(1).stores({
-            resumes: "name",
-        });
+        const resumes = indexedDB.open("resumes", 1);
 
-        resumes.resumes.put({ name: resume_name, data: resume_data });
+        resumes.onsuccess = () => {
+            const db = resumes.result;
+            const transaction = db.transaction("resumes", "readwrite");
+            const store = transaction.objectStore("resumes");
+
+            const request = store.put({ name: resume_name, data: resume_data.toJson() });
+            request.onsuccess = () => {
+                return;
+            };
+        };
 
         return Promise.resolve();
     }
 
     save_data_schema(data_schema: DataSchema): Promise<void> {
-        const data_schemas = new Dexie("data_schemas") as Dexie & { data_schemas: Dexie.Table<DataSchema> };
-        data_schemas.version(1).stores({
-            data_schemas: "schema_name",
-        });
+        const data_schemas = indexedDB.open("data_schemas", 1);
 
-        data_schemas.data_schemas.put(data_schema);
+        data_schemas.onsuccess = () => {
+            const db = data_schemas.result;
+            const transaction = db.transaction("data_schemas", "readwrite");
+            const store = transaction.objectStore("data_schemas");
+
+            const request = store.put(data_schema);
+            request.onsuccess = () => {
+                return;
+            };
+        };
 
         return Promise.resolve();
     }
 
     save_layout_schema(layout_schema: LayoutSchema): Promise<void> {
-        const section_layouts = new Dexie("section_layouts") as Dexie & { section_layouts: Dexie.Table<LayoutSchema> };
-        section_layouts.version(1).stores({
-            section_layouts: "schema_name",
-        });
+        const section_layouts = indexedDB.open("section_layouts", 1);
 
-        section_layouts.section_layouts.put(layout_schema);
+        section_layouts.onsuccess = () => {
+            const db = section_layouts.result;
+            const transaction = db.transaction("section_layouts", "readwrite");
+            const store = transaction.objectStore("section_layouts");
+
+            const request = store.put(layout_schema);
+            request.onsuccess = () => {
+                return;
+            };
+        };
 
         return Promise.resolve();
     }
 
     save_resume_layout(resume_layout: ResumeLayout): Promise<void> {
-        const resume_layouts = new Dexie("resume_layouts") as Dexie & { resume_layouts: Dexie.Table<ResumeLayout> };
-        resume_layouts.version(1).stores({
-            resume_layouts: "schema_name",
-        });
+        const resume_layouts = indexedDB.open("resume_layouts", 1);
 
-        resume_layouts.resume_layouts.put(resume_layout);
+        resume_layouts.onsuccess = () => {
+            const db = resume_layouts.result;
+            const transaction = db.transaction("resume_layouts", "readwrite");
+            const store = transaction.objectStore("resume_layouts");
+
+            const request = store.put(resume_layout);
+            request.onsuccess = () => {
+                return;
+            };
+        };
 
         return Promise.resolve();
     }
 
     async load_font(font: Font.t): Promise<Buffer> {
         const path = `fonts/${Font.full_name(font)}.ttf`;
-        const fonts = new Dexie("fonts") as Dexie & { fonts: Dexie.Table<{ name: string, success: boolean, data: Buffer }> };
-        fonts.version(1).stores({
-            fonts: "name",
-        });
+        const fonts = indexedDB.open("fonts", 1);
 
-        return fonts.fonts.get(path).then((font) => {
-            if (font) {
-                return font.data;
-            }
-            return fetch(`https://d2bnplhbawocbk.cloudfront.net/data/${path}`).then((response) => {
-                if (!response.ok) {
-                    console.error("Error loading font", response);
-                    fonts.fonts.add({ name: path, success: false, data: Buffer.from("") });
-                    return Buffer.from("");
-                }
+        fonts.onsuccess = () => {
+            const db = fonts.result;
+            const transaction = db.transaction("fonts", "readwrite");
+            const store = transaction.objectStore("fonts");
 
-                return response.arrayBuffer().then((arrayBuffer) => {
-                    const buffer = Buffer.from(arrayBuffer);
-                    fonts.fonts.add({ name: path, success: true, data: buffer });
-                    return buffer;
+            const request = store.get(path);
+            request.onsuccess = () => {
+                return Buffer.from(request.result);
+            };
+            request.onerror = () => {
+                const response = fetch(`https://d2bnplhbawocbk.cloudfront.net/data/${path}`);
+                response.then((response) => {
+                    response.arrayBuffer().then((font_data) => {
+                        store.add(font_data, path);
+                    });
                 });
-            });
-        });
+            }
 
+        };
+
+        return Promise.resolve(Buffer.from([]));
     }
 }

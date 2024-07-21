@@ -9,7 +9,9 @@ import {
 } from "cvdl-ts/dist/Resume";
 import { createContext } from "react";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
-import { storage } from "./HomePage";
+import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
+
+const storage = new LocalStorage();
 
 export type EditorState = {
 	resume: Resume;
@@ -354,6 +356,7 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 		newState.sections = resume.sections.map((section) => {
 			const newSection = ResumeSection.fromJson(section.toJson());
 			if (section.section_name === action.section) {
+				const storage = new LocalStorage();
 				storage.load_data_schema(section.data_schema).then((data_schema) => {
 					const item = new Map<ItemName, ItemContent>();
 					data_schema.item_schema.forEach((field) => {
@@ -402,6 +405,7 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 
 	if (action.type === "add-empty-section") {
 		const newSection = new ResumeSection();
+		const storage = new LocalStorage();
 		storage.load_layout_schema(action.layout_schema).then((layout_schema) => {
 			newSection.data_schema = layout_schema.data_schema_name;
 			newSection.section_name = action.section_name;
@@ -450,7 +454,7 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 		});
 	}
 
-	storage.save_resume(resumeName, newState);
+	new LocalStorage().save_resume(resumeName, newState);
 	return {
 		resume: newState,
 		editorPath: path,

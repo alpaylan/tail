@@ -32,12 +32,12 @@ var ColumnType;
         if (typeof json === "string" && json === "SingleColumn") {
             return { tag: "SingleColumn" };
         }
-        if (typeof json === "object" &&
-            json !== null &&
-            "tag" in json &&
-            json.tag === "DoubleColumn" &&
-            "vertical_margin" in json &&
-            typeof json.vertical_margin === "number") {
+        if (typeof json === "object"
+            && json !== null
+            && "tag" in json
+            && json.tag === "DoubleColumn"
+            && "vertical_margin" in json
+            && typeof json.vertical_margin === "number") {
             return { tag: "DoubleColumn", vertical_margin: json.vertical_margin };
         }
         throw new Error("Could not parse ColumnType");

@@ -12,23 +12,23 @@ import { Font, Layout } from ".";
 
 export type ElementPath =
 	| {
-		tag: "none";
-	}
+			tag: "none";
+	  }
 	| {
-		tag: "section";
-		section: string;
-	}
+			tag: "section";
+			section: string;
+	  }
 	| {
-		tag: "item";
-		section: string;
-		item: number;
-	}
+			tag: "item";
+			section: string;
+			item: number;
+	  }
 	| {
-		tag: "field";
-		section: string;
-		item: number;
-		field: string;
-	};
+			tag: "field";
+			section: string;
+			item: number;
+			field: string;
+	  };
 
 export type RenderProps = {
 	resume: Resume;
@@ -42,27 +42,30 @@ export type RenderProps = {
 export class FontDict {
 	fonts: Map<string, fontkit.Font>;
 
-	constructor() {
-		this.fonts = new Map();
-	}
-
-	async load_fonts_from_schema(schema: LayoutSchema, storage: Storage) {
-		for (const font of [...schema.fonts()]) {
-			const fontName = Font.full_name(font);
-			console.error(`Loading font ${fontName}`);
-			if (this.fonts.has(fontName)) {
-				console.error(`Font ${fontName} is already loaded`);
-				continue;
-			}
-			try {
-				const font_data = await storage.load_font(font);
-				const fontkit_font = fontkit.create(font_data) as fontkit.Font;
-				this.fonts.set(fontName, fontkit_font);
-			} catch (e) {
-				console.error(`Error loading font ${fontName}: ${e}`);
-			}
-		}
-	}
+    constructor() {
+        this.fonts = new Map();
+    }
+    
+    async load_fonts_from_schema(schema: LayoutSchema, storage: Storage) {
+        for (const font of [...schema.fonts(), Utils.with_(Font.default_(), { name: "JetBrainsMono" })]) {
+            const variants = Font.variants(font);
+            for (const variant of variants) {
+                const fontName = Font.full_name(variant);
+                console.log(`Loading font ${fontName}`);
+                if (this.fonts.has(fontName)) {
+                    console.log(`Font ${fontName} is already loaded`);
+                    continue;
+                }
+                try {
+                    const font_data = await storage.load_font(variant);
+                    const fontkit_font = fontkit.create(font_data);
+                    this.fonts.set(fontName, fontkit_font);
+                } catch (e) {                 
+                    console.error(`Error loading font ${fontName}: ${e}`);
+                }
+            }
+        }
+    }
 
 	get_font(name: string) {
 		const font = this.fonts.get(name);
@@ -93,6 +96,7 @@ export async function render({
 			: width - vertical_margin(resume_layout.column_type) / 2.0;
 
 	const layouts = [];
+	console.error("Rendering sections...");
 	for (const section of resume.sections) {
 		// Render Section Header
 		// 1. Find the layout schema for the section
