@@ -3,7 +3,7 @@ import { DataSchema } from "cvdl-ts/dist/DataSchema";
 import { useContext, useEffect, useState } from "react";
 import { DocumentDispatchContext, EditorContext } from "./State";
 
-const firstDataSchema = (dataSchemas?: DataSchema[]) => {
+const firstDataSchema = (dataSchemas?: DataSchema.t[]) => {
 	if (!dataSchemas) {
 		return "";
 	}
@@ -13,19 +13,16 @@ const firstDataSchema = (dataSchemas?: DataSchema[]) => {
 	return dataSchemas[0].schema_name;
 };
 
-const AddNewSection = (props: {
-	dataSchemas?: DataSchema[];
-	layoutSchemas?: LayoutSchema[];
-}) => {
+const AddNewSection = () => {
 	const state = useContext(EditorContext);
 	const dispatch = useContext(DocumentDispatchContext);
 	const [addingSection, setAddingSection] = useState<boolean>(false);
 	const [sectionName, setSectionName] = useState<string>("");
 	const [dataSchema, setDataSchema] = useState<string>(
-		firstDataSchema(props.dataSchemas),
+		firstDataSchema(state?.dataSchemas),
 	);
 	const getAvailableLayoutSchemas = (dataSchema: string) => {
-		return (props.layoutSchemas ?? []).filter(
+		return (state?.layoutSchemas ?? []).filter(
 			(schema) => schema.data_schema_name === dataSchema,
 		);
 	};
@@ -112,7 +109,7 @@ const AddNewSection = (props: {
 								);
 							}}
 						>
-							{(props.dataSchemas ?? []).map((schema) => {
+							{(state?.dataSchemas ?? []).map((schema) => {
 								return (
 									<option key={schema.schema_name} value={schema.schema_name}>
 										{schema.schema_name}

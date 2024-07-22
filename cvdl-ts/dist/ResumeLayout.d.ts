@@ -5,9 +5,6 @@ export type ColumnType = {
     tag: "DoubleColumn";
     vertical_margin: number;
 };
-export declare namespace ColumnType {
-    function fromJson(json: unknown): ColumnType;
-}
 export declare const vertical_margin: (columnType: ColumnType) => number;
 export declare class ResumeLayout {
     schema_name: string;

@@ -6,7 +6,6 @@ export type t = {
 	size: number;
 	weight: FontWeight;
 	style: FontStyle;
-	source: FontSource;
 };
 type Font = t;
 
@@ -15,34 +14,21 @@ export function font(
 	size: number,
 	weight: FontWeight,
 	style: FontStyle,
-	source: FontSource,
 ): Font {
 	return {
 		name,
 		size,
 		weight,
 		style,
-		source,
 	};
 }
 
-export function fromJson(json: unknown): Font {
-	return {
-		...default_(),
-		name: json["name"],
-		size: json["size"],
-		weight: json["weight"],
-		style: json["style"],
-		source: json["source"],
-	};
-}
 export function default_(): Font {
 	return {
 		name: "Exo",
 		size: 12,
 		weight: "Medium",
 		style: "Normal",
-		source: "System",
 	};
 }
 
@@ -69,8 +55,6 @@ export function get_height(f: Font, fonts: FontDict): number {
 	return (font.bbox.height / font.unitsPerEm) * f.size;
 }
 
-export type FontSource = "Local" | "System" | "Remote";
-
-export type FontWeight = "Light" | "Medium" | "Bold";
+export type FontWeight = "Medium" | "Bold";
 
 export type FontStyle = "Normal" | "Italic";

@@ -1,42 +1,44 @@
 import { DataSchema } from "./DataSchema";
 import { LayoutSchema } from "./LayoutSchema";
-// import { LocalStorage } from "./LocalStorage";
 import { Storage } from "./Storage";
-
-import { Resume } from "./Resume";
 import { vertical_margin, ResumeLayout } from "./ResumeLayout";
 
 import * as fontkit from "fontkit";
-import { Font, Layout } from ".";
+import * as Layout from "./Layout";
+import * as Resume from "./Resume";
 
 export type ElementPath =
 	| {
-			tag: "none";
-	  }
+		tag: "none";
+	}
 	| {
-			tag: "section";
-			section: string;
-	  }
+		tag: "section";
+		section: string;
+	}
 	| {
-			tag: "item";
-			section: string;
-			item: number;
-	  }
+		tag: "item";
+		section: string;
+		item: number;
+	}
 	| {
-			tag: "field";
-			section: string;
-			item: number;
-			field: string;
-	  };
+		tag: "field";
+		section: string;
+		item: number;
+		field: string;
+	};
 
 export type RenderProps = {
-	resume: Resume;
+	resume: Resume.t;
 	layout_schemas: LayoutSchema[];
-	data_schemas: DataSchema[];
+	data_schemas: DataSchema.t[];
 	resume_layout: ResumeLayout;
+	bindings: Map<string, unknown>;
 	storage: Storage;
 	fontDict?: FontDict;
 };
+
+const cartesian =
+	(...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
 
 export class FontDict {
 	fonts: Map<string, fontkit.Font>;
@@ -45,18 +47,23 @@ export class FontDict {
 		this.fonts = new Map();
 	}
 
-	async load_fonts_from_schema(schema: LayoutSchema, storage: Storage) {
-		for (const font of schema.fonts()) {
-			const fontName = Font.full_name(font);
-			console.log(`Loading font ${fontName}`);
-			if (this.fonts.has(fontName)) {
-				console.log(`Font ${fontName} is already loaded`);
-				continue;
-			}
-			const font_data = await storage.load_font(font);
-			const fontkit_font = fontkit.create(font_data);
-			this.fonts.set(fontName, fontkit_font);
-		}
+	async load_fonts(storage: Storage) {
+		const variants = cartesian(["Exo", "OpenSans", "SourceCodePro"], ["Medium", "Bold"], ["", "Italic"]);
+
+		await Promise.all(
+			variants.map(async ([name, weight, style]) => {
+				const fontName = `${name}-${weight}${style}`;
+				console.error(`Loading font ${fontName}`);
+				if (this.fonts.has(fontName)) {
+					console.log(`Font ${fontName} is already loaded`);
+					return;
+				}
+				const font_data = await storage.load_font(fontName);
+				const fontkit_font = fontkit.create(font_data);
+				this.fonts.set(fontName, fontkit_font as fontkit.Font);
+			}));
+		
+		return this;
 	}
 
 	get_font(name: string) {
@@ -73,7 +80,7 @@ export async function render({
 	layout_schemas,
 	data_schemas,
 	resume_layout,
-	storage,
+	bindings,
 	fontDict,
 }: RenderProps): Promise<Layout.RenderedLayout[]> {
 	// Compute the total usable width by subtracting the margins from the document width
@@ -102,7 +109,7 @@ export async function render({
 			throw new Error(`Could not find layout schema ${section.layout_schema}`);
 		}
 		let start_time = Date.now();
-		await fontDict.load_fonts_from_schema(layout_schema, storage);
+		// await fontDict.load_fonts_from_schema(layout_schema, storage);
 		let end_time = Date.now();
 		console.info(
 			`Font loading time: ${end_time - start_time}ms for section ${section.section_name}`,
@@ -124,6 +131,7 @@ export async function render({
 					layout_schema.header_layout_schema,
 					section.data,
 					data_schema.header_schema,
+					bindings
 				),
 				column_width,
 				fontDict,
@@ -146,8 +154,9 @@ export async function render({
 				Layout.normalize(
 					Layout.instantiate(
 						layout_schema.item_layout_schema,
-						item.fields,
+						item,
 						data_schema.item_schema,
+						bindings
 					),
 					column_width,
 					fontDict,

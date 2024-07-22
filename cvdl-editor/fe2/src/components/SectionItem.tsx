@@ -24,7 +24,6 @@ const ItemHeader = ({
 	const dispatch = useContext(DocumentDispatchContext);
 
 	if (itemContent.length < 2) {
-		console.log(itemContent);
 		console.warn("Section content is too short");
 		return <></>;
 	}

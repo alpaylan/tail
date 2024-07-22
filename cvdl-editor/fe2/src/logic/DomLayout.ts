@@ -5,7 +5,7 @@ import {
 	FontDict,
 	render as anyRender,
 } from "cvdl-ts/dist/AnyLayout";
-import { Resume } from "cvdl-ts/dist/Resume";
+import * as Resume from "cvdl-ts/dist/Resume";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { ResumeLayout } from "cvdl-ts/dist/ResumeLayout";
@@ -23,12 +23,13 @@ export type RenderResult = {
 
 export type RenderProps = {
 	resume_name?: string;
-	resume?: Resume;
-	data_schemas?: DataSchema[];
+	resume?: Resume.t;
+	data_schemas?: DataSchema.t[];
 	layout_schemas?: LayoutSchema[];
 	resume_layout?: ResumeLayout;
 	storage: Storage;
-	fontDict?: FontDict;
+	bindings: Map<string, unknown>;
+	fontDict: FontDict;
 	debug: boolean;
 	state: EditorState;
 	dispatch: Dispatch<EditorAction>;
@@ -41,6 +42,7 @@ export const render = async ({
 	layout_schemas,
 	resume_layout,
 	storage,
+	bindings,
 	fontDict,
 	state,
 	dispatch,
@@ -61,24 +63,20 @@ export const render = async ({
 
 	if (!data_schemas) {
 		data_schemas = await Promise.all(
-			resume.data_schemas().map((schema) => storage.load_data_schema(schema)),
+			Resume.dataSchemas(resume!)
+				.map((schema) => storage.load_data_schema(schema)),
 		);
 	}
 
 	if (!layout_schemas) {
 		layout_schemas = await Promise.all(
-			resume
-				.layout_schemas()
+			Resume.layoutSchemas(resume!)
 				.map((schema) => storage.load_layout_schema(schema)),
 		);
 	}
 
 	if (!resume_layout) {
-		resume_layout = await storage.load_resume_layout(resume.resume_layout());
-	}
-
-	if (!fontDict) {
-		fontDict = new FontDict();
+		resume_layout = await storage.load_resume_layout(resume!.layout);
 	}
 
 	let end_time = Date.now();
@@ -93,6 +91,7 @@ export const render = async ({
 	const layouts = await anyRender({
 		layout_schemas,
 		resume,
+		bindings,
 		data_schemas,
 		resume_layout,
 		storage,

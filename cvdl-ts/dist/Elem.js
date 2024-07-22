@@ -23,9 +23,31 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.instantiate = exports.boundWidth = exports.fillFonts = exports.parseMarkdownItem = exports.scaleWidth = exports.withBackgroundColor = exports.withWidth = exports.withAlignment = exports.withMargin = exports.withFont = exports.withTextWidth = exports.withIsFill = exports.asRef = exports.withIsRef = exports.withUrl = exports.withItem = exports.from = exports.default_ = exports.copy = exports.elem = void 0;
+exports.elem = elem;
+exports.copy = copy;
+exports.default_ = default_;
+exports.from = from;
+exports.withItem = withItem;
+exports.withUrl = withUrl;
+exports.withIsRef = withIsRef;
+exports.asRef = asRef;
+exports.withIsFill = withIsFill;
+exports.withTextWidth = withTextWidth;
+exports.withFont = withFont;
+exports.withMargin = withMargin;
+exports.withAlignment = withAlignment;
+exports.withWidth = withWidth;
+exports.withBackgroundColor = withBackgroundColor;
+exports.scaleWidth = scaleWidth;
+exports.parseMarkdownItem = parseMarkdownItem;
+exports.fillFonts = fillFonts;
+exports.boundWidth = boundWidth;
+exports.bind = bind;
+exports.instantiate = instantiate;
 const Font = __importStar(require("./Font"));
-const _1 = require(".");
+const Alignment = __importStar(require("./Alignment"));
+const Margin = __importStar(require("./Margin"));
+const Width = __importStar(require("./Width"));
 const Resume_1 = require("./Resume");
 const marked = __importStar(require("marked"));
 const ts_pattern_1 = require("ts-pattern");
@@ -42,6 +64,7 @@ function elem(item, url, is_ref, is_fill, is_markdown, text_width, font, margin,
     return {
         tag: "Elem",
         item,
+        text: item,
         url,
         is_ref,
         is_fill,
@@ -54,80 +77,65 @@ function elem(item, url, is_ref, is_fill, is_markdown, text_width, font, margin,
         background_color,
     };
 }
-exports.elem = elem;
 function copy(e) {
     return { ...e };
 }
-exports.copy = copy;
 function default_() {
     return {
         tag: "Elem",
         item: "",
+        text: "",
         url: null,
         is_ref: false,
         is_fill: false,
         is_markdown: false,
-        text_width: _1.Width.default_(),
+        text_width: Width.default_(),
         font: Font.default_(),
-        margin: _1.Margin.default_(),
-        alignment: _1.Alignment.default_(),
-        width: _1.Width.default_(),
+        margin: Margin.default_(),
+        alignment: Alignment.default_(),
+        width: Width.default_(),
         background_color: "Transparent",
     };
 }
-exports.default_ = default_;
 function from(w) {
-    return { ...default_(), ...w };
+    return { ...default_(), ...w, text: w.item };
 }
-exports.from = from;
 function withItem(e, item) {
     return { ...e, item };
 }
-exports.withItem = withItem;
 function withUrl(e, url) {
     return { ...e, url };
 }
-exports.withUrl = withUrl;
 function withIsRef(e, is_ref) {
     return { ...e, is_ref };
 }
-exports.withIsRef = withIsRef;
 function asRef(e) {
     return withIsRef(e, true);
 }
-exports.asRef = asRef;
 function withIsFill(e, is_fill) {
     return { ...e, is_fill };
 }
-exports.withIsFill = withIsFill;
 function withTextWidth(e, text_width) {
     return { ...e, text_width };
 }
-exports.withTextWidth = withTextWidth;
 function withFont(e, font) {
     return { ...e, font };
 }
-exports.withFont = withFont;
 function withMargin(e, margin) {
     return { ...e, margin };
 }
-exports.withMargin = withMargin;
 function withAlignment(e, alignment) {
     return { ...e, alignment };
 }
-exports.withAlignment = withAlignment;
 function withWidth(e, width) {
     return { ...e, width };
 }
-exports.withWidth = withWidth;
 function withBackgroundColor(e, background_color) {
     return { ...e, background_color };
 }
-exports.withBackgroundColor = withBackgroundColor;
 function scaleWidth(e, scale) {
-    return withWidth(e, _1.Width.scale(e.width, scale));
+    return withWidth(e, Width.scale(e.width, scale));
 }
-exports.scaleWidth = scaleWidth;
 function flatten(ts, sp) {
     const spans = [];
     for (const t of ts) {
@@ -179,15 +187,19 @@ function parseMarkdownItem(item) {
     }
     return spans;
 }
-exports.parseMarkdownItem = parseMarkdownItem;
 function fillFonts(e, fonts) {
-    const simpleSpans = e.is_markdown ? parseMarkdownItem(e.text) : [{ ...defaultSpanProps(), text: e.text, font: e.font, link: null }];
+    const simpleSpans = e.is_markdown
+        ? parseMarkdownItem(e.text)
+        : [{ ...defaultSpanProps(), text: e.text, font: e.font, link: null }];
     const spans = [];
     for (const span of simpleSpans) {
-        const font = e.is_markdown ? (0, Utils_1.with_)(e.font, ({
-            // style: span.is_italic ? "Italic" : "Normal",
-            weight: span.is_bold ? "Bold" : "Medium",
-        })) : e.font;
+        const font = e.is_markdown
+            ? (0, Utils_1.with_)(e.font, {
+                style: span.is_italic ? "Italic" : e.font.style,
+                weight: span.is_bold ? "Bold" : e.font.weight,
+                name: span.is_code ? "SourceCodePro" : e.font.name,
+            })
+            : e.font;
         if (span.text === " ") {
             const width = Font.get_width(font, "-", fonts);
             spans.push({ ...span, font, width });
@@ -202,52 +214,77 @@ function fillFonts(e, fonts) {
             const width = Font.get_width(font, word, fonts);
             spans.push({ ...span, text: word, font, width });
             if (index < words.length - 1) {
-                spans.push({ ...span, text: " ", font, width: Font.get_width(font, " ", fonts) });
+                spans.push({
+                    ...span,
+                    text: " ",
+                    font,
+                    width: Font.get_width(font, " ", fonts),
+                });
             }
         });
     }
     const text_width = spans.reduce((acc, span) => acc + span.width, 0);
     if (e.is_fill) {
         return (0, Utils_1.with_)(e, {
-            width: _1.Width.absolute(Math.min(_1.Width.get_fixed_unchecked(e.width), text_width)),
-            text_width: _1.Width.absolute(text_width),
-            spans
+            width: Width.absolute(Math.min(Width.get_fixed_unchecked(e.width), text_width)),
+            text_width: Width.absolute(text_width),
+            spans,
         });
     }
     else {
-        return (0, Utils_1.with_)(e, { text_width: _1.Width.absolute(text_width), spans });
+        return (0, Utils_1.with_)(e, { text_width: Width.absolute(text_width), spans });
     }
 }
-exports.fillFonts = fillFonts;
 function boundWidth(e, width) {
-    if (!_1.Width.is_fill(e.width)) {
-        return withIsFill(withWidth(e, _1.Width.absolute(Math.min(_1.Width.get_fixed_unchecked(e.width), width))), false);
+    if (!Width.is_fill(e.width)) {
+        return withIsFill(withWidth(e, Width.absolute(Math.min(Width.get_fixed_unchecked(e.width), width))), false);
     }
     else {
-        return withIsFill(withWidth(e, _1.Width.absolute(width)), true);
+        return withIsFill(withWidth(e, Width.absolute(width)), true);
     }
 }
-exports.boundWidth = boundWidth;
-function instantiate(e, section, fields) {
+function bind(t, bindings) {
+    const result = {};
+    for (const [key, value] of Object.entries(t)) {
+        if (value instanceof Object && "binding" in value && typeof value.binding === "string") {
+            const bound = bindings.get(value.binding);
+            if (bound === undefined) {
+                throw new Error(`Binding ${value.binding} not found`);
+            }
+            result[key] = bound;
+        }
+        else if (value instanceof Object) {
+            result[key] = bind(value, bindings);
+        }
+        else {
+            result[key] = value;
+        }
+    }
+    return result;
+}
+function instantiate(e, section, fields, bindings) {
+    e = bind(e, bindings);
     if (!e.is_ref) {
         return e;
     }
-    const itemType = fields.find(f => f.name === e.item);
+    const itemType = fields.find((f) => f.name === e.item);
     if (itemType.type.tag === "MarkdownString") {
         e.is_markdown = true;
     }
-    const text = section.get(e.item);
-    console.log(`Instantiating ${e.item} with ${JSON.stringify(text)}`);
+    const text = section.fields[e.item];
     if (text === undefined) {
         return (0, Utils_1.with_)(e, { is_ref: false, text: "" });
     }
     else {
         if (text.tag === "Url") {
-            return (0, Utils_1.with_)(e, { is_ref: false, text: text.value.text, url: text.value.url });
+            return (0, Utils_1.with_)(e, {
+                is_ref: false,
+                text: text.value.text,
+                url: text.value.url,
+            });
         }
         else {
             return (0, Utils_1.with_)(e, { is_ref: false, text: Resume_1.ItemContent.toString(text) });
         }
     }
 }
-exports.instantiate = instantiate;

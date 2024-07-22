@@ -9,17 +9,16 @@ import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { useContext, useEffect, useState } from "react";
 import * as Layout from "cvdl-ts/dist/Layout";
 import * as Elem from "cvdl-ts/dist/Elem";
-import * as Row from "cvdl-ts/dist/Row";
 import * as Stack from "cvdl-ts/dist/Stack";
-import { Container } from "postcss";
+import * as Resume from "cvdl-ts/dist/Resume";
 
 type LensStep =
 	| {
-			attribute: string;
-	  }
+		attribute: string;
+	}
 	| {
-			index: number;
-	  };
+		index: number;
+	};
 
 type Lens = LensStep[];
 
@@ -394,6 +393,7 @@ const ContainerControlPanel = (props: {
 							const elem = Elem.default_();
 							elem.is_ref = false;
 							elem.item = newElement;
+							elem.text = newElement;
 							container.elements.push(elem);
 							props.setLayout(props.layout);
 						}}
@@ -438,6 +438,8 @@ const ElemControlPanel = (props: {
 						}}
 					>
 						<option value="Exo">Exo</option>
+						<option value="OpenSans">OpenSans</option>
+						<option value="SourceCodePro">SourceCodePro</option>
 					</select>
 				</div>
 				<div className="panel-item">
@@ -465,7 +467,6 @@ const ElemControlPanel = (props: {
 							props.setLayout(props.layout);
 						}}
 					>
-						<option value="Thin">Thin</option>
 						<option value="Medium">Medium</option>
 						<option value="Bold">Bold</option>
 					</select>
@@ -780,7 +781,7 @@ const LayoutEditWindow = (props: { layout: any; lens: any; setLens: any }) => {
 	);
 };
 
-const markUsedElements = (layout: LayoutSchema, dataSchema: DataSchema) => {
+const markUsedElements = (layout: LayoutSchema, dataSchema: DataSchema.t) => {
 	const elements: { [key: string]: boolean } = {};
 
 	if (dataSchema === null || layout === null) {
@@ -809,7 +810,7 @@ const markUsedElements = (layout: LayoutSchema, dataSchema: DataSchema) => {
 	return elements;
 };
 
-const unusedElements = (layout: LayoutSchema, dataSchema: DataSchema) => {
+const unusedElements = (layout: LayoutSchema, dataSchema: DataSchema.t) => {
 	const elements = markUsedElements(layout, dataSchema);
 	return Object.entries(elements)
 		.filter((entry) => !entry[1])
@@ -818,18 +819,17 @@ const unusedElements = (layout: LayoutSchema, dataSchema: DataSchema) => {
 
 const AddNewLayout = (props: {
 	copy: boolean;
-	dataSchemas: DataSchema[];
-	layoutSchemas: LayoutSchema[];
 }) => {
+	const state = useContext(EditorContext);
 	const dispatch = useContext(DocumentDispatchContext);
 	const [addingSection, setAddingSection] = useState<boolean>(false);
 	const [sectionName, setSectionName] = useState<string>("");
 	const [dataSchema, setDataSchema] = useState<string>(
-		props.dataSchemas[0].schema_name ?? "",
+		state?.dataSchemas[0].schema_name ?? "",
 	);
 	const [availableLayoutSchemas, setAvailableLayoutSchemas] = useState<
 		LayoutSchema[]
-	>(props.layoutSchemas);
+	>(state?.layoutSchemas ?? []);
 	const [layoutSchema, setLayoutSchema] = useState<string>(
 		availableLayoutSchemas.length > 0
 			? availableLayoutSchemas[0].schema_name ?? ""
@@ -869,13 +869,13 @@ const AddNewLayout = (props: {
 							onChange={(e) => {
 								setDataSchema(e.target.value);
 								setAvailableLayoutSchemas(
-									props.layoutSchemas.filter(
+									(state?.layoutSchemas ?? []).filter(
 										(schema) => schema.data_schema_name === e.target.value,
 									),
 								);
 							}}
 						>
-							{props.dataSchemas.map((schema) => {
+							{state?.dataSchemas.map((schema) => {
 								return (
 									<option key={schema.schema_name} value={schema.schema_name}>
 										{schema.schema_name}
@@ -921,15 +921,15 @@ const AddNewLayout = (props: {
 								onClick={() => {
 									setAddingSection(!addingSection);
 									const newLayout = props.copy
-										? props.layoutSchemas.find(
-												(schema) => schema.schema_name === layoutSchema,
-											)!
+										? state?.layoutSchemas.find(
+											(schema) => schema.schema_name === layoutSchema,
+										)!
 										: new LayoutSchema(
-												sectionName,
-												dataSchema,
-												Stack.default_(),
-												Stack.default_(),
-											);
+											sectionName,
+											dataSchema,
+											Stack.default_(),
+											Stack.default_(),
+										);
 									newLayout.data_schema_name = dataSchema;
 									newLayout.schema_name = sectionName;
 
@@ -953,24 +953,21 @@ const AddNewLayout = (props: {
 
 const storage = new LocalStorage();
 
-const LayoutEditor = ({
-	layoutSchemas,
-	dataSchemas,
-}: { layoutSchemas: LayoutSchema[]; dataSchemas: DataSchema[] }) => {
-	const editorContext = useContext(EditorContext);
-	const resumeContext = editorContext?.resume;
+const LayoutEditor = () => {
+	const state = useContext(EditorContext);
 	const dispatch = useContext(DocumentDispatchContext);
+	const resumeContext = state?.resume;
 
-	const layoutSchemaNames = resumeContext?.layout_schemas();
+	const layoutSchemaNames = Resume.layoutSchemas(resumeContext!);
 	const [layoutSchema, setLayoutSchema] = useState<LayoutSchema | null>(null);
-	const [dataSchema, setDataSchema] = useState<DataSchema | null>(null);
+	const [dataSchema, setDataSchema] = useState<DataSchema.t | null>(null);
 	const [layoutSchemaControlPanel, setLayoutSchemaControlPanel] =
 		useState<Lens | null>(null);
 	const [creatingNewLayoutSchema, setCreatingNewLayoutSchema] =
 		useState<boolean>(false);
 	const [selectedLayout, setSelectedLayout] = useState<Layout.t | null>(null);
 	const [allAvailableLayouts, setAllAvailableLayouts] = useState<string[]>(
-		layoutSchemas.map((schema) => schema.schema_name),
+		(state?.layoutSchemas ?? []).map((schema) => schema.schema_name),
 	);
 
 	useEffect(() => {
@@ -993,20 +990,8 @@ const LayoutEditor = ({
 		<div>
 			<h1>Layout Editor</h1>
 
-			{layoutSchemas && dataSchemas && (
-				<AddNewLayout
-					copy={true}
-					layoutSchemas={layoutSchemas}
-					dataSchemas={dataSchemas}
-				/>
-			)}
-			{layoutSchemas && dataSchemas && (
-				<AddNewLayout
-					copy={false}
-					layoutSchemas={layoutSchemas}
-					dataSchemas={dataSchemas}
-				/>
-			)}
+			<AddNewLayout copy={true} />
+			<AddNewLayout copy={false} />
 
 			<div style={{ display: "flex", flexDirection: "row" }}>
 				<div
@@ -1028,10 +1013,10 @@ const LayoutEditor = ({
 								className="bordered"
 								key={index}
 								onClick={() => {
-									const layoutSchema = layoutSchemas.find(
+									const layoutSchema = state?.layoutSchemas.find(
 										(schema) => schema.schema_name === name,
 									)!;
-									const dataSchema = dataSchemas.find(
+									const dataSchema = state?.dataSchemas.find(
 										(schema) =>
 											schema.schema_name === layoutSchema?.data_schema_name,
 									)!;
@@ -1066,10 +1051,10 @@ const LayoutEditor = ({
 								className="bordered"
 								key={index}
 								onClick={() => {
-									const layoutSchema = layoutSchemas.find(
+									const layoutSchema = state?.layoutSchemas.find(
 										(schema) => schema.schema_name === name,
 									)!;
-									const dataSchema = dataSchemas.find(
+									const dataSchema = state?.dataSchemas.find(
 										(schema) =>
 											schema.schema_name === layoutSchema?.data_schema_name,
 									)!;
@@ -1121,12 +1106,12 @@ const LayoutEditor = ({
 			) : (
 				creatingNewLayoutSchema && (
 					<div>
-						{resumeContext?.data_schemas().map((name, index) => {
+						{resumeContext && Resume.dataSchemas(resumeContext).map((name, index) => {
 							return (
 								<button
 									key={index}
 									onClick={() => {
-										const dataSchema = dataSchemas.find(
+										const dataSchema = state?.dataSchemas.find(
 											(schema) => schema.schema_name === name,
 										)!;
 										setDataSchema(dataSchema);

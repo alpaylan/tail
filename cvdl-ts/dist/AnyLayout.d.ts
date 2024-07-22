@@ -1,37 +1,38 @@
 import { DataSchema } from "./DataSchema";
 import { LayoutSchema } from "./LayoutSchema";
 import { Storage } from "./Storage";
-import { Resume } from "./Resume";
 import { ResumeLayout } from "./ResumeLayout";
-import * as fontkit from 'fontkit';
-import { Layout } from ".";
+import * as fontkit from "fontkit";
+import * as Layout from "./Layout";
+import * as Resume from "./Resume";
 export type ElementPath = {
-    tag: 'none';
+    tag: "none";
 } | {
-    tag: 'section';
+    tag: "section";
     section: string;
 } | {
-    tag: 'item';
+    tag: "item";
     section: string;
     item: number;
 } | {
-    tag: 'field';
+    tag: "field";
     section: string;
     item: number;
     field: string;
 };
 export type RenderProps = {
-    resume: Resume;
+    resume: Resume.t;
     layout_schemas: LayoutSchema[];
-    data_schemas: DataSchema[];
+    data_schemas: DataSchema.t[];
     resume_layout: ResumeLayout;
+    bindings: Map<string, unknown>;
     storage: Storage;
     fontDict?: FontDict;
 };
 export declare class FontDict {
     fonts: Map<string, fontkit.Font>;
     constructor();
-    load_fonts_from_schema(schema: LayoutSchema, storage: Storage): Promise<void>;
+    load_fonts(storage: Storage): Promise<this>;
     get_font(name: string): fontkit.Font;
 }
-export declare function render({ resume, layout_schemas, data_schemas, resume_layout, storage, fontDict }: RenderProps): Promise<Layout.RenderedLayout[]>;
+export declare function render({ resume, layout_schemas, data_schemas, resume_layout, bindings, fontDict, }: RenderProps): Promise<Layout.RenderedLayout[]>;

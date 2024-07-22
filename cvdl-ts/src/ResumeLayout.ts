@@ -4,28 +4,6 @@ export type ColumnType =
 	| { tag: "SingleColumn" }
 	| { tag: "DoubleColumn"; vertical_margin: number };
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export module ColumnType {
-	export function fromJson(json: unknown): ColumnType {
-		if (typeof json === "string" && json === "SingleColumn") {
-			return { tag: "SingleColumn" };
-		}
-
-		if (
-			typeof json === "object" &&
-			json !== null &&
-			"tag" in json &&
-			json.tag === "DoubleColumn" &&
-			"vertical_margin" in json &&
-			typeof json.vertical_margin === "number"
-		) {
-			return { tag: "DoubleColumn", vertical_margin: json.vertical_margin };
-		}
-
-		throw new Error("Could not parse ColumnType");
-	}
-}
-
 export const vertical_margin = (columnType: ColumnType) => {
 	if (columnType.tag === "SingleColumn") {
 		return 0;
@@ -61,8 +39,8 @@ export class ResumeLayout {
 	static fromJson(json: any): ResumeLayout {
 		return new ResumeLayout(
 			json.schema_name,
-			ColumnType.fromJson(json.column_type),
-			Margin.fromJson(json.margin),
+			json.column_type,
+			json.margin,
 			json.width,
 			json.height,
 		);

@@ -18,8 +18,8 @@ export type ItemProps = FieldProps[];
 export type SectionProps = ItemProps[];
 
 const computeSectionContent = (
-	section: ResumeSection,
-	dataSchema?: DataSchema,
+	section: ResumeSection.t,
+	dataSchema?: DataSchema.t,
 ): SectionProps => {
 	if (!dataSchema) {
 		return [];
@@ -27,10 +27,17 @@ const computeSectionContent = (
 	const sectionContent: SectionProps = [];
 	section.items.forEach((item) => {
 		const itemContent: ItemProps = [];
+		console.error("item", item);
 		dataSchema.item_schema.forEach((field) => {
 			let name = field.name;
+
+
+			if (item === undefined) {
+				console.error("item.fields is undefined", JSON.stringify(section.items));
+				return;
+			}
 			let value = ItemContent.toString(
-				item.fields.get(field.name) ?? ItemContent.None(),
+				item.fields[field.name] ?? ItemContent.none(),
 			);
 			let isActive = value !== "";
 			itemContent.push({
@@ -45,28 +52,25 @@ const computeSectionContent = (
 	return sectionContent;
 };
 
-const isHeader = (data_schema?: DataSchema) => {
+const isHeader = (data_schema?: DataSchema.t) => {
 	return data_schema && data_schema.item_schema.length === 0;
 };
 
 const Section = ({
 	section,
-	dataSchemas,
-	layoutSchemas,
 }: {
-	section: ResumeSection;
-	dataSchemas: DataSchema[];
-	layoutSchemas: LayoutSchema[];
+	section: ResumeSection.t;
 }) => {
-	const dataSchema = dataSchemas.find(
+	const state = useContext(EditorContext);
+	const dispatch = useContext(DocumentDispatchContext);
+
+	const dataSchema = state?.dataSchemas.find(
 		(schema) => schema.schema_name === section.data_schema,
 	);
-	const availableLayoutSchemas = layoutSchemas.filter(
+	const availableLayoutSchemas = state?.layoutSchemas.filter(
 		(schema) => schema.data_schema_name === section.data_schema,
 	);
 	const sectionContent = computeSectionContent(section, dataSchema);
-	const state = useContext(EditorContext);
-	const dispatch = useContext(DocumentDispatchContext);
 	const editorPath = state?.editorPath;
 	const showAll =
 		editorPath &&
@@ -180,7 +184,7 @@ const Section = ({
 									});
 								}}
 							>
-								{availableLayoutSchemas.map((schema) => {
+								{availableLayoutSchemas?.map((schema) => {
 									return (
 										<option key={schema.schema_name} value={schema.schema_name}>
 											{schema.schema_name}
@@ -199,7 +203,7 @@ const Section = ({
 								field={{
 									name: field.name,
 									value: ItemContent.toString(
-										section.data.get(field.name) ?? ItemContent.None(),
+										section.data.fields[field.name] ?? ItemContent.none(),
 									),
 									isActive: true,
 									type: field.type,

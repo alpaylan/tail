@@ -11,3 +11,7 @@ export function copy<T>(s: T): T {
 		...s,
 	};
 }
+
+export function randomString(): string {
+	return Math.random().toString(36).substring(7);
+}

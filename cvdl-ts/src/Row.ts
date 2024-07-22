@@ -1,4 +1,6 @@
-import { Alignment, Margin, Width } from ".";
+import * as Margin from "./Margin";
+import * as Width from "./Width";
+import * as Alignment from "./Alignment";
 import { Optional, with_ } from "./Utils";
 import * as Layout from "./Layout";
 

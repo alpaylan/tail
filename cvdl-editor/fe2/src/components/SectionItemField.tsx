@@ -230,10 +230,10 @@ const SectionItemField = ({
 					<MarkdownEditor section={section} item={item} field={field} />
 				))
 				.with({ tag: "Date" }, () => (
-					<DateEditor
+					<DefaultEditor
 						section={section}
 						item={item}
-						field={field as FieldProps & { type: DocumentDataType.Date }}
+						field={field}
 					/>
 				))
 				.with({ tag: "List" }, () => (

@@ -1,7 +1,7 @@
 import blobStream from "blob-stream";
 import { FontDict, render as anyRender } from "./AnyLayout";
 import PdfDocument from "pdfkit";
-import { Resume } from "./Resume";
+import * as Resume from "./Resume";
 import { DataSchema } from "./DataSchema";
 import { LayoutSchema } from "./LayoutSchema";
 import { ResumeLayout } from "./ResumeLayout";
@@ -17,10 +17,11 @@ export type RenderResult = {
 
 export type RenderProps = {
 	resume_name?: string;
-	resume?: Resume;
-	data_schemas?: DataSchema[];
+	resume?: Resume.t;
+	data_schemas?: DataSchema.t[];
 	layout_schemas?: LayoutSchema[];
 	resume_layout?: ResumeLayout;
+	bindings: Map<string, unknown>;
 	storage: Storage;
 	fontDict?: FontDict;
 	debug: boolean;
@@ -32,6 +33,7 @@ export const render = async ({
 	data_schemas,
 	layout_schemas,
 	resume_layout,
+	bindings,
 	storage,
 	fontDict,
 }: RenderProps) => {
@@ -50,20 +52,20 @@ export const render = async ({
 
 	if (!data_schemas) {
 		data_schemas = await Promise.all(
-			resume.data_schemas().map((schema) => storage.load_data_schema(schema)),
+			Resume.dataSchemas(resume)
+				.map((schema) => storage.load_data_schema(schema)),
 		);
 	}
 
 	if (!layout_schemas) {
 		layout_schemas = await Promise.all(
-			resume
-				.layout_schemas()
+			Resume.layoutSchemas(resume)
 				.map((schema) => storage.load_layout_schema(schema)),
 		);
 	}
 
 	if (!resume_layout) {
-		resume_layout = await storage.load_resume_layout(resume.resume_layout());
+		resume_layout = await storage.load_resume_layout(resume.layout);
 	}
 
 	if (!fontDict) {
@@ -83,6 +85,7 @@ export const render = async ({
 		resume,
 		data_schemas,
 		resume_layout,
+		bindings,
 		storage,
 		fontDict,
 	});
@@ -196,8 +199,11 @@ export const renderSectionLayout = (
 		}
 		case "Elem": {
 			const elem = layout as Elem.t;
-
+			console.log(`Rendering elem ${elem.text}`);
 			if (!layout.bounding_box) {
+				return;
+			}
+			if (elem.text === "") {
 				return;
 			}
 

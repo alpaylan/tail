@@ -3,3 +3,4 @@ export type Optional<T> = {
 };
 export declare function with_<T>(e: T, w: Optional<T>): T;
 export declare function copy<T>(s: T): T;
+export declare function randomString(): string;

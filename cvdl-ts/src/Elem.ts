@@ -1,6 +1,8 @@
 import * as Font from "./Font";
-import { Alignment, Margin, Width } from ".";
-import { Color } from "./Layout";
+import * as Alignment from "./Alignment";
+import * as Margin from "./Margin";
+import * as Width from "./Width";
+import { Binding, Color, PreBindingElem } from "./Layout";
 import { FontDict } from "./AnyLayout";
 import { ItemContent } from "./Resume";
 import * as marked from "marked";
@@ -8,6 +10,7 @@ import { match, P } from "ts-pattern";
 import { Field } from "./DataSchema";
 import { Optional, with_ } from "./Utils";
 import { Box } from "./Box";
+import * as Resume from "./Resume";
 
 type SpanProps = {
 	is_italic: boolean;
@@ -40,7 +43,7 @@ export type Span = {
 export type t = {
 	tag: "Elem";
 	item: string;
-	text?: string;
+	text: string;
 	spans?: Span[];
 	url: string | null;
 	is_ref: boolean;
@@ -72,6 +75,7 @@ export function elem(
 	return {
 		tag: "Elem",
 		item,
+		text: item,
 		url,
 		is_ref,
 		is_fill,
@@ -93,6 +97,7 @@ export function default_(): Elem {
 	return {
 		tag: "Elem",
 		item: "",
+		text: "",
 		url: null,
 		is_ref: false,
 		is_fill: false,
@@ -107,7 +112,7 @@ export function default_(): Elem {
 }
 
 export function from(w: Optional<Elem>): Elem {
-	return { ...default_(), ...w };
+	return { ...default_(), ...w, text: w.item };
 }
 
 export function withItem(e: Elem, item: string): Elem {
@@ -227,8 +232,9 @@ export function fillFonts(e: Elem, fonts: FontDict): Elem {
 	for (const span of simpleSpans) {
 		const font = e.is_markdown
 			? with_(e.font, {
-					// style: span.is_italic ? "Italic" : "Normal",
-					weight: span.is_bold ? "Bold" : "Medium",
+				style: span.is_italic ? "Italic" : e.font.style,
+				weight: span.is_bold ? "Bold" : e.font.weight,
+				name: span.is_code ? "SourceCodePro" : e.font.name,
 				})
 			: e.font;
 
@@ -287,11 +293,37 @@ export function boundWidth(e: Elem, width: number): Elem {
 	}
 }
 
+
+type WithBinding<T> = {
+	[P in keyof T]: WithBinding<T[P]> | Binding;
+}
+
+export function bind<T>(t: WithBinding<T>, bindings: Map<string, unknown>): T {
+	const result: any = {};
+	for (const [key, value] of Object.entries(t)) {
+		if (value instanceof Object && "binding" in value && typeof value.binding === "string") {
+			const bound = bindings.get(value.binding);
+			if (bound === undefined) {
+				throw new Error(`Binding ${value.binding} not found`);
+			}
+			result[key] = bound;
+		} else if (value instanceof Object) {
+			result[key] = bind(value, bindings);
+		} else {
+			result[key] = value;
+		}
+	}
+	return result;
+}
+
 export function instantiate(
-	e: Elem,
-	section: Map<string, ItemContent>,
-	fields: Field.t[],
+	e: PreBindingElem,
+	section: Resume.Item,
+	fields: Field[],
+	bindings: Map<string, unknown>
 ): Elem {
+	e = bind(e, bindings) as Elem;
+
 	if (!e.is_ref) {
 		return e;
 	}
@@ -301,8 +333,8 @@ export function instantiate(
 		e.is_markdown = true;
 	}
 
-	const text = section.get(e.item);
-	console.log(`Instantiating ${e.item} with ${JSON.stringify(text)}`);
+	const text = section.fields[e.item];
+
 	if (text === undefined) {
 		return with_(e, { is_ref: false, text: "" });
 	} else {

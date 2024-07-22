@@ -2,16 +2,15 @@ import * as Layout from "./Layout";
 export declare class LayoutSchema {
     schema_name: string;
     data_schema_name: string;
-    header_layout_schema: Layout.t;
-    item_layout_schema: Layout.t;
-    constructor(schema_name: string, data_schema_name: string, header_layout_schema: Layout.t, item_layout_schema: Layout.t);
+    header_layout_schema: Layout.PreBindingLayout;
+    item_layout_schema: Layout.PreBindingLayout;
+    constructor(schema_name: string, data_schema_name: string, header_layout_schema: Layout.PreBindingLayout, item_layout_schema: Layout.PreBindingLayout);
     static empty(schema_name: string, data_schema_name: string): LayoutSchema;
     static fromJson(json: any): LayoutSchema;
-    fonts(): import("./Font").t[];
     toJson(): {
         schema_name: string;
         data_schema_name: string;
-        header_layout_schema: unknown;
-        item_layout_schema: unknown;
+        header_layout_schema: Layout.PreBindingLayout;
+        item_layout_schema: Layout.PreBindingLayout;
     };
 }

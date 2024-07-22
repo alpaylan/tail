@@ -1,6 +1,5 @@
 import * as Width from "./Width";
 import * as Font from "./Font";
-import { ItemContent } from "./Resume";
 import { Box } from "./Box";
 import { ElementPath, FontDict } from "./AnyLayout";
 import { Point } from "./Point";
@@ -9,6 +8,9 @@ import * as Row from "./Row";
 import * as Elem from "./Elem";
 import { Field } from "./DataSchema";
 import { with_ } from "./Utils";
+import * as Alignment from "./Alignment";
+import * as Margin from "./Margin";
+import * as Resume from "./Resume";
 
 export type Container = Stack.t | Row.t;
 export type t = Stack.t | Row.t | Elem.t;
@@ -23,6 +25,29 @@ export type RenderedRow = Row.t & {
 	bounding_box: Box;
 	elements: RenderedLayout[];
 };
+
+export type Binding = {
+	binding: string;
+};
+
+
+export type PreBindingElem = Elem.t & {
+	width: Width.t | Binding;
+	font: Font.t | Binding;
+	margin: Margin.t | Binding;
+	alignment: Alignment.t | Binding;
+	background_color: Color | Binding;
+};
+
+export type PreBindingContainer = Container & {
+	width: Width.t | Binding;
+	margin: Margin.t | Binding;
+	alignment: Alignment.t | Binding;
+};
+
+export type PreBindingLayout = PreBindingElem | PreBindingContainer;
+export type BindedLayout = Layout;
+
 export type RenderedElem = Elem.t & { bounding_box: Box };
 
 export type RenderedLayout = (RenderedStack | RenderedRow | RenderedElem) & {
@@ -48,39 +73,6 @@ export function empty(): Layout {
 	return default_("Stack");
 }
 
-export function fromJson(json: unknown): Layout {
-	const key = Object.keys(json)[0];
-	switch (key) {
-		case "Stack":
-		case "FlexRow":
-		case "FrozenRow": {
-			const container = default_(key) as Container;
-			container.elements = json[key].elements.map((element: unknown) =>
-				fromJson(element),
-			);
-			container.margin = json[key].margin;
-			container.alignment = json[key].alignment;
-			container.width = Width.fromJson(json[key].width);
-			return container;
-		}
-		case "Ref":
-		case "Text": {
-			const inner = default_(key) as Elem.t;
-			inner.item = json[key].item;
-			inner.text = json[key].item;
-			inner.margin = json[key].margin;
-			inner.alignment = json[key].alignment;
-			inner.width = Width.fromJson(json[key].width);
-			inner.text_width = Width.fromJson(json[key].text_width);
-			inner.font = Font.fromJson(json[key].font);
-			inner.url = json[key].url;
-			inner.background_color = json[key].background_color ?? "Transparent";
-			return inner;
-		}
-	}
-	throw new Error(`Invalid layout ${key}`);
-}
-
 export function type_(l: Layout): string {
 	return l.tag;
 }
@@ -96,38 +88,6 @@ export function tag_(l: Layout): string {
 		case "Elem": {
 			const elem = l as Elem.t;
 			return elem.is_ref ? "Ref" : "Text";
-		}
-	}
-}
-
-export function toJson(l: Layout): unknown {
-	switch (l.tag) {
-		case "Stack":
-		case "Row": {
-			const container = l as Container;
-			return {
-				[tag_(container)]: {
-					elements: container.elements.map((e) => toJson(e)),
-					margin: container.margin,
-					alignment: container.alignment,
-					width: Width.toJson(container.width),
-				},
-			};
-		}
-		case "Elem": {
-			const elem = l as Elem.t;
-			return {
-				[tag_(elem)]: {
-					item: elem.item,
-					margin: elem.margin,
-					alignment: elem.alignment,
-					width: Width.toJson(elem.width),
-					text_width: Width.toJson(elem.text_width),
-					font: elem.font,
-					url: elem.url,
-					background_color: elem.background_color,
-				},
-			};
 		}
 	}
 }
@@ -202,20 +162,21 @@ export function isInstantiated(l: Layout): boolean {
 }
 
 export function instantiate(
-	l: Layout,
-	section: Map<string, ItemContent>,
-	fields: Field.t[],
+	l: PreBindingLayout,
+	section: Resume.Item,
+	fields: Field[],
+	bindings: Map<string, unknown>,
 ): Layout {
 	switch (l.tag) {
 		case "Stack":
 		case "Row":
 			return with_(l, {
 				elements: (l as Container).elements.map((e) =>
-					instantiate(e, section, fields),
+					instantiate(e, section, fields, bindings),
 				),
 			});
 		case "Elem":
-			return Elem.instantiate(l, section, fields);
+			return Elem.instantiate(l, section, fields, bindings);
 	}
 }
 

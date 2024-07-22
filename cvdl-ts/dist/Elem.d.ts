@@ -1,11 +1,13 @@
 import * as Font from "./Font";
-import { Alignment, Margin, Width } from ".";
-import { Color } from "./Layout";
+import * as Alignment from "./Alignment";
+import * as Margin from "./Margin";
+import * as Width from "./Width";
+import { Binding, Color, PreBindingElem } from "./Layout";
 import { FontDict } from "./AnyLayout";
-import { ItemContent } from "./Resume";
 import { Field } from "./DataSchema";
 import { Optional } from "./Utils";
 import { Box } from "./Box";
+import * as Resume from "./Resume";
 export type Span = {
     is_italic: boolean;
     is_bold: boolean;
@@ -20,7 +22,7 @@ export type Span = {
 export type t = {
     tag: "Elem";
     item: string;
-    text?: string;
+    text: string;
     spans?: Span[];
     url: string | null;
     is_ref: boolean;
@@ -38,9 +40,9 @@ export declare function elem(item: string, url: string | null, is_ref: boolean, 
 export declare function copy(e: Elem): {
     tag: "Elem";
     item: string;
-    text?: string;
+    text: string;
     spans?: Span[];
-    url: string;
+    url: string | null;
     is_ref: boolean;
     is_fill: boolean;
     is_markdown: boolean;
@@ -68,5 +70,9 @@ export declare function scaleWidth(e: Elem, scale: number): Elem;
 export declare function parseMarkdownItem(item: string): Span[];
 export declare function fillFonts(e: Elem, fonts: FontDict): Elem;
 export declare function boundWidth(e: Elem, width: number): Elem;
-export declare function instantiate(e: Elem, section: Map<string, ItemContent>, fields: Field.t[]): Elem;
+type WithBinding<T> = {
+    [P in keyof T]: WithBinding<T[P]> | Binding;
+};
+export declare function bind<T>(t: WithBinding<T>, bindings: Map<string, unknown>): T;
+export declare function instantiate(e: PreBindingElem, section: Resume.Item, fields: Field[], bindings: Map<string, unknown>): Elem;
 export {};
