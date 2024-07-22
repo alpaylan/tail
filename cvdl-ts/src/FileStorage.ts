@@ -22,7 +22,7 @@
 
 // Initiation Function
 import fs from "fs";
-import { Resume } from "./Resume";
+import * as Resume from "./Resume";
 import { DataSchema } from "./DataSchema";
 import { LayoutSchema } from "./LayoutSchema";
 import { ResumeLayout } from "./ResumeLayout";
@@ -35,10 +35,33 @@ export class FileStorage implements Storage {
 	constructor(dir: string) {
 		this.dir = dir;
 	}
+	load_bindings(): Promise<Map<string, unknown>> {
+		if (!fs.existsSync(this.dir + "/bindings.json")) {
+			fs.writeFileSync(this.dir + "/bindings.json", "{}");
+		}
 
-	load_font(font: Font.t): Promise<Buffer> {
+		const bindingsObject = JSON.parse(
+			fs.readFileSync(this.dir + "/bindings.json").toString(),
+		);
+		const bindings = new Map<string, unknown>();
+		for (const [key, value] of Object.entries(bindingsObject)) {
+			bindings.set(key, value);
+		}
+		return Promise.resolve(bindings);
+	}
+
+	save_bindings(bindings: Map<string, unknown>): Promise<void> {
+		const bindingsObject: any = {};
+		for (const [key, value] of bindings) {
+			bindingsObject[key] = value;
+		}
+		fs.writeFileSync(this.dir + "/bindings.json", JSON.stringify(bindingsObject));
+		return Promise.resolve();
+	}
+
+	load_font(fontName: string): Promise<Buffer> {
 		return Promise.resolve(
-			fs.readFileSync(this.dir + Font.full_name(font) + ".ttf"),
+			fs.readFileSync(this.dir + fontName + ".ttf"),
 		);
 	}
 
@@ -49,6 +72,10 @@ export class FileStorage implements Storage {
 		// Create data_dir/data-schemas.json if it does not exist
 		if (!fs.existsSync(this.dir + "/data-schemas.json")) {
 			fs.writeFileSync(this.dir + "/data-schemas.json", "[]");
+		}
+		// Create data_dir/bindings.json if it does not exist
+		if (!fs.existsSync(this.dir + "/bindings.json")) {
+			fs.writeFileSync(this.dir + "/bindings.json", "{}");
 		}
 		// Create data_dir/layout-schemas.json if it does not exist
 		if (!fs.existsSync(this.dir + "/layout-schemas.json")) {
@@ -96,20 +123,18 @@ export class FileStorage implements Storage {
 
 	// Loading Functions
 
-	async load_resume(resume_name: string): Promise<Resume> {
+	async load_resume(resume_name: string): Promise<Resume.t> {
 		const resume = fs.readFileSync(
 			this.dir + "/resumes/" + resume_name + ".json",
 		);
-		return Promise.resolve(Resume.fromJson(JSON.parse(resume.toString())));
+		return Promise.resolve(JSON.parse(resume.toString()));
 	}
 
-	async load_data_schema(schema_name: string): Promise<DataSchema> {
+	async load_data_schema(schema_name: string): Promise<DataSchema.t> {
 		const data_schemas = fs.readFileSync(this.dir + "/data-schemas.json");
 		return Promise.resolve(
-			DataSchema.fromJson(
 				JSON.parse(data_schemas.toString()).find(
 					(schema: any) => schema.schema_name === schema_name,
-				),
 			),
 		);
 	}
@@ -138,7 +163,7 @@ export class FileStorage implements Storage {
 
 	// Saving Functions
 
-	save_resume(resume_name: string, resume_data: Resume): Promise<void> {
+	save_resume(resume_name: string, resume_data: Resume.t): Promise<void> {
 		fs.writeFileSync(
 			this.dir + "/resumes/" + resume_name + ".json",
 			JSON.stringify(resume_data),
@@ -146,7 +171,7 @@ export class FileStorage implements Storage {
 		return;
 	}
 
-	save_data_schema(data_schema: DataSchema): Promise<void> {
+	save_data_schema(data_schema: DataSchema.t): Promise<void> {
 		const data_schemas = fs.readFileSync(this.dir + "/data-schemas.json");
 		const data_schemas_json = JSON.parse(data_schemas.toString());
 		const index = data_schemas_json.findIndex(

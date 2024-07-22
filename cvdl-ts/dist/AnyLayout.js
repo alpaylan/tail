@@ -26,29 +26,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FontDict = void 0;
 exports.render = render;
 const ResumeLayout_1 = require("./ResumeLayout");
+const Utils = __importStar(require("./Utils"));
 const fontkit = __importStar(require("fontkit"));
-const _1 = require(".");
+const Layout = __importStar(require("./Layout"));
+const cartesian = (...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
 class FontDict {
     constructor() {
         this.fonts = new Map();
     }
-    async load_fonts_from_schema(schema, storage) {
-        for (const font of [...schema.fonts()]) {
-            const fontName = _1.Font.full_name(font);
+    async load_fonts(storage) {
+        const variants = cartesian(["Exo", "OpenSans", "SourceCodePro"], ["Medium", "Bold"], ["", "Italic"]);
+        await Promise.all(variants.map(async ([name, weight, style]) => {
+            const fontName = `${name}-${weight}${style}`;
             console.error(`Loading font ${fontName}`);
             if (this.fonts.has(fontName)) {
-                console.error(`Font ${fontName} is already loaded`);
-                continue;
+                console.log(`Font ${fontName} is already loaded`);
+                return;
             }
-            try {
-                const font_data = await storage.load_font(font);
-                const fontkit_font = fontkit.create(font_data);
-                this.fonts.set(fontName, fontkit_font);
-            }
-            catch (e) {
-                console.error(`Error loading font ${fontName}: ${e}`);
-            }
-        }
+            const font_data = await storage.load_font(fontName);
+            const fontkit_font = fontkit.create(font_data);
+            this.fonts.set(fontName, fontkit_font);
+        }));
+        return this;
     }
     get_font(name) {
         const font = this.fonts.get(name);
@@ -59,7 +58,7 @@ class FontDict {
     }
 }
 exports.FontDict = FontDict;
-async function render({ resume, layout_schemas, data_schemas, resume_layout, storage, fontDict, }) {
+async function render({ resume, layout_schemas, data_schemas, resume_layout, bindings, fontDict, }) {
     // Compute the total usable width by subtracting the margins from the document width
     const width = resume_layout.width -
         (resume_layout.margin.left + resume_layout.margin.right);
@@ -68,6 +67,7 @@ async function render({ resume, layout_schemas, data_schemas, resume_layout, sto
         ? width
         : width - (0, ResumeLayout_1.vertical_margin)(resume_layout.column_type) / 2.0;
     const layouts = [];
+    console.error("Rendering sections...");
     for (const section of resume.sections) {
         // Render Section Header
         // 1. Find the layout schema for the section
@@ -77,7 +77,7 @@ async function render({ resume, layout_schemas, data_schemas, resume_layout, sto
             throw new Error(`Could not find layout schema ${section.layout_schema}`);
         }
         let start_time = Date.now();
-        await fontDict.load_fonts_from_schema(layout_schema, storage);
+        // await fontDict.load_fonts_from_schema(layout_schema, storage);
         let end_time = Date.now();
         console.info(`Font loading time: ${end_time - start_time}ms for section ${section.section_name}`);
         // 2. Find the data schema for the section
@@ -87,7 +87,7 @@ async function render({ resume, layout_schemas, data_schemas, resume_layout, sto
         }
         start_time = Date.now();
         // 3. Render the header
-        const layout = _1.Layout.computeBoxes(_1.Layout.normalize(_1.Layout.instantiate(layout_schema.header_layout_schema, section.data, data_schema.header_schema), column_width, fontDict), fontDict);
+        const layout = Layout.computeBoxes(Layout.normalize(Layout.instantiate(layout_schema.header_layout_schema, section.data, data_schema.header_schema, bindings), column_width, fontDict), fontDict);
         layout.path = { tag: "section", section: section.section_name };
         console.info("Header is computed");
         layouts.push(layout);
@@ -97,7 +97,7 @@ async function render({ resume, layout_schemas, data_schemas, resume_layout, sto
         // Render Section Items
         for (const [index, item] of section.items.entries()) {
             // 3. Render the item
-            const layout = _1.Layout.computeBoxes(_1.Layout.normalize(_1.Layout.instantiate(layout_schema.item_layout_schema, item.fields, data_schema.item_schema), column_width, fontDict), fontDict);
+            const layout = Layout.computeBoxes(Layout.normalize(Layout.instantiate(layout_schema.item_layout_schema, item, data_schema.item_schema, bindings), column_width, fontDict), fontDict);
             layout.path = { tag: "item", section: section.section_name, item: index };
             layouts.push(layout);
         }

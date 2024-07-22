@@ -1,5 +1,5 @@
+import * as Width from "./Width";
 import * as Font from "./Font";
-import { ItemContent } from "./Resume";
 import { Box } from "./Box";
 import { ElementPath, FontDict } from "./AnyLayout";
 import { Point } from "./Point";
@@ -7,6 +7,9 @@ import * as Stack from "./Stack";
 import * as Row from "./Row";
 import * as Elem from "./Elem";
 import { Field } from "./DataSchema";
+import * as Alignment from "./Alignment";
+import * as Margin from "./Margin";
+import * as Resume from "./Resume";
 export type Container = Stack.t | Row.t;
 export type t = Stack.t | Row.t | Elem.t;
 type Layout = t;
@@ -18,6 +21,23 @@ export type RenderedRow = Row.t & {
     bounding_box: Box;
     elements: RenderedLayout[];
 };
+export type Binding = {
+    binding: string;
+};
+export type PreBindingElem = Elem.t & {
+    width: Width.t | Binding;
+    font: Font.t | Binding;
+    margin: Margin.t | Binding;
+    alignment: Alignment.t | Binding;
+    background_color: Color | Binding;
+};
+export type PreBindingContainer = Container & {
+    width: Width.t | Binding;
+    margin: Margin.t | Binding;
+    alignment: Alignment.t | Binding;
+};
+export type PreBindingLayout = PreBindingElem | PreBindingContainer;
+export type BindedLayout = Layout;
 export type RenderedElem = Elem.t & {
     bounding_box: Box;
 };
@@ -26,17 +46,15 @@ export type RenderedLayout = (RenderedStack | RenderedRow | RenderedElem) & {
 };
 export declare function default_(tag: string): Stack.t | Row.t | Elem.t;
 export declare function empty(): Layout;
-export declare function fromJson(json: unknown): Layout;
 export declare function type_(l: Layout): string;
 export declare function tag_(l: Layout): string;
-export declare function toJson(l: Layout): unknown;
 export declare function isContainer(l: Layout): boolean;
 export declare function isFill(l: Layout): boolean;
 export declare function isRef(l: Layout): boolean;
 export declare function fonts(l: Layout): Font.t[];
 export declare function totalElementsWidth(l: Layout): number;
 export declare function isInstantiated(l: Layout): boolean;
-export declare function instantiate(l: Layout, section: Map<string, ItemContent>, fields: Field.t[]): Layout;
+export declare function instantiate(l: PreBindingLayout, section: Resume.Item, fields: Field[], bindings: Map<string, unknown>): Layout;
 export declare function boundWidth(l: Layout, width: number): Layout;
 export declare function scaleWidth(l: Layout, document_width: number): Layout;
 export declare function normalize(l: Layout, width: number, font_dict: FontDict): Layout;

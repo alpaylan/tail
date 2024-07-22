@@ -1,53 +1,46 @@
-export declare class Resume {
+export type t = {
+    name: string;
     layout: string;
-    sections: ResumeSection[];
-    constructor(layout: string, sections: ResumeSection[]);
-    static fromJson(resume: unknown): Resume;
-    toJson(): unknown;
-    static reducer(state: Resume, action: {
-        type: string;
-        payload: unknown;
-    }): Resume;
-    data_schemas(): string[];
-    layout_schemas(): string[];
-    resume_layout(): string;
-}
-export declare class ResumeSection {
-    section_name: string;
-    data_schema: string;
-    layout_schema: string;
-    data: Map<ItemName, ItemContent>;
-    items: Item[];
-    constructor();
-    toJson(): unknown;
-    static fromJson(json: unknown): ResumeSection;
-}
-export type ItemName = string;
-export type ItemContent = {
-    tag: "None";
-} | {
-    tag: "String";
-    value: string;
-} | {
-    tag: "List";
-    value: ItemContent[];
-} | {
-    tag: "Url";
-    value: {
-        url: string;
-        text: string;
+    sections: ResumeSection.t[];
+};
+export declare function resume(name: string, layout: string, sections: ResumeSection.t[]): t;
+export declare function dataSchemas(resume: t): string[];
+export declare function layoutSchemas(resume: t): string[];
+export declare namespace ResumeSection {
+    type t = {
+        section_name: string;
+        data_schema: string;
+        layout_schema: string;
+        data: Item;
+        items: Item[];
     };
-};
-export type Item = {
-    id: string;
-    fields: Map<ItemName, ItemContent>;
-};
-export declare namespace Item {
-    function fromJson(json: unknown): Item;
-    function toJson(item: Item): unknown;
+    function resumeSection(section_name: string, data_schema: string, layout_schema: string, data: Item, items: Item[]): t;
 }
 export declare namespace ItemContent {
-    function fromJson(json: unknown): ItemContent;
-    function None(): ItemContent;
-    function toString(item: ItemContent): string;
+    type t = {
+        tag: "None";
+    } | {
+        tag: "String";
+        value: string;
+    } | {
+        tag: "List";
+        value: t[];
+    } | {
+        tag: "Url";
+        value: {
+            url: string;
+            text: string;
+        };
+    };
+    function none(): t;
+    function string(value: string): t;
+    function list(value: t[]): t;
+    function url(url: string, text: string): t;
+    function toString(content: t): string;
 }
+export type Item = {
+    id: string;
+    fields: {
+        [key: string]: ItemContent.t;
+    };
+};

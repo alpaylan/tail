@@ -5,8 +5,8 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { FontDict } from "cvdl-ts/dist/AnyLayout";
 import { render as pdfRender } from "cvdl-ts/dist/PdfLayout";
-import { IndexedDB } from "cvdl-ts/dist/IndexedDB";
-import { Resume } from "cvdl-ts/dist/Resume";
+import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
+import * as Resume from "cvdl-ts/dist/Resume";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { ResumeLayout } from "cvdl-ts/dist/ResumeLayout";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
@@ -28,31 +28,27 @@ import {
 	EditorContext,
 } from "./State";
 import AddNewSection from "./AddNewSection";
-import { BrowserStorage } from "cvdl-ts/dist/BrowserStorage";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
-export const storage = new BrowserStorage();
+const storage = new LocalStorage();
 
 function App() {
-	console.log = () => {};
-	console.warn = () => {};
-	console.info = () => {};
+	console.log = () => { };
+	console.warn = () => { };
+	console.info = () => { };
 
 	const [state, dispatch] = useReducer(DocumentReducer, {
-		resume: new Resume("SingleColumnSchema", []),
+		resume: Resume.resume("Default", "SingleColumnSchema", []),
 		editorPath: { tag: "none" },
-		resumeName: "Default",
+		dataSchemas: [],
+		layoutSchemas: [],
 		editHistory: [],
 	});
 	const [resume, setResume] = useState<string>("Default");
 	const [resumes, setResumes] = useState<string[] | null>(null);
 	// const [resumeData, setResumeData] = useState<Resume | null>(state)
-	const [layoutSchemas, setLayoutSchemas] = useState<LayoutSchema[] | null>(
-		null,
-	);
-	const [resumeLayout, setResumeLayout] = useState<ResumeLayout | null>(null);
-	const [dataSchemas, setDataSchemas] = useState<DataSchema[] | null>(null);
+	const [bindings, setBindings] = useState<Map<string, unknown>>(new Map());
 	const [fontDict, setFontDict] = useState<FontDict>(new FontDict());
 	const [debug, setDebug] = useState<boolean>(false);
 	const [storageInitiated, setStorageInitiated] = useState<boolean>(false);
@@ -63,12 +59,15 @@ function App() {
 	useEffect(() => {
 		require("../registerStaticFiles.js");
 		storage.initiate_storage().then(() => {
-			setStorageInitiated(true);
+			fontDict.load_fonts(storage).then((fontDict) => {
+				setFontDict(fontDict);
+				setStorageInitiated(true);
+			});
 		});
 
-		if (localStorage.getItem("version") !== "0.1.0") {
+		if (localStorage.getItem("version") !== "0.1.1") {
 			localStorage.clear();
-			localStorage.setItem("version", "0.1.0");
+			localStorage.setItem("version", "0.1.1");
 		}
 
 		// Check if query parameter is present
@@ -83,14 +82,14 @@ function App() {
 				});
 			}
 		}
-	});
+	}, []);
 
 	useEffect(() => {
 		if (!storageInitiated) {
 			return;
 		}
 		try {
-			storage.load_resume(resume).then((data: Resume) => {
+			storage.load_resume(resume).then((data: Resume.t) => {
 				dispatch({ type: "load", value: data });
 			});
 		} catch (e) {
@@ -106,8 +105,8 @@ function App() {
 			storage.list_data_schemas().then((dataSchemaNames: string[]) => {
 				Promise.all(
 					dataSchemaNames.map((schema) => storage.load_data_schema(schema)),
-				).then((dataSchemas: DataSchema[]) => {
-					setDataSchemas(dataSchemas);
+				).then((dataSchemas: DataSchema.t[]) => {
+					dispatch({ type: "load-data-schemas", value: dataSchemas });
 				});
 			});
 		};
@@ -117,20 +116,15 @@ function App() {
 				Promise.all(
 					layoutSchemaNames.map((schema) => storage.load_layout_schema(schema)),
 				).then((layoutSchemas: LayoutSchema[]) => {
-					setLayoutSchemas(layoutSchemas);
+					dispatch({ type: "load-layout-schemas", value: layoutSchemas });
 				});
 			});
 		};
 
-		const resume_layout_loader = () => {
-			if (!state.resume) {
-				throw "No resume layout";
-			}
-			storage
-				.load_resume_layout(state.resume.layout)
-				.then((layout: ResumeLayout) => {
-					setResumeLayout(layout);
-				});
+		const bindings_loader = () => {
+			storage.load_bindings().then((bindings: Map<string, unknown>) => {
+				setBindings(bindings);
+			});
 		};
 
 		const resumes_loader = () => {
@@ -140,8 +134,8 @@ function App() {
 		};
 
 		data_schema_loader();
+		bindings_loader();
 		layout_schema_loader();
-		resume_layout_loader();
 		resumes_loader();
 	}, [state.resume, storageInitiated]);
 
@@ -149,11 +143,11 @@ function App() {
 		if (!storageInitiated) {
 			return;
 		}
-
 		domRender({
 			resume_name: resume,
 			resume: state.resume!,
-			storage,
+			storage: new LocalStorage(),
+			bindings,
 			fontDict,
 			state,
 			dispatch,
@@ -182,7 +176,7 @@ function App() {
 				public: true,
 				files: {
 					[`${resume}.json`]: {
-						content: JSON.stringify(state.resume.toJson()),
+						content: JSON.stringify(state.resume),
 					},
 				},
 			}),
@@ -200,7 +194,7 @@ function App() {
 			return;
 		}
 		// Download the current resume as a json file
-		const data = JSON.stringify(state.resume.toJson());
+		const data = JSON.stringify(state.resume);
 		const blob = new Blob([data], { type: "application/json" });
 		const url = window.URL.createObjectURL(blob);
 		const link = document.createElement("a");
@@ -213,6 +207,7 @@ function App() {
 		pdfRender({
 			resume_name: resume,
 			resume: state.resume!,
+			bindings,
 			storage,
 			fontDict,
 			debug,
@@ -234,7 +229,7 @@ function App() {
 			const reader = new FileReader();
 			reader.onload = (e) => {
 				const data = JSON.parse((e.target as any).result);
-				const resume = "layout" in data ? Resume.fromJson(data) : convert(data);
+				const resume = "layout" in data ? data : convert(data);
 				dispatch({ type: "load", value: resume });
 			};
 			reader.readAsText(file);
@@ -249,7 +244,7 @@ function App() {
 			return;
 		}
 		fetchGistById(gistId).then((data) => {
-			const resume = "layout" in data ? Resume.fromJson(data) : convert(data);
+			const resume = "layout" in data ? data : convert(data);
 			dispatch({ type: "load", value: resume });
 		});
 	};
@@ -349,7 +344,7 @@ function App() {
 						>
 							<div style={{ display: "flex", flexDirection: "row" }}>
 								<select
-									value={resume}
+									value={state.resume?.name}
 									onChange={(e) => {
 										setResume(e.target.value);
 										dispatch({
@@ -384,34 +379,23 @@ function App() {
 							{currentTab === "content-editor" && (
 								<div>
 									<h1>Content Editor</h1>
-									{layoutSchemas !== null && dataSchemas !== null && (
-										<AddNewSection
-											layoutSchemas={layoutSchemas}
-											dataSchemas={dataSchemas}
-										/>
-									)}
+									<AddNewSection />
 									{state.resume &&
-										layoutSchemas &&
 										state.resume.sections.map((section, index) => {
 											return (
 												<Section
 													key={index}
 													section={section}
-													dataSchemas={dataSchemas!}
-													layoutSchemas={layoutSchemas!}
 												/>
 											);
 										})}
 								</div>
 							)}
 							{currentTab === "layout-editor" && (
-								<LayoutEditor
-									dataSchemas={dataSchemas!}
-									layoutSchemas={layoutSchemas!}
-								/>
+								<LayoutEditor />
 							)}
 							{currentTab === "schema-editor" && (
-								<DataSchemaEditor dataSchemas={dataSchemas!} />
+								<DataSchemaEditor />
 							)}
 						</div>
 						<div

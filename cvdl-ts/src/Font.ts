@@ -6,7 +6,6 @@ export type t = {
 	size: number;
 	weight: FontWeight;
 	style: FontStyle;
-	source: FontSource;
 };
 type Font = t;
 
@@ -15,49 +14,22 @@ export function font(
 	size: number,
 	weight: FontWeight,
 	style: FontStyle,
-	source: FontSource,
 ): Font {
 	return {
 		name,
 		size,
 		weight,
 		style,
-		source,
 	};
 }
 
-export function fromJson(json: unknown): Font {
-	return {
-		...default_(),
-		name: json["name"],
-		size: json["size"],
-		weight: json["weight"],
-		style: json["style"],
-		source: json["source"],
-	};
-}
 export function default_(): Font {
 	return {
 		name: "Exo",
 		size: 12,
 		weight: "Medium",
 		style: "Normal",
-		source: "System",
 	};
-}
-
-export function variants(f: Font): Font[] {
-    const fonts = [];
-    for (const weight of FontWeights) {
-        for (const style of FontStyles) {
-            fonts.push({
-                ...f,
-                weight,
-                style,
-            });
-        }
-    }
-    return fonts;
 }
 
 export function full_name(f: Font): string {
@@ -83,31 +55,7 @@ export function get_height(f: Font, fonts: FontDict): number {
 	return (font.bbox.height / font.unitsPerEm) * f.size;
 }
 
-
-export type FontSource = "Local" | "System" | "Remote";
-
-export type FontWeight =
-    | "ExtraLight"
-    | "Light"
-    | "Thin"
-    | "Medium"
-    | "Regular"
-    | "SemiBold"
-    | "Bold"
-    | "Black"
-    | "ExtraBold"
-
-export const FontWeights = [
-    "ExtraLight",
-    "Light",
-    "Thin",
-    "Medium",
-    "Regular",
-    "SemiBold",
-    "Bold",
-    "Black",
-    "ExtraBold",
-] as const;
+export type FontWeight = "Medium" | "Bold";
 
 export type FontStyle =
     | "Normal"
@@ -116,17 +64,4 @@ export type FontStyle =
 export const FontStyles = [
     "Normal",
     "Italic",
-] as const;
-
-export const AvailableFonts = [
-	"EBGaramond",
-	"Exo",
-	"Inter",
-	"JetBrainsMono",
-	"Montserrat",
-	"Merriweather",
-	"NotoSerif",
-	"OpenSans",
-	"Roboto",
-	"RobotoMono",
 ] as const;

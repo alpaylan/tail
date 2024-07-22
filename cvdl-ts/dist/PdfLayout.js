@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -7,8 +30,9 @@ exports.renderSectionLayout = exports.mergeSpans = exports.render = void 0;
 const blob_stream_1 = __importDefault(require("blob-stream"));
 const AnyLayout_1 = require("./AnyLayout");
 const pdfkit_1 = __importDefault(require("pdfkit"));
+const Resume = __importStar(require("./Resume"));
 const _1 = require(".");
-const render = async ({ resume_name, resume, data_schemas, layout_schemas, resume_layout, storage, fontDict, }) => {
+const render = async ({ resume_name, resume, data_schemas, layout_schemas, resume_layout, bindings, storage, fontDict, }) => {
     let start_time = Date.now();
     if (!resume && !resume_name) {
         throw "Rendering requires either resume_name or resume";
@@ -20,15 +44,15 @@ const render = async ({ resume_name, resume, data_schemas, layout_schemas, resum
         resume = await storage.load_resume(resume_name);
     }
     if (!data_schemas) {
-        data_schemas = await Promise.all(resume.data_schemas().map((schema) => storage.load_data_schema(schema)));
+        data_schemas = await Promise.all(Resume.dataSchemas(resume)
+            .map((schema) => storage.load_data_schema(schema)));
     }
     if (!layout_schemas) {
-        layout_schemas = await Promise.all(resume
-            .layout_schemas()
+        layout_schemas = await Promise.all(Resume.layoutSchemas(resume)
             .map((schema) => storage.load_layout_schema(schema)));
     }
     if (!resume_layout) {
-        resume_layout = await storage.load_resume_layout(resume.resume_layout());
+        resume_layout = await storage.load_resume_layout(resume.layout);
     }
     if (!fontDict) {
         fontDict = new AnyLayout_1.FontDict();
@@ -43,6 +67,7 @@ const render = async ({ resume_name, resume, data_schemas, layout_schemas, resum
         resume,
         data_schemas,
         resume_layout,
+        bindings,
         storage,
         fontDict,
     });
@@ -137,7 +162,11 @@ const renderSectionLayout = (layout, tracker) => {
         }
         case "Elem": {
             const elem = layout;
+            console.log(`Rendering elem ${elem.text}`);
             if (!layout.bounding_box) {
+                return;
+            }
+            if (elem.text === "") {
                 return;
             }
             const spans = elem.alignment === "Justified" ? elem.spans : (0, exports.mergeSpans)(elem.spans);

@@ -29,7 +29,9 @@ exports.default_ = default_;
 exports.elementsWidth = elementsWidth;
 exports.boundWidth = boundWidth;
 exports.scaleWidth = scaleWidth;
-const _1 = require(".");
+const Margin = __importStar(require("./Margin"));
+const Width = __importStar(require("./Width"));
+const Alignment = __importStar(require("./Alignment"));
 const Utils_1 = require("./Utils");
 const Layout = __importStar(require("./Layout"));
 function from(w) {
@@ -50,16 +52,16 @@ function default_() {
     return {
         tag: "Row",
         elements: [],
-        margin: _1.Margin.default_(),
-        alignment: _1.Alignment.default_(),
-        width: _1.Width.default_(),
+        margin: Margin.default_(),
+        alignment: Alignment.default_(),
+        width: Width.default_(),
         is_frozen: false,
         is_fill: false,
     };
 }
 function elementsWidth(r) {
     return r.elements
-        .map((e) => _1.Width.get_fixed_unchecked(e.width))
+        .map((e) => Width.get_fixed_unchecked(e.width))
         .reduce((a, b) => a + b, 0.0);
 }
 function boundWidth(r, width) {
@@ -71,11 +73,11 @@ function boundWidth(r, width) {
     if (bound === null) {
         throw new Error("Cannot bound width of non-unitized widths!");
     }
-    return row(r.elements.map((e) => Layout.boundWidth(e, bound)), r.margin, r.alignment, _1.Width.absolute(bound), r.is_frozen, _1.Width.is_fill(r.width));
+    return row(r.elements.map((e) => Layout.boundWidth(e, bound)), r.margin, r.alignment, Width.absolute(bound), r.is_frozen, Width.is_fill(r.width));
 }
 function scaleWidth(r, w) {
     return (0, Utils_1.with_)(r, {
         elements: r.elements.map((e) => Layout.scaleWidth(e, w)),
-        width: _1.Width.scale(r.width, w),
+        width: Width.scale(r.width, w),
     });
 }

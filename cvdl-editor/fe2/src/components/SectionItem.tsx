@@ -24,7 +24,6 @@ const ItemHeader = ({
 	const dispatch = useContext(DocumentDispatchContext);
 
 	if (itemContent.length < 2) {
-		console.log(itemContent);
 		console.warn("Section content is too short");
 		return <></>;
 	}
@@ -155,7 +154,7 @@ const SectionItem = ({
 									.filter((ic) => !ic.isActive)
 									.map((field, index) => {
 										return (
-											<div key={fields.length + index}>
+											<div key={index}>
 												<button
 													className="bordered"
 													onClick={() => {

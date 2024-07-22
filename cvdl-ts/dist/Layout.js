@@ -26,10 +26,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ColorMap = void 0;
 exports.default_ = default_;
 exports.empty = empty;
-exports.fromJson = fromJson;
 exports.type_ = type_;
 exports.tag_ = tag_;
-exports.toJson = toJson;
 exports.isContainer = isContainer;
 exports.isFill = isFill;
 exports.isRef = isRef;
@@ -68,37 +66,6 @@ function default_(tag) {
 function empty() {
     return default_("Stack");
 }
-function fromJson(json) {
-    var _a;
-    const key = Object.keys(json)[0];
-    switch (key) {
-        case "Stack":
-        case "FlexRow":
-        case "FrozenRow": {
-            const container = default_(key);
-            container.elements = json[key].elements.map((element) => fromJson(element));
-            container.margin = json[key].margin;
-            container.alignment = json[key].alignment;
-            container.width = Width.fromJson(json[key].width);
-            return container;
-        }
-        case "Ref":
-        case "Text": {
-            const inner = default_(key);
-            inner.item = json[key].item;
-            inner.text = json[key].item;
-            inner.margin = json[key].margin;
-            inner.alignment = json[key].alignment;
-            inner.width = Width.fromJson(json[key].width);
-            inner.text_width = Width.fromJson(json[key].text_width);
-            inner.font = Font.fromJson(json[key].font);
-            inner.url = json[key].url;
-            inner.background_color = (_a = json[key].background_color) !== null && _a !== void 0 ? _a : "Transparent";
-            return inner;
-        }
-    }
-    throw new Error(`Invalid layout ${key}`);
-}
 function type_(l) {
     return l.tag;
 }
@@ -113,37 +80,6 @@ function tag_(l) {
         case "Elem": {
             const elem = l;
             return elem.is_ref ? "Ref" : "Text";
-        }
-    }
-}
-function toJson(l) {
-    switch (l.tag) {
-        case "Stack":
-        case "Row": {
-            const container = l;
-            return {
-                [tag_(container)]: {
-                    elements: container.elements.map((e) => toJson(e)),
-                    margin: container.margin,
-                    alignment: container.alignment,
-                    width: Width.toJson(container.width),
-                },
-            };
-        }
-        case "Elem": {
-            const elem = l;
-            return {
-                [tag_(elem)]: {
-                    item: elem.item,
-                    margin: elem.margin,
-                    alignment: elem.alignment,
-                    width: Width.toJson(elem.width),
-                    text_width: Width.toJson(elem.text_width),
-                    font: elem.font,
-                    url: elem.url,
-                    background_color: elem.background_color,
-                },
-            };
         }
     }
 }
@@ -207,15 +143,15 @@ function isInstantiated(l) {
         return !isRef(l);
     }
 }
-function instantiate(l, section, fields) {
+function instantiate(l, section, fields, bindings) {
     switch (l.tag) {
         case "Stack":
         case "Row":
             return (0, Utils_1.with_)(l, {
-                elements: l.elements.map((e) => instantiate(e, section, fields)),
+                elements: l.elements.map((e) => instantiate(e, section, fields, bindings)),
             });
         case "Elem":
-            return Elem.instantiate(l, section, fields);
+            return Elem.instantiate(l, section, fields, bindings);
     }
 }
 function boundWidth(l, width) {

@@ -88,6 +88,7 @@ const DateEditor = ({
 			/>
 			<select
 				value={dateFormat}
+				defaultValue={field.type.format}
 				onChange={(e) => {
 					setDateFormat(e.target.value as DateFormat.t);
 					dispatch!({
@@ -232,7 +233,7 @@ const SectionItemField = ({
 					<DefaultEditor
 						section={section}
 						item={item}
-						field={field as FieldProps}
+						field={field}
 					/>
 				))
 				.with({ tag: "List" }, () => (

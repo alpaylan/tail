@@ -1,28 +1,5 @@
 "use strict";
 /* eslint-disable @typescript-eslint/no-explicit-any */
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -49,18 +26,34 @@ exports.FileStorage = void 0;
 ///     3. Save
 // Initiation Function
 const fs_1 = __importDefault(require("fs"));
-const Resume_1 = require("./Resume");
-const DataSchema_1 = require("./DataSchema");
 const LayoutSchema_1 = require("./LayoutSchema");
 const ResumeLayout_1 = require("./ResumeLayout");
-const Font = __importStar(require("./Font"));
 class FileStorage {
     constructor(dir) {
         this.dir = "";
         this.dir = dir;
     }
-    load_font(font) {
-        return Promise.resolve(fs_1.default.readFileSync(this.dir + Font.full_name(font) + ".ttf"));
+    load_bindings() {
+        if (!fs_1.default.existsSync(this.dir + "/bindings.json")) {
+            fs_1.default.writeFileSync(this.dir + "/bindings.json", "{}");
+        }
+        const bindingsObject = JSON.parse(fs_1.default.readFileSync(this.dir + "/bindings.json").toString());
+        const bindings = new Map();
+        for (const [key, value] of Object.entries(bindingsObject)) {
+            bindings.set(key, value);
+        }
+        return Promise.resolve(bindings);
+    }
+    save_bindings(bindings) {
+        const bindingsObject = {};
+        for (const [key, value] of bindings) {
+            bindingsObject[key] = value;
+        }
+        fs_1.default.writeFileSync(this.dir + "/bindings.json", JSON.stringify(bindingsObject));
+        return Promise.resolve();
+    }
+    load_font(fontName) {
+        return Promise.resolve(fs_1.default.readFileSync(this.dir + fontName + ".ttf"));
     }
     initiate_storage() {
         // Create data_dir/resumes if it does not exist
@@ -68,6 +61,10 @@ class FileStorage {
         // Create data_dir/data-schemas.json if it does not exist
         if (!fs_1.default.existsSync(this.dir + "/data-schemas.json")) {
             fs_1.default.writeFileSync(this.dir + "/data-schemas.json", "[]");
+        }
+        // Create data_dir/bindings.json if it does not exist
+        if (!fs_1.default.existsSync(this.dir + "/bindings.json")) {
+            fs_1.default.writeFileSync(this.dir + "/bindings.json", "{}");
         }
         // Create data_dir/layout-schemas.json if it does not exist
         if (!fs_1.default.existsSync(this.dir + "/layout-schemas.json")) {
@@ -98,11 +95,11 @@ class FileStorage {
     // Loading Functions
     async load_resume(resume_name) {
         const resume = fs_1.default.readFileSync(this.dir + "/resumes/" + resume_name + ".json");
-        return Promise.resolve(Resume_1.Resume.fromJson(JSON.parse(resume.toString())));
+        return Promise.resolve(JSON.parse(resume.toString()));
     }
     async load_data_schema(schema_name) {
         const data_schemas = fs_1.default.readFileSync(this.dir + "/data-schemas.json");
-        return Promise.resolve(DataSchema_1.DataSchema.fromJson(JSON.parse(data_schemas.toString()).find((schema) => schema.schema_name === schema_name)));
+        return Promise.resolve(JSON.parse(data_schemas.toString()).find((schema) => schema.schema_name === schema_name));
     }
     async load_layout_schema(schema_name) {
         const layout_schemas = fs_1.default.readFileSync(this.dir + "/layout-schemas.json");

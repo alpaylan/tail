@@ -22,7 +22,7 @@
 ///     3. Save
 
 // Initiation Function
-import { Resume } from "./Resume";
+import * as Resume from "./Resume";
 import { DataSchema } from "./DataSchema";
 import { LayoutSchema } from "./LayoutSchema";
 import { ResumeLayout } from "./ResumeLayout";
@@ -35,6 +35,12 @@ export class RemoteStorage implements Storage {
 
 	constructor(url: string) {
 		this.url = url;
+	}
+	load_bindings(): Promise<Map<string, unknown>> {
+		throw new Error("Method not implemented.");
+	}
+	save_bindings(bindings: Map<string, unknown>): Promise<void> {
+		throw new Error("Method not implemented.");
 	}
 
 	initiate_storage(): Promise<void> {
@@ -67,16 +73,16 @@ export class RemoteStorage implements Storage {
 
 	// Loading Functions
 
-	async load_resume(resume_name: string): Promise<Resume> {
+	async load_resume(resume_name: string): Promise<Resume.t> {
 		const response = await fetch(this.url + "/resume/" + resume_name);
 		const resume = await response.json();
-		return Resume.fromJson(resume.data);
+		return resume.data;
 	}
 
-	async load_data_schema(schema_name: string): Promise<DataSchema> {
+	async load_data_schema(schema_name: string): Promise<DataSchema.t> {
 		const response = await fetch(this.url + "/data_schema/" + schema_name);
 		const schema = await response.json();
-		return DataSchema.fromJson(schema);
+		return schema;
 	}
 
 	async load_layout_schema(schema_name: string): Promise<LayoutSchema> {
@@ -99,21 +105,21 @@ export class RemoteStorage implements Storage {
 
 	// Saving Functions
 
-	async save_resume(resume_name: string, resume_data: Resume) {}
+	async save_resume(resume_name: string, resume_data: Resume.t) {}
 
-	async save_data_schema(data_schema: DataSchema) {}
+	async save_data_schema(data_schema: DataSchema.t) {}
 
 	async save_layout_schema(layout_schema: LayoutSchema) {}
 
 	async save_resume_layout(resume_layout: ResumeLayout) {}
 
-	async load_font(font: Font.t): Promise<Buffer> {
+	async load_font(fontName: string): Promise<Buffer> {
 		const response = await fetch(this.url + "/font/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify(font),
+			body: fontName,
 		});
 		const font_data = await response.arrayBuffer();
 		return Buffer.from(font_data);
