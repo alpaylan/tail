@@ -2,6 +2,7 @@ import { DataSchema } from "./DataSchema";
 import { LayoutSchema } from "./LayoutSchema";
 import { Storage } from "./Storage";
 import { vertical_margin, ResumeLayout } from "./ResumeLayout";
+import * as Utils from "./Utils";
 
 import * as fontkit from "fontkit";
 import * as Layout from "./Layout";

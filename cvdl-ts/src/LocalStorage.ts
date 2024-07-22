@@ -191,6 +191,5 @@ export class LocalStorage implements Storage {
 			return Buffer.from(font_data);
 		}
 
-		throw new Error("Font not found");
-	}
+    }
 }
