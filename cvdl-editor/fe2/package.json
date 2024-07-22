@@ -19,7 +19,7 @@
 		"brace": "^0.11.1",
 		"browserify-zlib": "^0.2.0",
 		"buffer": "^6.0.3",
-		"cvdl-ts": "1.0.18",
+		"cvdl-ts": "1.0.19",
 		"eslint": "8.52.0",
 		"eslint-config-next": "13.5.6",
 		"fontkit": "^2.0.2",
