@@ -135,7 +135,7 @@ const SectionItem = ({
 								}
 								return (
 									<SectionItemField
-										key={index}
+										key={field.name}
 										section={section}
 										item={item}
 										field={field}

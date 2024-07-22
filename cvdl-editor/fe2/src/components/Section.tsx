@@ -27,10 +27,8 @@ const computeSectionContent = (
 	const sectionContent: SectionProps = [];
 	section.items.forEach((item) => {
 		const itemContent: ItemProps = [];
-		console.error("item", item);
 		dataSchema.item_schema.forEach((field) => {
 			let name = field.name;
-
 
 			if (item === undefined) {
 				console.error("item.fields is undefined", JSON.stringify(section.items));

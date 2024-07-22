@@ -74,10 +74,11 @@ function App() {
 		if (window.location.search) {
 			const urlParams = new URLSearchParams(window.location.search);
 			const load_resume = urlParams.get("user");
-			console.log(load_resume);
-			if (load_resume) {
+
+			if (load_resume && localStorage.getItem(load_resume) !== "loaded") {
 				fetchGist(load_resume).then((data) => {
 					const resume = convert(data);
+					localStorage.setItem(load_resume, "loaded");
 					dispatch({ type: "load", value: resume });
 				});
 			}
