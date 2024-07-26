@@ -21,6 +21,8 @@ export class LocalStorage implements Storage {
 	}
 
 	async initiate_storage(): Promise<void> {
+		console.error("Initiating Storage");
+		console.error(Defaults)
 		if (!localStorage.getItem("resumes")) {
 			localStorage.setItem("resumes", JSON.stringify([Defaults.DefaultResume]));
 		}
