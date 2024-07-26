@@ -89,7 +89,9 @@ function App() {
 			return;
 		}
 		try {
+			console.error("Trying to load local resume");
 			storage.load_resume(resume).then((data: Resume.t) => {
+				console.error("Loaded local data", data);
 				dispatch({ type: "load", value: data });
 			});
 		} catch (e) {

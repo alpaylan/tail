@@ -146,6 +146,8 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 	let editHistory = cloneEditorHistory(state.editHistory) as DocumentAction[];
 	let undoing = false;
 
+	console.error(state, action_);
+
 	if (action_.type === "undo" && editHistory.length > 0) {
 		let lastAction = editHistory.pop();
 		action_ = lastAction! as EditorAction;
@@ -314,11 +316,9 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 	}
 
 	if (action.type === "move-item") {
-		console.error("move-item");
 		newState.sections = newState.sections.map((section) => {
 			const newSection = { ...section };
 			if (section.section_name === action.section) {
-				console.error(action.item, newSection.items.length, action.direction);
 				if (
 					(action.item <= 0 && action.direction === "up") ||
 					(action.item >= newSection.items.length - 1 &&
