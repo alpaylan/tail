@@ -146,8 +146,6 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 	let editHistory = cloneEditorHistory(state.editHistory) as DocumentAction[];
 	let undoing = false;
 
-	console.error(state, action_);
-
 	if (action_.type === "undo" && editHistory.length > 0) {
 		let lastAction = editHistory.pop();
 		action_ = lastAction! as EditorAction;

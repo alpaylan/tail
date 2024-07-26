@@ -282,28 +282,17 @@ export const renderSectionLayout = (
 					spanElem.style.animation = "none";
 				});
 
-				// console.error("Setting Click Path for", span.text, "to", tracker.path);
 				spanElem.addEventListener("click", (e) => {
 					e.stopPropagation();
 					const path = layout.path ?? tracker.path ?? { tag: "none" };
 
 					if (path.tag === "section") {
-						console.error("Setting path to section", {
-							...path,
-							tag: "field",
-							field: element.item,
-						});
 						tracker.dispatch({
 							type: "set-editor-path",
 							path: { ...path },
 						});
 						return;
 					} else if (path.tag === "item") {
-						console.error("Setting path to field", {
-							...path,
-							tag: "field",
-							field: element.item,
-						});
 						tracker.dispatch({
 							type: "set-editor-path",
 							path: { ...path, tag: "field", field: element.item },
