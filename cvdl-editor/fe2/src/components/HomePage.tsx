@@ -28,6 +28,7 @@ import {
 	EditorContext,
 } from "./State";
 import AddNewSection from "./AddNewSection";
+import * as Defaults from "cvdl-ts/dist/Defaults";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -58,6 +59,7 @@ function App() {
 
 	useEffect(() => {
 		require("../registerStaticFiles.js");
+		console.error("Defaults", Defaults)
 		storage.initiate_storage().then(() => {
 			fontDict.load_fonts(storage).then((fontDict) => {
 				setFontDict(fontDict);
