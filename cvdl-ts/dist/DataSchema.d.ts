@@ -9,8 +9,11 @@ export declare namespace DocumentDataType {
         tag: "Date";
         format: DateFormat.t;
     };
-    type PureString = {
+    type URL = {
         tag: "String";
+    };
+    type PureString = {
+        tag: "Url";
     };
     type MarkdownString = {
         tag: "MarkdownString";
@@ -30,7 +33,7 @@ export declare namespace DocumentDataType {
         tag: "Types";
         value: DocumentDataType.t[];
     };
-    type t = Date | PureString | MarkdownString | PureNumber | Type | List | Types;
+    type t = Date | PureString | MarkdownString | URL | PureNumber | Type | List | Types;
     type DocumentDataType = t;
 }
 export type Field = {

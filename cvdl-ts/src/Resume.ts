@@ -52,25 +52,43 @@ export module ResumeSection {
 }
 
 export module ItemContent {
-	export type t =
-		| { tag: "None" }
-		| { tag: "String"; value: string }
-		| { tag: "List"; value: t[] }
-		| { tag: "Url"; value: { url: string; text: string } };
+	export type PureString = {
+		tag: "String";
+		value: string;
+	};
 
-	export function none(): t {
+	export type None = {
+		tag: "None";
+	};
+
+	export type List = {
+		tag: "List";
+		value: PureString[];
+	}
+
+	export type Url = {
+		tag: "Url";
+		value: {
+			url: string;
+			text: string;
+		};
+	};
+
+	export type t = PureString | None | List | Url;
+
+	export function none(): None {
 		return { tag: "None" };
 	}
 
-	export function string(value: string): t {
+	export function string(value: string): PureString {
 		return { tag: "String", value };
 	}
 
-	export function list(value: t[]): t {
+	export function list(value: PureString[]): List {
 		return { tag: "List", value };
 	}
 
-	export function url(url: string, text: string): t {
+	export function url(url: string, text: string): Url {
 		return { tag: "Url", value: { url, text } };
 	}
 

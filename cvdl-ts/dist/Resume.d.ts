@@ -17,25 +17,29 @@ export declare namespace ResumeSection {
     function resumeSection(section_name: string, data_schema: string, layout_schema: string, data: Item, items: Item[]): t;
 }
 export declare namespace ItemContent {
-    type t = {
-        tag: "None";
-    } | {
+    type PureString = {
         tag: "String";
         value: string;
-    } | {
+    };
+    type None = {
+        tag: "None";
+    };
+    type List = {
         tag: "List";
-        value: t[];
-    } | {
+        value: PureString[];
+    };
+    type Url = {
         tag: "Url";
         value: {
             url: string;
             text: string;
         };
     };
-    function none(): t;
-    function string(value: string): t;
-    function list(value: t[]): t;
-    function url(url: string, text: string): t;
+    type t = PureString | None | List | Url;
+    function none(): None;
+    function string(value: string): PureString;
+    function list(value: PureString[]): List;
+    function url(url: string, text: string): Url;
     function toString(content: t): string;
 }
 export type Item = {

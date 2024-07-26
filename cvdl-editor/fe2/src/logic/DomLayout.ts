@@ -220,6 +220,8 @@ export const renderSectionLayout = (
 			if (!layout.bounding_box) {
 				return;
 			}
+
+			
 			const spans =
 				element.alignment === "Justified"
 					? element.spans!
@@ -263,8 +265,6 @@ export const renderSectionLayout = (
                     position: absolute;
                     left: ${x}px;
                     top: ${y}px;
-                    width: ${span.bbox!.width()}px;
-                    height: ${span.bbox!.height()}px;
                     font-family: "${Font.full_name(span.font!)}", sans-serif;
                     font-size: ${span.font!.size}px;
                     font-style: ${span.font!.style};
@@ -327,6 +327,23 @@ export const renderSectionLayout = (
                     `;
 					tracker.pageContainer.appendChild(roundedRectangleElem);
 				}
+
+				if (element.url) {
+					const urlElem = document.createElement("a");
+					urlElem.style.cssText = `
+                        position: absolute;
+                        left: ${x - span.font!.size / 5}px;
+                        top: ${y}px;
+                        width: ${span.bbox!.width() + (span.font!.size / 5) * 2}px;
+                        height: ${span.bbox!.height()}px;
+                        border: 1px solid lightblue;
+						z-index: 3;
+                    `;
+					urlElem.href = element.url;
+					tracker.pageContainer.appendChild(urlElem);
+				}
+
+
 				tracker.pageContainer.appendChild(spanElem);
 			});
 			break;

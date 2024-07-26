@@ -9,7 +9,7 @@ import { ElementPath } from "cvdl-ts/dist/AnyLayout";
 
 export type FieldProps = {
 	name: string;
-	value: string;
+	value: ItemContent.t;
 	type: DocumentDataType.t;
 	isActive: boolean;
 };
@@ -27,19 +27,14 @@ const computeSectionContent = (
 	const sectionContent: SectionProps = [];
 	section.items.forEach((item) => {
 		const itemContent: ItemProps = [];
-		console.error("item", item);
 		dataSchema.item_schema.forEach((field) => {
 			let name = field.name;
-
-
 			if (item === undefined) {
 				console.error("item.fields is undefined", JSON.stringify(section.items));
 				return;
 			}
-			let value = ItemContent.toString(
-				item.fields[field.name] ?? ItemContent.none(),
-			);
-			let isActive = value !== "";
+			let value = item.fields[field.name] ?? ItemContent.none();
+			let isActive = ItemContent.toString(value) !== "";
 			itemContent.push({
 				name,
 				value,
@@ -202,9 +197,7 @@ const Section = ({
 								item={-1}
 								field={{
 									name: field.name,
-									value: ItemContent.toString(
-										section.data.fields[field.name] ?? ItemContent.none(),
-									),
+									value: section.data.fields[field.name] ?? ItemContent.none(),
 									isActive: true,
 									type: field.type,
 								}}

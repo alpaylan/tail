@@ -239,7 +239,7 @@ export function fillFonts(e: Elem, fonts: FontDict): Elem {
 			: e.font;
 
         if (span.text === " ") {
-            const width = Font.get_width(font, "-", fonts);
+            const width = Font.get_width(font, " ", fonts);
             spans.push({ ...span, font, width });
             continue;
         }

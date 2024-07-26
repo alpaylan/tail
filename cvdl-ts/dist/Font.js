@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.FontStyles = void 0;
 exports.font = font;
 exports.default_ = default_;
 exports.full_name = full_name;
@@ -36,3 +37,7 @@ function get_height(f, fonts) {
     const font = fonts.get_font(full_name(f));
     return (font.bbox.height / font.unitsPerEm) * f.size;
 }
+exports.FontStyles = [
+    "Normal",
+    "Italic",
+];

@@ -26,7 +26,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FontDict = void 0;
 exports.render = render;
 const ResumeLayout_1 = require("./ResumeLayout");
-const Utils = __importStar(require("./Utils"));
 const fontkit = __importStar(require("fontkit"));
 const Layout = __importStar(require("./Layout"));
 const cartesian = (...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
