@@ -59,7 +59,6 @@ function App() {
 
 	useEffect(() => {
 		require("../registerStaticFiles.js");
-		console.error("Defaults", Defaults)
 		storage.initiate_storage().then(() => {
 			fontDict.load_fonts(storage).then((fontDict) => {
 				setFontDict(fontDict);
@@ -67,16 +66,10 @@ function App() {
 			});
 		});
 
-		if (localStorage.getItem("version") !== "0.1.1") {
-			localStorage.clear();
-			localStorage.setItem("version", "0.1.1");
-		}
-
 		// Check if query parameter is present
 		if (window.location.search) {
 			const urlParams = new URLSearchParams(window.location.search);
 			const load_resume = urlParams.get("user");
-			console.log(load_resume);
 			if (load_resume) {
 				fetchGist(load_resume).then((data) => {
 					const resume = convert(data);
@@ -91,9 +84,7 @@ function App() {
 			return;
 		}
 		try {
-			console.error("Trying to load local resume");
 			storage.load_resume(resume).then((data: Resume.t) => {
-				console.error("Loaded local data", data);
 				dispatch({ type: "load", value: data });
 			});
 		} catch (e) {

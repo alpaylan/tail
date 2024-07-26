@@ -40,6 +40,10 @@ class LocalStorage {
         return Promise.resolve();
     }
     async initiate_storage() {
+        if (localStorage.getItem("version") !== "0.1.2") {
+            localStorage.clear();
+            localStorage.setItem("version", "0.1.2");
+        }
         if (!localStorage.getItem("resumes")) {
             localStorage.setItem("resumes", JSON.stringify([Defaults.DefaultResume]));
         }
