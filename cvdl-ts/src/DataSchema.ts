@@ -63,7 +63,8 @@ export module DateFormat {
 
 export module DocumentDataType {
 	export type Date = { tag: "Date"; format: DateFormat.t };
-	export type PureString = { tag: "String" };
+	export type URL = { tag: "String" };
+	export type PureString = { tag: "Url" };
 	export type MarkdownString = { tag: "MarkdownString" };
 	export type PureNumber = { tag: "Number" };
 	export type Type = { tag: "Type"; value: string };
@@ -74,6 +75,7 @@ export module DocumentDataType {
 		| Date
 		| PureString
 		| MarkdownString
+		| URL
 		| PureNumber
 		| Type
 		| List

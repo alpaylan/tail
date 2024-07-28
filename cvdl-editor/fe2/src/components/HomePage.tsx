@@ -19,8 +19,9 @@ import Section from "@/components/Section";
 import { render as domRender } from "@/logic/DomLayout";
 import Layout from "@/components/layout";
 import LayoutEditor from "@/components/LayoutEditor";
+import RawEditor from "@/components/RawEditor";
 import DataSchemaEditor from "@/components/DataSchemaEditor";
-import { convert } from "@/logic/JsonResume";
+import { convert, convertBack } from "@/logic/JsonResume";
 import { fetchGist, fetchGistById } from "@/api/fetchGist";
 import {
 	DocumentDispatchContext,
@@ -28,6 +29,8 @@ import {
 	EditorContext,
 } from "./State";
 import AddNewSection from "./AddNewSection";
+import * as Defaults from "cvdl-ts/dist/Defaults";
+import Dropdown from "./Dropdown";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
 
@@ -44,6 +47,7 @@ function App() {
 		dataSchemas: [],
 		layoutSchemas: [],
 		editHistory: [],
+		resumeLayout: Defaults.DefaultResumeLayout
 	});
 	const [resume, setResume] = useState<string>("Default");
 	const [resumes, setResumes] = useState<string[] | null>(null);
@@ -53,7 +57,7 @@ function App() {
 	const [debug, setDebug] = useState<boolean>(false);
 	const [storageInitiated, setStorageInitiated] = useState<boolean>(false);
 	const [currentTab, setCurrentTab] = useState<
-		"content-editor" | "layout-editor" | "schema-editor"
+		"content-editor" | "layout-editor" | "schema-editor" | "raw-editor"
 	>("content-editor");
 
 	useEffect(() => {
@@ -64,11 +68,6 @@ function App() {
 				setStorageInitiated(true);
 			});
 		});
-
-		if (localStorage.getItem("version") !== "0.1.1") {
-			localStorage.clear();
-			localStorage.setItem("version", "0.1.1");
-		}
 
 		// Check if query parameter is present
 		if (window.location.search) {
@@ -147,7 +146,10 @@ function App() {
 		domRender({
 			resume_name: resume,
 			resume: state.resume!,
-			storage: new LocalStorage(),
+			layout_schemas: state.layoutSchemas!,
+			data_schemas: state.dataSchemas!,
+			resume_layout: state.resumeLayout!,
+			storage,
 			bindings,
 			fontDict,
 			state,
@@ -216,10 +218,19 @@ function App() {
 			const pdf = window.URL.createObjectURL(blob);
 			const link = document.createElement("a");
 			link.href = pdf;
-			link.download = "resume.pdf";
+			link.download = `${state.resume.name}.pdf`;
 			link.click();
 		});
 	};
+
+	const downloadJsonResume = () => {
+		const pdf = window.URL.createObjectURL(new Blob([JSON.stringify(convertBack(state.resume), null, 2)]));
+		const link = document.createElement("a");
+		link.href = pdf;
+		link.download = `${state.resume.name}-JsonResume.json`;
+		link.click();
+	};
+
 
 	const uploadResume = () => {
 		const input = document.createElement("input");
@@ -299,37 +310,28 @@ function App() {
 							}}
 						>
 							<button
-								className="bordered"
-								style={{
-									backgroundColor:
-										currentTab === "content-editor" ? "#101010" : "white",
-									color: currentTab === "content-editor" ? "white" : "black",
-								}}
+								className={`bordered ${currentTab === "content-editor" ? "selected" : ""}`}
 								onClick={() => setCurrentTab("content-editor")}
 							>
 								Content Editor
 							</button>
 							<button
-								className="bordered"
-								style={{
-									backgroundColor:
-										currentTab === "layout-editor" ? "#101010" : "white",
-									color: currentTab === "layout-editor" ? "white" : "black",
-								}}
+								className={`bordered ${currentTab === "layout-editor" ? "selected" : ""}`}
 								onClick={() => setCurrentTab("layout-editor")}
 							>
 								Layout Editor
 							</button>
 							<button
-								className="bordered"
-								style={{
-									backgroundColor:
-										currentTab === "schema-editor" ? "#101010" : "white",
-									color: currentTab === "schema-editor" ? "white" : "black",
-								}}
+								className={`bordered ${currentTab === "schema-editor" ? "selected" : ""}`}
 								onClick={() => setCurrentTab("schema-editor")}
 							>
 								Schema Editor
+							</button>
+							<button
+								className={`bordered ${currentTab === "raw-editor" ? "selected" : ""}`}
+								onClick={() => setCurrentTab("raw-editor")}
+							>
+								Raw Editor
 							</button>
 						</div>
 						<div
@@ -398,6 +400,10 @@ function App() {
 							{currentTab === "schema-editor" && (
 								<DataSchemaEditor />
 							)}
+							{currentTab === "raw-editor" && (
+								<RawEditor />
+							)}
+
 						</div>
 						<div
 							style={{
@@ -425,6 +431,7 @@ function App() {
 								<button className="bordered" onClick={downloadResume}>
 									⤓ Download
 								</button>
+								<Dropdown text="Export" items={[{ text: "pdf", fn: downloadResume }, { text: "JsonResume", fn: downloadJsonResume },]} />
 								<button className="bordered" onClick={() => setDebug(!debug)}>
 									&#x1F41E; Debug
 								</button>
@@ -433,6 +440,22 @@ function App() {
 								id="pdf-container"
 								style={{ display: "flex", flexDirection: "column" }}
 							></div>
+							{/* {
+								(storageInitiated && state.resume && state.dataSchemas.length !== 0 && state.layoutSchemas.length !== 0) &&
+								<ReactLayout
+									resume_name={state!.resume.name}
+									resume={state!.resume}
+									data_schemas={state.dataSchemas}
+									layout_schemas={state.layoutSchemas}
+									resume_layout={state.resumeLayout}
+									bindings={bindings}
+									storage={storage}
+									fontDict={fontDict}
+									state={state}
+									dispatch={dispatch}
+									debug={false}
+								/>
+							} */}
 						</div>
 					</div>
 				</Layout>

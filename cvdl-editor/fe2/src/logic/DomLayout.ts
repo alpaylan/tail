@@ -220,6 +220,8 @@ export const renderSectionLayout = (
 			if (!layout.bounding_box) {
 				return;
 			}
+
+			
 			const spans =
 				element.alignment === "Justified"
 					? element.spans!
@@ -263,8 +265,6 @@ export const renderSectionLayout = (
                     position: absolute;
                     left: ${x}px;
                     top: ${y}px;
-                    width: ${span.bbox!.width()}px;
-                    height: ${span.bbox!.height()}px;
                     font-family: "${Font.full_name(span.font!)}", sans-serif;
                     font-size: ${span.font!.size}px;
                     font-style: ${span.font!.style};
@@ -282,28 +282,17 @@ export const renderSectionLayout = (
 					spanElem.style.animation = "none";
 				});
 
-				// console.error("Setting Click Path for", span.text, "to", tracker.path);
 				spanElem.addEventListener("click", (e) => {
 					e.stopPropagation();
 					const path = layout.path ?? tracker.path ?? { tag: "none" };
 
 					if (path.tag === "section") {
-						console.error("Setting path to section", {
-							...path,
-							tag: "field",
-							field: element.item,
-						});
 						tracker.dispatch({
 							type: "set-editor-path",
 							path: { ...path },
 						});
 						return;
 					} else if (path.tag === "item") {
-						console.error("Setting path to field", {
-							...path,
-							tag: "field",
-							field: element.item,
-						});
 						tracker.dispatch({
 							type: "set-editor-path",
 							path: { ...path, tag: "field", field: element.item },
@@ -312,6 +301,13 @@ export const renderSectionLayout = (
 						console.error("Cannot path to item", tracker.path, element.item);
 					}
 				});
+
+				spanElem.addEventListener("contextmenu", (e) => {
+					e.stopPropagation();
+					e.preventDefault();
+					console.error("settings")
+					
+				})
 
 				if (span.is_code) {
 					const roundedRectangleElem = document.createElement("div");
@@ -327,6 +323,23 @@ export const renderSectionLayout = (
                     `;
 					tracker.pageContainer.appendChild(roundedRectangleElem);
 				}
+
+				if (element.url) {
+					const urlElem = document.createElement("a");
+					urlElem.style.cssText = `
+                        position: absolute;
+                        left: ${x - span.font!.size / 5}px;
+                        top: ${y}px;
+                        width: ${span.bbox!.width() + (span.font!.size / 5) * 2}px;
+                        height: ${span.bbox!.height()}px;
+                        border: 1px solid lightblue;
+						z-index: 3;
+                    `;
+					urlElem.href = element.url;
+					tracker.pageContainer.appendChild(urlElem);
+				}
+
+
 				tracker.pageContainer.appendChild(spanElem);
 			});
 			break;

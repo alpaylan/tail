@@ -2,6 +2,7 @@ import SectionItemField from "./SectionItemField";
 import { useContext, useState } from "react";
 import { DocumentDispatchContext, EditorContext } from "@/components/State";
 import { ItemProps } from "./Section";
+import { ItemContent } from "cvdl-ts/dist/Resume";
 
 const ItemHeader = ({
 	itemContent,
@@ -38,10 +39,10 @@ const ItemHeader = ({
 			onClick={showAll}
 		>
 			<div style={{ display: "flex", flexDirection: "row" }}>
-				{itemContent[0].isActive && <span>{itemContent[0].value}</span>}
+				{itemContent[0].isActive && <span>{ItemContent.toString(itemContent[0].value)}</span>}
 				,&nbsp;
 				{itemContent[1].isActive && (
-					<span style={{ fontStyle: "italic" }}>{itemContent[1].value}</span>
+					<span style={{ fontStyle: "italic" }}>{ItemContent.toString(itemContent[1].value)}</span>
 				)}
 			</div>
 			<div>

@@ -201,7 +201,7 @@ function fillFonts(e, fonts) {
             })
             : e.font;
         if (span.text === " ") {
-            const width = Font.get_width(font, "-", fonts);
+            const width = Font.get_width(font, " ", fonts);
             spans.push({ ...span, font, width });
             continue;
         }

@@ -11,6 +11,7 @@ import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import * as Utils from "cvdl-ts/dist/Utils";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
+import { ResumeLayout } from "cvdl-ts/dist/ResumeLayout";
 
 const storage = new LocalStorage();
 
@@ -18,6 +19,7 @@ export type EditorState = {
 	resume: Resume.t;
 	dataSchemas: DataSchema.t[];
 	layoutSchemas: LayoutSchema[];
+	resumeLayout: ResumeLayout;
 	editorPath: ElementPath;
 	editHistory: DocumentAction[];
 };
@@ -155,22 +157,22 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 	const action = action_ as EditorAction;
 
 	if (action.type === "load-data-schemas") {
+		for (const schema of action.value) {
+			storage.save_data_schema(schema);
+		}
 		return {
-			resume: state.resume,
+			...state,
 			dataSchemas: action.value,
-			layoutSchemas: state.layoutSchemas,
-			editorPath: state.editorPath,
-			editHistory: state.editHistory,
 		};
 	}
 
 	if (action.type === "load-layout-schemas") {
+		for (const schema of action.value) {
+			storage.save_layout_schema(schema);
+		}
 		return {
-			resume: state.resume,
-			dataSchemas: state.dataSchemas,
+			...state,
 			layoutSchemas: action.value,
-			editorPath: state.editorPath,
-			editHistory: state.editHistory,
 		};
 	}
 
@@ -314,11 +316,9 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 	}
 
 	if (action.type === "move-item") {
-		console.error("move-item");
 		newState.sections = newState.sections.map((section) => {
 			const newSection = { ...section };
 			if (section.section_name === action.section) {
-				console.error(action.item, newSection.items.length, action.direction);
 				if (
 					(action.item <= 0 && action.direction === "up") ||
 					(action.item >= newSection.items.length - 1 &&
@@ -461,9 +461,8 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 
 	storage.save_resume(newState.name, newState);
 	return {
+		...state,
 		resume: newState,
-		dataSchemas: state.dataSchemas,
-		layoutSchemas: state.layoutSchemas,
 		editorPath: path,
 		editHistory: editHistory,
 	};

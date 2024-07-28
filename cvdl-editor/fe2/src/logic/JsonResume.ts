@@ -101,10 +101,17 @@ export type JsonResume = {
 };
 
 const get = (obj: any, key: string): ItemContent.t => {
-	return obj[key]
-		? { tag: "String", value: obj[key] }
-		: { tag: "String", value: "" };
+	return { tag: "String", value: obj[key] ?? "" }
 };
+
+const getUrl = (obj: any, key: string): ItemContent.t => {
+	return {
+		tag: "Url", value: {
+			text: obj[key] ?? "",
+			url: obj.url ?? ""
+		}
+	};
+}
 
 const injId = (content: { [key: string]: ItemContent.t }): Item => {
 	return {
@@ -133,9 +140,8 @@ export const convert = (json: JsonResume): Resume.t => {
 		injId({}),
 		json.work ? json.work.map((w) => {
 			return injId({
-				"name": get(w, "name"),
+				"name": getUrl(w, "name"),
 				"position": get(w, "position"),
-				"url": get(w, "url"),
 				"startDate": get(w, "startDate"),
 				"endDate": get(w, "endDate"),
 				"summary": get(w, "summary"),
@@ -156,9 +162,8 @@ export const convert = (json: JsonResume): Resume.t => {
 		injId({}),
 		json.volunteer ? json.volunteer.map(
 			(v) => (injId({
-				"organization": get(v, "organization"),
+				"organization": getUrl(v, "organization"),
 				"position": get(v, "position"),
-				"url": get(v, "url"),
 				"startDate": get(v, "startDate"),
 				"endDate": get(v, "endDate"),
 				"summary": get(v, "summary"),
@@ -181,8 +186,7 @@ export const convert = (json: JsonResume): Resume.t => {
 		injId({}),
 		json.education ? json.education.map(
 			(e) => (injId({
-				"institution": get(e, "institution"),
-				"url": get(e, "url"),
+				"institution": getUrl(e, "institution"),
 				"area": get(e, "area"),
 				"studyType": get(e, "studyType"),
 				"startDate": get(e, "startDate"),
@@ -220,10 +224,9 @@ export const convert = (json: JsonResume): Resume.t => {
 		injId({}),
 		json.certificates ? json.certificates.map(
 			(c) => (injId({
-				"name": get(c, "name"),
+				"name": getUrl(c, "name"),
 				"date": get(c, "date"),
 				"issuer": get(c, "issuer"),
-				"url": get(c, "url"),
 			}))) : []
 	);
 
@@ -234,10 +237,9 @@ export const convert = (json: JsonResume): Resume.t => {
 		injId({}),
 		json.publications ? json.publications.map(
 			(p) => (injId({
-				"name": get(p, "name"),
+				"name": getUrl(p, "name"),
 				"publisher": get(p, "publisher"),
 				"releaseDate": get(p, "releaseDate"),
-				"url": get(p, "url"),
 				"summary": get(p, "summary"),
 			}))) : []
 	);
@@ -310,7 +312,7 @@ export const convert = (json: JsonResume): Resume.t => {
 		injId({}),
 		json.projects ? json.projects.map(
 			(p) => (injId({
-				"name": get(p, "name"),
+				"name": getUrl(p, "name"),
 				"startDate": get(p, "startDate"),
 				"endDate": get(p, "endDate"),
 				"description": get(p, "description"),
@@ -321,7 +323,6 @@ export const convert = (json: JsonResume): Resume.t => {
 						value: h,
 					})) : [],
 				},
-				"url": get(p, "url"),
 			}))) : []
 	);
 
@@ -344,3 +345,123 @@ export const convert = (json: JsonResume): Resume.t => {
 		]
 	);
 };
+
+export const convertBack = (resume: Resume.t): JsonResume => {
+	let jsonResume: JsonResume = {};
+	const basics = resume.sections.find((section) => section.section_name === "Basics");
+
+	jsonResume.basics = {
+		name: (basics?.data.fields.name as ItemContent.PureString).value,
+		email: (basics?.data.fields.email as ItemContent.PureString).value,
+		phone: (basics?.data.fields.phone as ItemContent.PureString).value,
+	}
+
+	const work = resume.sections.find((section) => section.section_name === "Work Experience");
+
+	jsonResume.work = work?.items.map((item) => ({
+		name: (item.fields.name as ItemContent.Url).value.text,
+		position: (item.fields.position as ItemContent.PureString).value,
+		url: (item.fields.name as ItemContent.Url).value.url,
+		startDate: (item.fields.startDate as ItemContent.PureString).value,
+		endDate: (item.fields.endDate as ItemContent.PureString).value,
+		summary: (item.fields.summary as ItemContent.PureString).value,
+		highlights: (item.fields.highlights as ItemContent.List).value.map((highlight) => (highlight.value)),
+	}))
+
+	const volunteer = resume.sections.find((section) => section.section_name === "Volunteer Experience");
+
+	jsonResume.volunteer = volunteer?.items.map((item) => ({
+		organization: (item.fields.organization as ItemContent.Url).value.text,
+		position: (item.fields.position as ItemContent.PureString).value,
+		url: (item.fields.organization as ItemContent.Url).value.url,
+		startDate: (item.fields.startDate as ItemContent.PureString).value,
+		endDate: (item.fields.endDate as ItemContent.PureString).value,
+		summary: (item.fields.summary as ItemContent.PureString).value,
+		highlights: (item.fields.highlights as ItemContent.List).value.map((highlight) => (highlight.value)),
+	}))
+
+	const education = resume.sections.find((section) => section.section_name === "Education");
+
+	jsonResume.education = education?.items.map((item) => ({
+		institution: (item.fields.institution as ItemContent.Url).value.text,
+		url: (item.fields.institution as ItemContent.Url).value.url,
+		area: (item.fields.area as ItemContent.PureString).value,
+		studyType: (item.fields.studyType as ItemContent.PureString).value,
+		startDate: (item.fields.startDate as ItemContent.PureString).value,
+		endDate: (item.fields.endDate as ItemContent.PureString).value,
+		score: (item.fields.score as ItemContent.PureString).value,
+		courses: (item.fields.courses as ItemContent.List).value.map((course) => (course.value)),
+	}))
+
+	const awards = resume.sections.find((section) => section.section_name === "Awards");
+
+	jsonResume.awards = awards?.items.map((item) => ({
+		title: (item.fields.title as ItemContent.PureString).value,
+		date: (item.fields.date as ItemContent.PureString).value,
+		awarder: (item.fields.awarder as ItemContent.PureString).value,
+		summary: (item.fields.summary as ItemContent.PureString).value,
+	}))
+
+	const certificates = resume.sections.find((section) => section.section_name === "Certificates");
+
+	jsonResume.certificates = certificates?.items.map((item) => ({
+		name: (item.fields.name as ItemContent.Url).value.text,
+		url: (item.fields.name as ItemContent.Url).value.url,
+		date: (item.fields.date as ItemContent.PureString).value,
+		issuer: (item.fields.issuer as ItemContent.PureString).value,
+	}))
+
+	const publications = resume.sections.find((section) => section.section_name === "Publications");
+
+	jsonResume.publications = publications?.items.map((item) => ({
+		name: (item.fields.name as ItemContent.Url).value.text,
+		url: (item.fields.name as ItemContent.Url).value.url,
+		publisher: (item.fields.publisher as ItemContent.PureString).value,
+		releaseDate: (item.fields.releaseDate as ItemContent.PureString).value,
+		summary: (item.fields.summary as ItemContent.PureString).value,
+	}))
+
+	const skills = resume.sections.find((section) => section.section_name === "Skills");
+
+	jsonResume.skills = skills?.items.map((item) => ({
+		name: (item.fields.name as ItemContent.PureString).value,
+		level: (item.fields.level as ItemContent.PureString).value,
+		keywords: (item.fields.keywords as ItemContent.List).value.map((keyword) => (keyword.value)),
+	}))
+
+	const languages = resume.sections.find((section) => section.section_name === "Languages");
+
+	jsonResume.languages = languages?.items.map((item) => ({
+		language: (item.fields.language as ItemContent.PureString).value,
+		fluency: (item.fields.fluency as ItemContent.PureString).value,
+	}))
+
+	const interests = resume.sections.find((section) => section.section_name === "Interests");
+
+	jsonResume.interests = interests?.items.map((item) => ({
+		name: (item.fields.name as ItemContent.PureString).value,
+		keywords: (item.fields.keywords as ItemContent.List).value.map((keyword) => (keyword.value)),
+	}))
+
+	const references = resume.sections.find((section) => section.section_name === "References");
+
+	jsonResume.references = references?.items.map((item) => ({
+		name: (item.fields.name as ItemContent.PureString).value,
+		reference: (item.fields.reference as ItemContent.PureString).value,
+	}))
+
+	const projects = resume.sections.find((section) => section.section_name === "Projects");
+
+	jsonResume.projects = projects?.items.map((item) => ({
+		name: (item.fields.name as ItemContent.Url).value.text,
+		url: (item.fields.name as ItemContent.Url).value.url,
+		startDate: (item.fields.startDate as ItemContent.PureString).value,
+		endDate: (item.fields.endDate as ItemContent.PureString).value,
+		description: (item.fields.description as ItemContent.PureString).value,
+		highlights: (item.fields.highlights as ItemContent.List).value.map((highlight) => (highlight.value)),
+	}))
+
+
+
+	return jsonResume;
+}

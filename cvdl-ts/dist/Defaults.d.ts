@@ -1,8 +1,14 @@
+import * as Font from "./Font";
 import { DataSchema } from "./DataSchema";
 import { LayoutSchema } from "./LayoutSchema";
 import { ResumeLayout } from "./ResumeLayout";
 import * as Resume from "./Resume";
 import { ResumeSection } from "./Resume";
+export declare const TitleFont: Font.t;
+export declare const SectionTitleFont: Font.t;
+export declare const LargeFont: Font.t;
+export declare const MediumFont: Font.t;
+export declare const SmallFont: Font.t;
 export declare const Basics: DataSchema.t;
 export declare const BasicsLayout: LayoutSchema;
 export declare const Work: DataSchema.t;

@@ -26,7 +26,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FontDict = void 0;
 exports.render = render;
 const ResumeLayout_1 = require("./ResumeLayout");
-const Utils = __importStar(require("./Utils"));
 const fontkit = __importStar(require("fontkit"));
 const Layout = __importStar(require("./Layout"));
 const cartesian = (...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
@@ -38,7 +37,6 @@ class FontDict {
         const variants = cartesian(["Exo", "OpenSans", "SourceCodePro"], ["Medium", "Bold"], ["", "Italic"]);
         await Promise.all(variants.map(async ([name, weight, style]) => {
             const fontName = `${name}-${weight}${style}`;
-            console.error(`Loading font ${fontName}`);
             if (this.fonts.has(fontName)) {
                 console.log(`Font ${fontName} is already loaded`);
                 return;
@@ -58,7 +56,7 @@ class FontDict {
     }
 }
 exports.FontDict = FontDict;
-async function render({ resume, layout_schemas, data_schemas, resume_layout, bindings, fontDict, }) {
+function render({ resume, layout_schemas, data_schemas, resume_layout, bindings, fontDict, }) {
     // Compute the total usable width by subtracting the margins from the document width
     const width = resume_layout.width -
         (resume_layout.margin.left + resume_layout.margin.right);
@@ -67,7 +65,7 @@ async function render({ resume, layout_schemas, data_schemas, resume_layout, bin
         ? width
         : width - (0, ResumeLayout_1.vertical_margin)(resume_layout.column_type) / 2.0;
     const layouts = [];
-    console.error("Rendering sections...");
+    console.info("Rendering sections...");
     for (const section of resume.sections) {
         // Render Section Header
         // 1. Find the layout schema for the section

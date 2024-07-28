@@ -40,6 +40,10 @@ class LocalStorage {
         return Promise.resolve();
     }
     async initiate_storage() {
+        if (localStorage.getItem("version") !== "0.1.2") {
+            localStorage.clear();
+            localStorage.setItem("version", "0.1.2");
+        }
         if (!localStorage.getItem("resumes")) {
             localStorage.setItem("resumes", JSON.stringify([Defaults.DefaultResume]));
         }
@@ -155,10 +159,8 @@ class LocalStorage {
         if (!localStorage.getItem(path)) {
             const response = await fetch(`https://d2bnplhbawocbk.cloudfront.net/data/${path}`);
             const font_data = await response.arrayBuffer();
-            // localStorage.setItem(path, font_data.toString());
             return Buffer.from(font_data);
         }
-        throw new Error("Font not found");
     }
 }
 exports.LocalStorage = LocalStorage;
