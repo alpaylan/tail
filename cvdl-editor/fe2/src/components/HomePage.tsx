@@ -144,7 +144,6 @@ function App() {
 			return;
 		}
 		domRender({
-			resume_name: resume,
 			resume: state.resume!,
 			layout_schemas: state.layoutSchemas!,
 			data_schemas: state.dataSchemas!,
