@@ -21,9 +21,9 @@ export class LocalStorage implements Storage {
 	}
 
 	async initiate_storage(): Promise<void> {
-		if (localStorage.getItem("version") !== "0.1.2") {
+		if (localStorage.getItem("version") !== "0.1.3") {
 			localStorage.clear();
-			localStorage.setItem("version", "0.1.2");
+			localStorage.setItem("version", "0.1.3");
 		}
 
 		if (!localStorage.getItem("resumes")) {
