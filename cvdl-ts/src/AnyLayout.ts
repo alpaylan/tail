@@ -75,14 +75,14 @@ export class FontDict {
 	}
 }
 
-export async function render({
+export function render({
 	resume,
 	layout_schemas,
 	data_schemas,
 	resume_layout,
 	bindings,
 	fontDict,
-}: RenderProps): Promise<Layout.RenderedLayout[]> {
+}: RenderProps): Layout.RenderedLayout[] {
 	// Compute the total usable width by subtracting the margins from the document width
 	const width =
 		resume_layout.width -

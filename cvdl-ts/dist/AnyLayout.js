@@ -56,7 +56,7 @@ class FontDict {
     }
 }
 exports.FontDict = FontDict;
-async function render({ resume, layout_schemas, data_schemas, resume_layout, bindings, fontDict, }) {
+function render({ resume, layout_schemas, data_schemas, resume_layout, bindings, fontDict, }) {
     // Compute the total usable width by subtracting the margins from the document width
     const width = resume_layout.width -
         (resume_layout.margin.left + resume_layout.margin.right);

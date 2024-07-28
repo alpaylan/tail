@@ -47,6 +47,7 @@ function App() {
 		dataSchemas: [],
 		layoutSchemas: [],
 		editHistory: [],
+		resumeLayout: Defaults.DefaultResumeLayout
 	});
 	const [resume, setResume] = useState<string>("Default");
 	const [resumes, setResumes] = useState<string[] | null>(null);
@@ -143,7 +144,10 @@ function App() {
 		domRender({
 			resume_name: resume,
 			resume: state.resume!,
-			storage: new LocalStorage(),
+			layout_schemas: state.layoutSchemas!,
+			data_schemas: state.dataSchemas!,
+			resume_layout: state.resumeLayout!,
+			storage,
 			bindings,
 			fontDict,
 			state,
@@ -434,6 +438,22 @@ function App() {
 								id="pdf-container"
 								style={{ display: "flex", flexDirection: "column" }}
 							></div>
+							{/* {
+								(storageInitiated && state.resume && state.dataSchemas.length !== 0 && state.layoutSchemas.length !== 0) &&
+								<ReactLayout
+									resume_name={state!.resume.name}
+									resume={state!.resume}
+									data_schemas={state.dataSchemas}
+									layout_schemas={state.layoutSchemas}
+									resume_layout={state.resumeLayout}
+									bindings={bindings}
+									storage={storage}
+									fontDict={fontDict}
+									state={state}
+									dispatch={dispatch}
+									debug={false}
+								/>
+							} */}
 						</div>
 					</div>
 				</Layout>

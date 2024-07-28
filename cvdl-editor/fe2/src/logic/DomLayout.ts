@@ -302,6 +302,13 @@ export const renderSectionLayout = (
 					}
 				});
 
+				spanElem.addEventListener("contextmenu", (e) => {
+					e.stopPropagation();
+					e.preventDefault();
+					console.error("settings")
+					
+				})
+
 				if (span.is_code) {
 					const roundedRectangleElem = document.createElement("div");
 					roundedRectangleElem.style.cssText = `
