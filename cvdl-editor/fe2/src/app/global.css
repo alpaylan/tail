@@ -43,6 +43,15 @@ h2 {
   width: fit-content;
 }
 
+.sharp {
+  border-radius: 0px;
+}
+
+.selected {
+  background-color: black;
+  color: white;
+}
+
 .bordered-full {
   border: 1px solid rgb(var(--foreground-rgb));
   border-radius: 5px;
@@ -61,6 +70,12 @@ h2 {
   background: rgba(var(--foreground-rgb), 0.1);
   transition: background 0.2s;
 }
+
+.selected:hover {
+  background-color: rgba(var(--foreground-rgb), 0.7);
+  transition: background 0.2s;
+}
+
 
 input,
 textarea {

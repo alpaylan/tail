@@ -37,7 +37,6 @@ class FontDict {
         const variants = cartesian(["Exo", "OpenSans", "SourceCodePro"], ["Medium", "Bold"], ["", "Italic"]);
         await Promise.all(variants.map(async ([name, weight, style]) => {
             const fontName = `${name}-${weight}${style}`;
-            console.error(`Loading font ${fontName}`);
             if (this.fonts.has(fontName)) {
                 console.log(`Font ${fontName} is already loaded`);
                 return;
@@ -66,7 +65,7 @@ async function render({ resume, layout_schemas, data_schemas, resume_layout, bin
         ? width
         : width - (0, ResumeLayout_1.vertical_margin)(resume_layout.column_type) / 2.0;
     const layouts = [];
-    console.error("Rendering sections...");
+    console.info("Rendering sections...");
     for (const section of resume.sections) {
         // Render Section Header
         // 1. Find the layout schema for the section

@@ -155,6 +155,9 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 	const action = action_ as EditorAction;
 
 	if (action.type === "load-data-schemas") {
+		for (const schema of action.value) {
+			storage.save_data_schema(schema);
+		}
 		return {
 			resume: state.resume,
 			dataSchemas: action.value,
@@ -165,6 +168,9 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 	}
 
 	if (action.type === "load-layout-schemas") {
+		for (const schema of action.value) {
+			storage.save_layout_schema(schema);
+		}
 		return {
 			resume: state.resume,
 			dataSchemas: state.dataSchemas,

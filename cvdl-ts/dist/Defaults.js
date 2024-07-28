@@ -828,7 +828,7 @@ exports.DefaultSections = [
             fields: {
                 "name": { tag: "Url", value: { text: "Greatest Software Development Course", url: "www.google.com" } },
                 "date": { tag: "String", value: "01-01-1970" },
-                "issues": { tag: "String", value: "An course that teaches only to the best of the best" },
+                "issuer": { tag: "String", value: "An course that teaches only to the best of the best" },
             }
         },
         {
@@ -836,7 +836,7 @@ exports.DefaultSections = [
             fields: {
                 "name": { tag: "Url", value: { text: "Greatest Software Development Course", url: "www.google.com" } },
                 "date": { tag: "String", value: "01-01-1970" },
-                "issues": { tag: "String", value: "An course that teaches only to the best of the best" },
+                "issuer": { tag: "String", value: "An course that teaches only to the best of the best" },
             }
         },
     ]),
@@ -849,7 +849,7 @@ exports.DefaultSections = [
             fields: {
                 "name": { tag: "Url", value: { text: "How to develop good software", url: "www.google.com" } },
                 "publisher": { tag: "String", value: "SoftwareAwards.inc" },
-                "date": { tag: "String", value: "01-01-1970" },
+                "releaseDate": { tag: "String", value: "01-01-1970" },
                 "summary": { tag: "String", value: "A publication worthy of the best of the best" },
             }
         },
@@ -857,8 +857,8 @@ exports.DefaultSections = [
             id: Utils.randomString(),
             fields: {
                 "name": { tag: "Url", value: { text: "How to develop good software", url: "www.google.com" } },
-                "awarder": { tag: "String", value: "SoftwareAwards.inc" },
-                "date": { tag: "String", value: "01-01-1970" },
+                "publisher": { tag: "String", value: "SoftwareAwards.inc" },
+                "releaseDate": { tag: "String", value: "01-01-1970" },
                 "summary": { tag: "String", value: "A publication worthy of the best of the best" },
             }
         },
