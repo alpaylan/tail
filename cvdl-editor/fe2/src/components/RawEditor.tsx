@@ -1,17 +1,10 @@
 "use client";
 import { EditorContext, DocumentDispatchContext, EditorState } from "@/components/State";
-import * as Alignment from "cvdl-ts/dist/Alignment";
-import { DataSchema } from "cvdl-ts/dist/DataSchema";
-import { FontStyle, FontWeight } from "cvdl-ts/dist/Font";
-import { Color, ColorMap } from "cvdl-ts/dist/Layout";
-import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { useContext, useEffect, useState } from "react";
 import { match } from "ts-pattern";
 import { CustomNodeDefinition, CustomNodeProps, JsonData, JsonEditor as LibEditor } from 'json-edit-react'
 import { convert, convertBack, JsonResume } from "@/logic/JsonResume";
-
-const storage = new LocalStorage();
 
 type tab = "Resume" | "JsonResume" | "Layouts" | "Schemas";
 
@@ -93,7 +86,7 @@ const JsonEditor = (props: { currentTab: tab }) => {
 		rootName={"Resume"}
 		collapse={2}
 		collapseAnimationTime={0}
-		indent={8}
+		indent={2}
 		customText={{
 			ITEM_SINGLE: itemCountReplacement,
 			ITEMS_MULTIPLE: itemCountReplacement,

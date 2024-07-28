@@ -22,11 +22,10 @@ export type RenderResult = {
 };
 
 export type RenderProps = {
-	resume_name?: string;
-	resume?: Resume.t;
-	data_schemas?: DataSchema.t[];
-	layout_schemas?: LayoutSchema[];
-	resume_layout?: ResumeLayout;
+	resume: Resume.t;
+	data_schemas: DataSchema.t[];
+	layout_schemas: LayoutSchema[];
+	resume_layout: ResumeLayout;
 	storage: Storage;
 	bindings: Map<string, unknown>;
 	fontDict: FontDict;
@@ -35,8 +34,7 @@ export type RenderProps = {
 	dispatch: Dispatch<EditorAction>;
 };
 
-export const render = async ({
-	resume_name,
+export const render = ({
 	resume,
 	data_schemas,
 	layout_schemas,
@@ -46,49 +44,13 @@ export const render = async ({
 	fontDict,
 	state,
 	dispatch,
-	debug = false,
 }: RenderProps) => {
-	let start_time = Date.now();
-
-	if (!resume && !resume_name) {
-		throw "Rendering requires either resume_name or resume";
-	}
-
-	if (!resume) {
-		if (!resume_name) {
-			throw "Rendering requires resume_name";
-		}
-		resume = await storage.load_resume(resume_name);
-	}
-
-	if (!data_schemas) {
-		data_schemas = await Promise.all(
-			Resume.dataSchemas(resume!)
-				.map((schema) => storage.load_data_schema(schema)),
-		);
-	}
-
-	if (!layout_schemas) {
-		layout_schemas = await Promise.all(
-			Resume.layoutSchemas(resume!)
-				.map((schema) => storage.load_layout_schema(schema)),
-		);
-	}
-
-	if (!resume_layout) {
-		resume_layout = await storage.load_resume_layout(resume!.layout);
-	}
-
-	let end_time = Date.now();
-
-	console.info(`Loading time: ${end_time - start_time}ms`);
-
 	let container = document.getElementById("pdf-container")!;
 	container.innerHTML = "";
 
-	start_time = Date.now();
+	let start_time = Date.now();
 
-	const layouts = await anyRender({
+	const layouts = anyRender({
 		layout_schemas,
 		resume,
 		bindings,
@@ -97,7 +59,7 @@ export const render = async ({
 		storage,
 		fontDict,
 	});
-	end_time = Date.now();
+	let end_time = Date.now();
 	console.info(`Rendering time: ${end_time - start_time}ms`);
 
 	// Add the fonts to the document(@TODO: DO NOT HARDCODE THE FONTS)
