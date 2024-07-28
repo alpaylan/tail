@@ -42,7 +42,7 @@ const getTab = (state: EditorState, t: tab) => {
 }
 
 // The function definition
-const itemCountReplacement = ({ key, value }: {key: string, value: unknown}) => {
+const itemCountReplacement= ({ value }: {value: unknown}) => {
 	// This returns "Steve Rogers (Marvel)" for the node summary
 	if (value instanceof Object && 'name' in value && value.name instanceof String)
 		return `${value.name}`
