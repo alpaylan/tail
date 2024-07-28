@@ -1,6 +1,6 @@
 {
 	"name": "cvdl-ts",
-	"version": "1.0.23",
+	"version": "1.0.24",
 	"description": "Typescript Implementation of CVDL Compiler",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",

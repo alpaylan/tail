@@ -211,6 +211,13 @@ function fillFonts(e, fonts) {
         }
         const words = span.text.split(/\s+/);
         words.forEach((word, index) => {
+            // Fix html escape characters
+            word = word.replace(/&amp;/g, "&");
+            word = word.replace(/&lt;/g, "<");
+            word = word.replace(/&gt;/g, ">");
+            word = word.replace(/&quot;/g, '"');
+            word = word.replace(/&apos;/g, "'");
+            word = word.replace(/&#39;/g, "'");
             const width = Font.get_width(font, word, fonts);
             spans.push({ ...span, text: word, font, width });
             if (index < words.length - 1) {

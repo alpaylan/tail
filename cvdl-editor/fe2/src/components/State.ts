@@ -12,6 +12,7 @@ import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import * as Utils from "cvdl-ts/dist/Utils";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
 import { ResumeLayout } from "cvdl-ts/dist/ResumeLayout";
+import { match } from "ts-pattern";
 
 const storage = new LocalStorage();
 
@@ -361,7 +362,12 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 					};
 
 					data_schema.item_schema.forEach((field) => {
-						item.fields[field.name] = ItemContent.none();
+						item.fields[field.name] = match(field.type.tag).returnType<ItemContent.t>()
+							.with("String", "Date", "MarkdownString", "Number", () => ItemContent.string(""))
+							.with("List", () => ItemContent.list([]))
+							.with("Url", () => ItemContent.url("", ""))
+							.with("Type", "Types", () => ItemContent.none())
+							.exhaustive();
 					});
 
 					newSection.items.push(item);
