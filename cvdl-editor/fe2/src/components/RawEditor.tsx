@@ -8,7 +8,7 @@ import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { useContext, useEffect, useState } from "react";
 import { match } from "ts-pattern";
-import { CustomNodeDefinition, CustomNodeProps, JsonEditor as LibEditor } from 'json-edit-react'
+import { CustomNodeDefinition, CustomNodeProps, JsonData, JsonEditor as LibEditor } from 'json-edit-react'
 import { convert, convertBack, JsonResume } from "@/logic/JsonResume";
 
 const storage = new LocalStorage();
@@ -33,7 +33,7 @@ const Tabs = (props: { currentTab: tab, setCurrentTab: (n: tab) => void }) => {
 
 const getTab = (state: EditorState, t: tab) => {
 	return match(t)
-		.returnType<unknown>()
+		.returnType<JsonData>()
 		.with("Resume", () => state.resume)
 		.with("JsonResume", () => convertBack(state.resume))
 		.with("Layouts", () => state.layoutSchemas)
@@ -79,7 +79,7 @@ const JsonEditor = (props: { currentTab: tab }) => {
 
 	return <LibEditor
 		data={value}
-		setData={(d: unknown) => {
+		setData={(d: JsonData) => {
 			match(props.currentTab)
 				.returnType<void>()
 				.with("Resume", () => dispatch!({ type: "load", value: d }))
