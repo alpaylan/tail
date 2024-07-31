@@ -1,0 +1,25 @@
+{
+  "name": "cvdl-ts",
+  "version": "1.0.0",
+  "description": "A CLI tool for cvdl-ts",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "cvdl-ts": "./index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node index.js"
+  },
+  "keywords": [
+    "cvdl-ts"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alpaylan/tail"
+  },
+  "bugs": {
+    "url": "https://github.com/alpaylan/tail/issues"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/alpaylan/tail"
+}
