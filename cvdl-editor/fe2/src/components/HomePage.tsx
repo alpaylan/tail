@@ -59,6 +59,7 @@ function App() {
     const [currentTab, setCurrentTab] = useState<
         "content-editor" | "layout-editor" | "schema-editor" | "raw-editor"
     >("content-editor");
+    const [isEditorTabCollapsed, setIsEditorTabCollapsed] = useState<boolean>(false);
 
     useEffect(() => {
         require("../registerStaticFiles.js");
@@ -301,38 +302,59 @@ function App() {
             <DocumentDispatchContext.Provider value={dispatch}>
                 <Layout>
                     <div style={{ display: "flex", flexDirection: "row", height: '100%' }}>
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                margin: "20px",
-                            }}
-                        >
-                            <button
-                                className={`bordered ${currentTab === "content-editor" ? "selected" : ""}`}
-                                onClick={() => setCurrentTab("content-editor")}
-                            >
-                                Content Editor
-                            </button>
-                            <button
-                                className={`bordered ${currentTab === "layout-editor" ? "selected" : ""}`}
-                                onClick={() => setCurrentTab("layout-editor")}
-                            >
-                                Layout Editor
-                            </button>
-                            <button
-                                className={`bordered ${currentTab === "schema-editor" ? "selected" : ""}`}
-                                onClick={() => setCurrentTab("schema-editor")}
-                            >
-                                Schema Editor
-                            </button>
-                            <button
-                                className={`bordered ${currentTab === "raw-editor" ? "selected" : ""}`}
-                                onClick={() => setCurrentTab("raw-editor")}
-                            >
-                                Raw Editor
-                            </button>
-                        </div>
+                    <div className="flex flex-col m-5 w-40">
+              {isEditorTabCollapsed ? (
+                <>
+                  <button
+                    className={`border border-[rgb(var(--foreground-rgb))] rounded px-2.5 py-1.5 mb-1.5 w-full `}
+                    onClick={() => setIsEditorTabCollapsed((prev) => !prev)}
+                  >
+                    Editors +
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    className={`border border-[rgb(var(--foreground-rgb))] rounded px-2.5 py-1.5 mb-1.5 w-full`}
+                    onClick={() => setIsEditorTabCollapsed((prev) => !prev)}
+                  >
+                    Editors -
+                  </button>
+                  <button
+                    className={`border border-[rgb(var(--foreground-rgb))] rounded px-2.5 py-1.5 mb-1.5 w-full ${
+                      currentTab === "content-editor" ? "selected" : ""
+                    }`}
+                    onClick={() => setCurrentTab("content-editor")}
+                  >
+                    Content Editor
+                  </button>
+                  <button
+                    className={`border border-[rgb(var(--foreground-rgb))] rounded px-2.5 py-1.5 mb-1.5 w-full ${
+                      currentTab === "layout-editor" ? "selected" : ""
+                    }`}
+                    onClick={() => setCurrentTab("layout-editor")}
+                  >
+                    Layout Editor
+                  </button>
+                  <button
+                    className={`border border-[rgb(var(--foreground-rgb))] rounded px-2.5 py-1.5 mb-1.5 w-full ${
+                      currentTab === "schema-editor" ? "selected" : ""
+                    }`}
+                    onClick={() => setCurrentTab("schema-editor")}
+                  >
+                    Schema Editor
+                  </button>
+                  <button
+                    className={`border border-[rgb(var(--foreground-rgb))] rounded px-2.5 py-1.5 mb-1.5 w-full ${
+                      currentTab === "raw-editor" ? "selected" : ""
+                    }`}
+                    onClick={() => setCurrentTab("raw-editor")}
+                  >
+                    Raw Editor
+                  </button>
+                </>
+              )}
+            </div>
                         <div
                             style={{
                                 display: "flex",
