@@ -94,9 +94,13 @@ export module DataSchema {
 		schema_name: string;
 		header_schema: Field[];
 		item_schema: Field[];
-	}
+	};
 
-	export function dataSchema(schema_name: string, header_schema: Field[], item_schema: Field[]): t {
+	export function dataSchema(
+		schema_name: string,
+		header_schema: Field[],
+		item_schema: Field[],
+	): t {
 		return { schema_name, header_schema, item_schema };
 	}
 }

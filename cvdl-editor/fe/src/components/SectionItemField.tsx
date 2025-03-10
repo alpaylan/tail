@@ -22,7 +22,7 @@ const DefaultEditor = ({
 }: {
 	section: string;
 	item: number;
-	field: FieldProps & { value: ItemContent.PureString }
+	field: FieldProps & { value: ItemContent.PureString };
 }) => {
 	const state = useContext(EditorContext);
 	const dispatch = useContext(DocumentDispatchContext);
@@ -59,7 +59,10 @@ const DateEditor = ({
 }: {
 	section: string;
 	item: number;
-	field: FieldProps & { type: DocumentDataType.Date, value: ItemContent.PureString };
+	field: FieldProps & {
+		type: DocumentDataType.Date;
+		value: ItemContent.PureString;
+	};
 }) => {
 	const state = useContext(EditorContext);
 	const dispatch = useContext(DocumentDispatchContext);
@@ -125,7 +128,11 @@ const MarkdownEditor = ({
 	section,
 	item,
 	field,
-}: { section: string; item: number; field: FieldProps & { value: ItemContent.PureString } }) => {
+}: {
+	section: string;
+	item: number;
+	field: FieldProps & { value: ItemContent.PureString };
+}) => {
 	const state = useContext(EditorContext);
 	const dispatch = useContext(DocumentDispatchContext);
 
@@ -158,15 +165,19 @@ const ListEditor = ({
 	section,
 	item,
 	field,
-}: { section: string; item: number; field: FieldProps & { value: ItemContent.List } }) => {
+}: {
+	section: string;
+	item: number;
+	field: FieldProps & { value: ItemContent.List };
+}) => {
 	const state = useContext(EditorContext);
 	const dispatch = useContext(DocumentDispatchContext);
 	const [items, setItems] = useState(field.value.value);
 	return (
 		<div id={`${section}-${item}-${field.name}`}>
-			{
-				items.map((listItem, index) => {
-					return (<div>
+			{items.map((listItem, index) => {
+				return (
+					<div>
 						<input
 							type="text"
 							// TODO: This currently only works when you have List<String>
@@ -187,48 +198,62 @@ const ListEditor = ({
 									section: section,
 									item: item,
 									field: field.name,
-									value: { tag: "List", value: newItems }
+									value: { tag: "List", value: newItems },
 								});
 							}}
 						/>
-						<button onClick={() => {
-							const newItems = [...items, items[index]];
-							setItems(newItems);
-							dispatch!({
-								type: "field-update",
-								section: section,
-								item: item,
-								field: field.name,
-								value: { tag: "List", value: newItems }
-							});
-						}} className="bordered">+</button>
-						<button onClick={() => {
-							items.splice(index, 1);
-							const newItems = [...items];
-							setItems(newItems);
-							dispatch!({
-								type: "field-update",
-								section: section,
-								item: item,
-								field: field.name,
-								value: { tag: "List", value: newItems }
-							});
-						}} className="bordered">-</button>
+						<button
+							onClick={() => {
+								const newItems = [...items, items[index]];
+								setItems(newItems);
+								dispatch!({
+									type: "field-update",
+									section: section,
+									item: item,
+									field: field.name,
+									value: { tag: "List", value: newItems },
+								});
+							}}
+							className="bordered"
+						>
+							+
+						</button>
+						<button
+							onClick={() => {
+								items.splice(index, 1);
+								const newItems = [...items];
+								setItems(newItems);
+								dispatch!({
+									type: "field-update",
+									section: section,
+									item: item,
+									field: field.name,
+									value: { tag: "List", value: newItems },
+								});
+							}}
+							className="bordered"
+						>
+							-
+						</button>
 					</div>
-					)
-				})
-			}
-			<button onClick={() => {
-				const newItems = [...items, ItemContent.string("")];
-				setItems(newItems);
-				dispatch!({
-					type: "field-update",
-					section: section,
-					item: item,
-					field: field.name,
-					value: { tag: "List", value: newItems }
-				});
-			}} className="bordered">+</button>
+				);
+			})}
+			<button
+				onClick={() => {
+					const newItems = [...items, ItemContent.string("")];
+					setItems(newItems);
+					dispatch!({
+						type: "field-update",
+						section: section,
+						item: item,
+						field: field.name,
+						value: { tag: "List", value: newItems },
+					});
+				}}
+				className="bordered"
+			>
+				+
+			</button>
 		</div>
 	);
 };
@@ -237,7 +262,11 @@ const UrlEditor = ({
 	section,
 	item,
 	field,
-}: { section: string; item: number; field: FieldProps & { value: ItemContent.Url } }) => {
+}: {
+	section: string;
+	item: number;
+	field: FieldProps & { value: ItemContent.Url };
+}) => {
 	const state = useContext(EditorContext);
 	const dispatch = useContext(DocumentDispatchContext);
 	const [text, setText] = useState(field.value.value.text);
@@ -293,8 +322,6 @@ const UrlEditor = ({
 	);
 };
 
-
-
 const SectionItemField = ({
 	section,
 	item,
@@ -305,10 +332,18 @@ const SectionItemField = ({
 			<b> {field.name} </b>
 			{match(field.type)
 				.with({ tag: "String" }, () => (
-					<DefaultEditor section={section} item={item} field={field as FieldProps & { value: ItemContent.PureString }} />
+					<DefaultEditor
+						section={section}
+						item={item}
+						field={field as FieldProps & { value: ItemContent.PureString }}
+					/>
 				))
 				.with({ tag: "MarkdownString" }, () => (
-					<MarkdownEditor section={section} item={item} field={field as FieldProps & { value: ItemContent.PureString }} />
+					<MarkdownEditor
+						section={section}
+						item={item}
+						field={field as FieldProps & { value: ItemContent.PureString }}
+					/>
 				))
 				.with({ tag: "Date" }, () => (
 					<DefaultEditor
@@ -318,13 +353,25 @@ const SectionItemField = ({
 					/>
 				))
 				.with({ tag: "List" }, () => (
-					<ListEditor section={section} item={item} field={field as FieldProps & { value: ItemContent.List }} />
+					<ListEditor
+						section={section}
+						item={item}
+						field={field as FieldProps & { value: ItemContent.List }}
+					/>
 				))
 				.with({ tag: "Types" }, () => (
-					<DefaultEditor section={section} item={item} field={field as FieldProps & { value: ItemContent.PureString }} />
+					<DefaultEditor
+						section={section}
+						item={item}
+						field={field as FieldProps & { value: ItemContent.PureString }}
+					/>
 				))
 				.with({ tag: "Url" }, () => (
-					<UrlEditor section={section} item={item} field={field as FieldProps & { value: ItemContent.Url }} />
+					<UrlEditor
+						section={section}
+						item={item}
+						field={field as FieldProps & { value: ItemContent.Url }}
+					/>
 				))
 				.otherwise(() => (
 					<></>

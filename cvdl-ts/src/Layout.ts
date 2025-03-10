@@ -30,7 +30,6 @@ export type Binding = {
 	binding: string;
 };
 
-
 export type PreBindingElem = Elem.t & {
 	width: Width.t | Binding;
 	font: Font.t | Binding;

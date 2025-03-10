@@ -31,7 +31,10 @@ export class LocalStorage implements Storage {
 		}
 
 		if (!localStorage.getItem("data_schemas")) {
-			localStorage.setItem("data_schemas", JSON.stringify(Defaults.DefaultDataSchemas));
+			localStorage.setItem(
+				"data_schemas",
+				JSON.stringify(Defaults.DefaultDataSchemas),
+			);
 		}
 
 		if (!localStorage.getItem("section_layouts")) {
@@ -129,7 +132,9 @@ export class LocalStorage implements Storage {
 	}
 	save_resume(resume_name: string, resume_data: Resume.t): Promise<void> {
 		const resumes = JSON.parse(localStorage.getItem("resumes") || "[]");
-		let resumeIndex = resumes.findIndex((resume: any) => resume.name === resume_name);
+		let resumeIndex = resumes.findIndex(
+			(resume: any) => resume.name === resume_name,
+		);
 		if (resumeIndex === -1) {
 			resumes.push(resume_data);
 		} else {
@@ -140,9 +145,7 @@ export class LocalStorage implements Storage {
 		return Promise.resolve();
 	}
 	save_data_schema(data_schema: DataSchema.t): Promise<void> {
-		const schemas = JSON.parse(
-			localStorage.getItem("data_schemas") || "[]",
-		);
+		const schemas = JSON.parse(localStorage.getItem("data_schemas") || "[]");
 		const schema = schemas.find(
 			(schema: DataSchema.t) => schema.schema_name === data_schema.schema_name,
 		);
@@ -152,10 +155,7 @@ export class LocalStorage implements Storage {
 			schema.header_schema = data_schema.header_schema;
 			schema.item_schema = data_schema.item_schema;
 		}
-		localStorage.setItem(
-			"data_schemas",
-			JSON.stringify(schemas),
-		);
+		localStorage.setItem("data_schemas", JSON.stringify(schemas));
 
 		return Promise.resolve();
 	}
@@ -195,6 +195,5 @@ export class LocalStorage implements Storage {
 			const font_data = await response.arrayBuffer();
 			return Buffer.from(font_data);
 		}
-
-    }
+	}
 }

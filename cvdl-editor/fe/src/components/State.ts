@@ -1,11 +1,7 @@
 import * as Resume from "cvdl-ts/dist/Resume";
 
 import { ElementPath } from "cvdl-ts/dist/AnyLayout";
-import {
-	ResumeSection,
-	ItemContent,
-	Item,
-} from "cvdl-ts/dist/Resume";
+import { ResumeSection, ItemContent, Item } from "cvdl-ts/dist/Resume";
 import { createContext } from "react";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
@@ -34,87 +30,89 @@ export const DocumentDispatchContext =
 
 type DocumentAction =
 	| {
-		type: "field-update";
-		section: string;
-		item: number;
-		field: string;
-		value: ItemContent.t;
-	}
+			type: "field-update";
+			section: string;
+			item: number;
+			field: string;
+			value: ItemContent.t;
+	  }
 	| {
-		type: "load";
-		value: Resume.t;
-	}
+			type: "load";
+			value: Resume.t;
+	  }
 	| {
-		type: "layout-update";
-		value: LayoutSchema;
-	}
+			type: "layout-update";
+			value: LayoutSchema;
+	  }
 	| {
-		type: "delete-item";
-		section: string;
-		item: number;
-	}
+			type: "delete-item";
+			section: string;
+			item: number;
+	  }
 	| {
-		type: "add-empty-item";
-		section: string;
-	}
+			type: "add-empty-item";
+			section: string;
+	  }
 	| {
-		type: "copy-item";
-		section: string;
-		item: number;
-	}
+			type: "copy-item";
+			section: string;
+			item: number;
+	  }
 	| {
-		type: "move-item";
-		section: string;
-		item: number;
-		direction: "up" | "down";
-	}
+			type: "move-item";
+			section: string;
+			item: number;
+			direction: "up" | "down";
+	  }
 	| {
-		type: "add-item";
-		section: string;
-		item: Item;
-		index?: number;
-	}
+			type: "add-item";
+			section: string;
+			item: Item;
+			index?: number;
+	  }
 	| {
-		type: "add-section";
-		index?: number;
-		section: ResumeSection.t;
-	}
+			type: "add-section";
+			index?: number;
+			section: ResumeSection.t;
+	  }
 	| {
-		type: "add-empty-section";
-		section_name: string;
-		data_schema: string;
-		layout_schema: string;
-	}
+			type: "add-empty-section";
+			section_name: string;
+			data_schema: string;
+			layout_schema: string;
+	  }
 	| {
-		type: "delete-section";
-		section_name: string;
-	}
+			type: "delete-section";
+			section_name: string;
+	  }
 	| {
-		type: "section-layout-update";
-		section_name: string;
-		layout_schema_name: string;
-	}
+			type: "section-layout-update";
+			section_name: string;
+			layout_schema_name: string;
+	  }
 	| {
-		type: "add-layout";
-		layout: LayoutSchema;
-	}
+			type: "add-layout";
+			layout: LayoutSchema;
+	  }
 	| {
-		type: "create-new-resume";
-		resumeName: string;
-	}
+			type: "create-new-resume";
+			resumeName: string;
+	  }
 	| {
-		type: "switch-resume";
-		resumeName: string;
-	}
+			type: "switch-resume";
+			resumeName: string;
+	  }
 	| {
-		type: "undo";
-	} | {
-		type: "load-data-schemas";
-		value: DataSchema.t[];
-	} | {
-		type: "load-layout-schemas";
-		value: LayoutSchema[];
-	};
+			type: "undo";
+	  }
+	| {
+			type: "load-data-schemas";
+			value: DataSchema.t[];
+	  }
+	| {
+			type: "load-layout-schemas";
+			value: LayoutSchema[];
+	  };
 
 export type ContentEditorAction = {
 	type: "set-editor-path";
@@ -141,7 +139,7 @@ const reId = (resume: Resume.t) => {
 		return newSection;
 	});
 	return newResume;
-}
+};
 
 export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 	let newState = reId(state.resume);
@@ -283,7 +281,9 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 					};
 				}
 
-				document.getElementById(`${action.section}-${action.index}`)?.scrollIntoView();
+				document
+					.getElementById(`${action.section}-${action.index}`)
+					?.scrollIntoView();
 
 				if (!undoing) {
 					editHistory.push({
@@ -362,8 +362,11 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 					};
 
 					data_schema.item_schema.forEach((field) => {
-						item.fields[field.name] = match(field.type.tag).returnType<ItemContent.t>()
-							.with("String", "Date", "MarkdownString", "Number", () => ItemContent.string(""))
+						item.fields[field.name] = match(field.type.tag)
+							.returnType<ItemContent.t>()
+							.with("String", "Date", "MarkdownString", "Number", () =>
+								ItemContent.string(""),
+							)
 							.with("List", () => ItemContent.list([]))
 							.with("Url", () => ItemContent.url("", ""))
 							.with("Type", "Types", () => ItemContent.none())
@@ -378,7 +381,9 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 					};
 					setTimeout(() => {
 						document
-							.getElementById(`${action.section}-${newSection.items.length - 1}`)
+							.getElementById(
+								`${action.section}-${newSection.items.length - 1}`,
+							)
 							?.scrollIntoView({ behavior: "smooth", block: "center" });
 					}, 200);
 					if (!undoing) {
@@ -411,16 +416,18 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 
 	if (action.type === "add-empty-section") {
 		storage.load_layout_schema(action.layout_schema).then((layout_schema) => {
-			newState.sections.push(ResumeSection.resumeSection(
-				action.section_name,
-				layout_schema.data_schema_name,
-				action.layout_schema,
-				{
-					id: Utils.randomString(),
-					fields: {},
-				},
-				[]
-			));
+			newState.sections.push(
+				ResumeSection.resumeSection(
+					action.section_name,
+					layout_schema.data_schema_name,
+					action.layout_schema,
+					{
+						id: Utils.randomString(),
+						fields: {},
+					},
+					[],
+				),
+			);
 
 			if (!undoing) {
 				editHistory.push({

@@ -1,28 +1,38 @@
 "use client";
-import { EditorContext, DocumentDispatchContext, EditorState } from "@/components/State";
+import {
+	EditorContext,
+	DocumentDispatchContext,
+	EditorState,
+} from "@/components/State";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import { useContext, useEffect, useState } from "react";
 import { match } from "ts-pattern";
-import { CustomNodeDefinition, CustomNodeProps, JsonData, JsonEditor as LibEditor } from 'json-edit-react'
+import {
+	CustomNodeDefinition,
+	CustomNodeProps,
+	JsonData,
+	JsonEditor as LibEditor,
+} from "json-edit-react";
 import { convert, convertBack, JsonResume } from "@/logic/JsonResume";
 
 type tab = "Resume" | "JsonResume" | "Layouts" | "Schemas";
 
 const tabs: tab[] = ["Resume", "JsonResume", "Layouts", "Schemas"];
 
-const Tabs = (props: { currentTab: tab, setCurrentTab: (n: tab) => void }) => {
-
-	return (<div style={{ display: "flex", flexDirection: "row" }}>
-		{
-			tabs.map((tab) =>
+const Tabs = (props: { currentTab: tab; setCurrentTab: (n: tab) => void }) => {
+	return (
+		<div style={{ display: "flex", flexDirection: "row" }}>
+			{tabs.map((tab) => (
 				<button
 					className={`bordered sharp ${props.currentTab === tab ? "selected" : ""}`}
 					onClick={() => props.setCurrentTab(tab)}
-				>{tab}</button>
-			)
-		}
-	</div>);
-}
+				>
+					{tab}
+				</button>
+			))}
+		</div>
+	);
+};
 
 const getTab = (state: EditorState, t: tab) => {
 	return match(t)
@@ -31,25 +41,28 @@ const getTab = (state: EditorState, t: tab) => {
 		.with("JsonResume", () => convertBack(state.resume))
 		.with("Layouts", () => state.layoutSchemas)
 		.with("Schemas", () => state.dataSchemas)
-		.exhaustive()
-}
+		.exhaustive();
+};
 
 // The function definition
-const itemCountReplacement= ({ value }: {value: unknown}) => {
+const itemCountReplacement = ({ value }: { value: unknown }) => {
 	// This returns "Steve Rogers (Marvel)" for the node summary
-	if (value instanceof Object && 'name' in value && value.name instanceof String)
-		return `${value.name}`
+	if (
+		value instanceof Object &&
+		"name" in value &&
+		value.name instanceof String
+	)
+		return `${value.name}`;
 
-	if (value instanceof Object && 'section_name' in value)
-		return `${value.section_name}`
+	if (value instanceof Object && "section_name" in value)
+		return `${value.section_name}`;
 
-	return null
-}
-
+	return null;
+};
 
 export const IdNode: React.FC<CustomNodeProps> = ({ children }) => {
-	return null
-}
+	return null;
+};
 
 const idNodeDefinition: CustomNodeDefinition = {
 	// Condition is a regex to match ISO strings
@@ -58,7 +71,7 @@ const idNodeDefinition: CustomNodeDefinition = {
 	showOnView: false,
 	showOnEdit: false,
 	showEditTools: false,
-}
+};
 
 const JsonEditor = (props: { currentTab: tab }) => {
 	const state = useContext(EditorContext);
@@ -69,32 +82,38 @@ const JsonEditor = (props: { currentTab: tab }) => {
 		setValue(getTab(state!, props.currentTab));
 	}, [props.currentTab, state?.resume.name]);
 
-
-	return <LibEditor
-		data={value}
-		setData={(d: JsonData) => {
-			match(props.currentTab)
-				.returnType<void>()
-				.with("Resume", () => dispatch!({ type: "load", value: d }))
-				.with("JsonResume", () => dispatch!({ type: "load", value: convert(d as JsonResume) }))
-				.with("Layouts", () => dispatch!({ type: "load-layout-schemas", value: d }))
-				.with("Schemas", () => dispatch!({ type: "load-data-schemas", value: d }))
-				.exhaustive()
-			setValue(d)
-		}} // optional
-		minWidth="100%"
-		rootName={"Resume"}
-		collapse={2}
-		collapseAnimationTime={0}
-		indent={2}
-		customText={{
-			ITEM_SINGLE: itemCountReplacement,
-			ITEMS_MULTIPLE: itemCountReplacement,
-		}}
-		customNodeDefinitions={[idNodeDefinition]}
-	/>
-}
-
+	return (
+		<LibEditor
+			data={value}
+			setData={(d: JsonData) => {
+				match(props.currentTab)
+					.returnType<void>()
+					.with("Resume", () => dispatch!({ type: "load", value: d }))
+					.with("JsonResume", () =>
+						dispatch!({ type: "load", value: convert(d as JsonResume) }),
+					)
+					.with("Layouts", () =>
+						dispatch!({ type: "load-layout-schemas", value: d }),
+					)
+					.with("Schemas", () =>
+						dispatch!({ type: "load-data-schemas", value: d }),
+					)
+					.exhaustive();
+				setValue(d);
+			}} // optional
+			minWidth="100%"
+			rootName={"Resume"}
+			collapse={2}
+			collapseAnimationTime={0}
+			indent={2}
+			customText={{
+				ITEM_SINGLE: itemCountReplacement,
+				ITEMS_MULTIPLE: itemCountReplacement,
+			}}
+			customNodeDefinitions={[idNodeDefinition]}
+		/>
+	);
+};
 
 const RawEditor = () => {
 	const [currentTab, setCurrentTab] = useState<tab>("Resume");
@@ -103,7 +122,7 @@ const RawEditor = () => {
 			<Tabs currentTab={currentTab} setCurrentTab={setCurrentTab} />
 			<JsonEditor currentTab={currentTab} />
 		</div>
-	)
+	);
 };
 
 export default RawEditor;

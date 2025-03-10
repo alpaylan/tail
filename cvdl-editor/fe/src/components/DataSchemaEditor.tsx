@@ -7,7 +7,9 @@ import { EditorContext } from "./State";
 const DataSchemaEditor = () => {
 	const [dataSchema, setDataSchema] = useState<DataSchema.t | null>(null);
 	const state = useContext(EditorContext);
-	const dataSchemaNames = state?.dataSchemas.map((schema) => schema.schema_name);
+	const dataSchemaNames = state?.dataSchemas.map(
+		(schema) => schema.schema_name,
+	);
 	return (
 		<div>
 			<h1>Layout Editor</h1>

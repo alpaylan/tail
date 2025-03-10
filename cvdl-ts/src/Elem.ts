@@ -232,17 +232,17 @@ export function fillFonts(e: Elem, fonts: FontDict): Elem {
 	for (const span of simpleSpans) {
 		const font = e.is_markdown
 			? with_(e.font, {
-				style: span.is_italic ? "Italic" : e.font.style,
-				weight: span.is_bold ? "Bold" : e.font.weight,
-				name: span.is_code ? "SourceCodePro" : e.font.name,
+					style: span.is_italic ? "Italic" : e.font.style,
+					weight: span.is_bold ? "Bold" : e.font.weight,
+					name: span.is_code ? "SourceCodePro" : e.font.name,
 				})
 			: e.font;
 
-        if (span.text === " ") {
-            const width = Font.get_width(font, " ", fonts);
-            spans.push({ ...span, font, width });
-            continue;
-        }
+		if (span.text === " ") {
+			const width = Font.get_width(font, " ", fonts);
+			spans.push({ ...span, font, width });
+			continue;
+		}
 
 		if (span.text === "\n\n") {
 			spans.push({ ...span, font, width: 0 });
@@ -300,15 +300,18 @@ export function boundWidth(e: Elem, width: number): Elem {
 	}
 }
 
-
 type WithBinding<T> = {
 	[P in keyof T]: WithBinding<T[P]> | Binding;
-}
+};
 
 export function bind<T>(t: WithBinding<T>, bindings: Map<string, unknown>): T {
 	const result: any = {};
 	for (const [key, value] of Object.entries(t)) {
-		if (value instanceof Object && "binding" in value && typeof value.binding === "string") {
+		if (
+			value instanceof Object &&
+			"binding" in value &&
+			typeof value.binding === "string"
+		) {
 			const bound = bindings.get(value.binding);
 			if (bound === undefined) {
 				throw new Error(`Binding ${value.binding} not found`);
@@ -327,7 +330,7 @@ export function instantiate(
 	e: PreBindingElem,
 	section: Resume.Item,
 	fields: Field[],
-	bindings: Map<string, unknown>
+	bindings: Map<string, unknown>,
 ): Elem {
 	e = bind(e, bindings) as Elem;
 

@@ -52,15 +52,17 @@ export const render = async ({
 
 	if (!data_schemas) {
 		data_schemas = await Promise.all(
-			Resume.dataSchemas(resume)
-				.map((schema) => storage.load_data_schema(schema)),
+			Resume.dataSchemas(resume).map((schema) =>
+				storage.load_data_schema(schema),
+			),
 		);
 	}
 
 	if (!layout_schemas) {
 		layout_schemas = await Promise.all(
-			Resume.layoutSchemas(resume)
-				.map((schema) => storage.load_layout_schema(schema)),
+			Resume.layoutSchemas(resume).map((schema) =>
+				storage.load_layout_schema(schema),
+			),
 		);
 	}
 

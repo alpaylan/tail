@@ -55,14 +55,15 @@ export class FileStorage implements Storage {
 		for (const [key, value] of bindings) {
 			bindingsObject[key] = value;
 		}
-		fs.writeFileSync(this.dir + "/bindings.json", JSON.stringify(bindingsObject));
+		fs.writeFileSync(
+			this.dir + "/bindings.json",
+			JSON.stringify(bindingsObject),
+		);
 		return Promise.resolve();
 	}
 
 	load_font(fontName: string): Promise<Buffer> {
-		return Promise.resolve(
-			fs.readFileSync(this.dir + fontName + ".ttf"),
-		);
+		return Promise.resolve(fs.readFileSync(this.dir + fontName + ".ttf"));
 	}
 
 	initiate_storage(): Promise<void> {
@@ -133,8 +134,8 @@ export class FileStorage implements Storage {
 	async load_data_schema(schema_name: string): Promise<DataSchema.t> {
 		const data_schemas = fs.readFileSync(this.dir + "/data-schemas.json");
 		return Promise.resolve(
-				JSON.parse(data_schemas.toString()).find(
-					(schema: any) => schema.schema_name === schema_name,
+			JSON.parse(data_schemas.toString()).find(
+				(schema: any) => schema.schema_name === schema_name,
 			),
 		);
 	}

@@ -14,11 +14,11 @@ import * as Resume from "cvdl-ts/dist/Resume";
 
 type LensStep =
 	| {
-		attribute: string;
-	}
+			attribute: string;
+	  }
 	| {
-		index: number;
-	};
+			index: number;
+	  };
 
 type Lens = LensStep[];
 
@@ -922,14 +922,14 @@ const AddNewLayout = (props: {
 									setAddingSection(!addingSection);
 									const newLayout = props.copy
 										? state?.layoutSchemas.find(
-											(schema) => schema.schema_name === layoutSchema,
-										)!
+												(schema) => schema.schema_name === layoutSchema,
+											)!
 										: new LayoutSchema(
-											sectionName,
-											dataSchema,
-											Stack.default_(),
-											Stack.default_(),
-										);
+												sectionName,
+												dataSchema,
+												Stack.default_(),
+												Stack.default_(),
+											);
 									newLayout.data_schema_name = dataSchema;
 									newLayout.schema_name = sectionName;
 
@@ -1106,21 +1106,22 @@ const LayoutEditor = () => {
 			) : (
 				creatingNewLayoutSchema && (
 					<div>
-						{resumeContext && Resume.dataSchemas(resumeContext).map((name, index) => {
-							return (
-								<button
-									key={index}
-									onClick={() => {
-										const dataSchema = state?.dataSchemas.find(
-											(schema) => schema.schema_name === name,
-										)!;
-										setDataSchema(dataSchema);
-									}}
-								>
-									{name}
-								</button>
-							);
-						})}
+						{resumeContext &&
+							Resume.dataSchemas(resumeContext).map((name, index) => {
+								return (
+									<button
+										key={index}
+										onClick={() => {
+											const dataSchema = state?.dataSchemas.find(
+												(schema) => schema.schema_name === name,
+											)!;
+											setDataSchema(dataSchema);
+										}}
+									>
+										{name}
+									</button>
+								);
+							})}
 						<button onClick={() => setCreatingNewLayoutSchema(false)}>
 							Cancel
 						</button>

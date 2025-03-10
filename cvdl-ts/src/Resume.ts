@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
-
 export type t = {
 	name: string;
 	layout: string;
 	sections: ResumeSection.t[];
-}
+};
 
-export function resume(name: string, layout: string, sections: ResumeSection.t[]): t {
+export function resume(
+	name: string,
+	layout: string,
+	sections: ResumeSection.t[],
+): t {
 	return {
 		name,
 		layout,
@@ -24,14 +27,13 @@ export function layoutSchemas(resume: t): string[] {
 }
 
 export module ResumeSection {
-
 	export type t = {
 		section_name: string;
 		data_schema: string;
 		layout_schema: string;
-		data: Item,
+		data: Item;
 		items: Item[];
-	}
+	};
 
 	export function resumeSection(
 		section_name: string,
@@ -48,7 +50,6 @@ export module ResumeSection {
 			items,
 		};
 	}
-
 }
 
 export module ItemContent {
@@ -64,7 +65,7 @@ export module ItemContent {
 	export type List = {
 		tag: "List";
 		value: PureString[];
-	}
+	};
 
 	export type Url = {
 		tag: "Url";
@@ -104,10 +105,9 @@ export module ItemContent {
 				return `[${content.value.text}](${content.value.url})`;
 		}
 	}
-
 }
 
 export type Item = {
-	id: string,
-	fields: { [key: string]: ItemContent.t }
+	id: string;
+	fields: { [key: string]: ItemContent.t };
 };

@@ -57,11 +57,6 @@ export function get_height(f: Font, fonts: FontDict): number {
 
 export type FontWeight = "Medium" | "Bold";
 
-export type FontStyle =
-    | "Normal"
-    | "Italic"
+export type FontStyle = "Normal" | "Italic";
 
-export const FontStyles = [
-    "Normal",
-    "Italic",
-] as const;
+export const FontStyles = ["Normal", "Italic"] as const;

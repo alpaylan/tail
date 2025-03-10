@@ -15,6 +15,7 @@ import { EditorAction, EditorState } from "@/components/State";
 import { ColorMap } from "cvdl-ts/dist/Layout";
 import { Font, Layout } from "cvdl-ts";
 import * as Elem from "cvdl-ts/dist/Elem";
+import { Box } from "cvdl-ts/dist/Box";
 
 export type RenderResult = {
 	blob: Blob;
@@ -22,6 +23,7 @@ export type RenderResult = {
 };
 
 export type RenderProps = {
+	resume_name: string;
 	resume: Resume.t;
 	data_schemas: DataSchema.t[];
 	layout_schemas: LayoutSchema[];
@@ -34,7 +36,7 @@ export type RenderProps = {
 	dispatch: Dispatch<EditorAction>;
 };
 
-export const render = ({
+export const ReactLayout = ({
 	resume,
 	data_schemas,
 	layout_schemas,
@@ -44,12 +46,8 @@ export const render = ({
 	fontDict,
 	state,
 	dispatch,
+	debug = false,
 }: RenderProps) => {
-	let container = document.getElementById("pdf-container")!;
-	container.innerHTML = "";
-
-	let start_time = Date.now();
-
 	const layouts = anyRender({
 		layout_schemas,
 		resume,
@@ -59,27 +57,13 @@ export const render = ({
 		storage,
 		fontDict,
 	});
-	let end_time = Date.now();
-	console.info(`Rendering time: ${end_time - start_time}ms`);
 
-	// Add the fonts to the document(@TODO: DO NOT HARDCODE THE FONTS)
-	try {
-		console.log("Registering fonts...");
-		for (const [font_name, font] of fontDict.fonts.entries()) {
-			console.log(`Registering font ${font_name}`);
-			// @ts-ignore
-			document.fonts.add(new FontFace(font_name, font.stream.buffer));
-		}
-	} catch (e) {
-		console.error(e);
-	}
-
-	console.log("Rendering the document...");
-
+	let firstPage: RenderedSpan[] = [];
 	let tracker = {
+		pages: [firstPage],
 		page: 0,
 		path: null,
-		pageContainer: container,
+		pageContainer: firstPage,
 		height: 0,
 		state,
 		dispatch,
@@ -95,14 +79,80 @@ export const render = ({
 			layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;
 	}
 
-	console.log("Rendering is completed. Saving the document...");
-
-	console.log("Document is saved to output.pdf");
+	return (
+		<div style={{ display: "flex", flexDirection: "column" }}>
+			{tracker.pages.map((page, index) => (
+				<div
+					id={`page-${index}`}
+					style={{
+						position: "relative",
+						width: `${tracker.layout.width}px`,
+						height: `${tracker.layout.height}px`,
+						border: "1px solid black",
+					}}
+				>
+					{page.map((span) => (
+						<>
+							<span
+								onClick={(e) => {
+									if (span.path.tag === "section") {
+										tracker.dispatch({
+											type: "set-editor-path",
+											path: { ...span.path },
+										});
+										return;
+									} else if (span.path.tag === "item") {
+										tracker.dispatch({
+											type: "set-editor-path",
+											path: { ...span.path, tag: "field", field: span.item },
+										});
+									} else {
+										console.error(
+											"Cannot path to item",
+											tracker.path,
+											span.item,
+										);
+									}
+								}}
+								style={{
+									position: "absolute",
+									left: span.left + "px",
+									top: span.top + "px",
+									fontFamily: `"${Font.full_name(span.font!)}", sans-serif`,
+									fontSize: span.font.size + "px",
+									fontStyle: span.font.style,
+									fontWeight: span.font.weight,
+									backgroundColor: span.backgroundColor,
+								}}
+							>
+								{span.text}
+							</span>
+							{span.is_code && (
+								<div
+									style={{
+										position: "absolute",
+										left: span.left - span.font.size / 5 + "px",
+										top: span.top + "px",
+										width: span.bbox.width() + (span.font.size / 5) * 2 + "px",
+										height: span.bbox.height() + "px",
+										borderRadius: "5px",
+										border: "1px solid black",
+										backgroundColor: "rgba(0, 0, 0, 0.05)",
+									}}
+								></div>
+							)}
+						</>
+					))}
+				</div>
+			))}
+		</div>
+	);
 };
 
 type Tracker = {
 	page: number;
-	pageContainer: HTMLElement;
+	pages: RenderedSpan[][];
+	pageContainer: RenderedSpan[];
 	height: number;
 	layout: ResumeLayout;
 	fontDict: FontDict;
@@ -111,20 +161,25 @@ type Tracker = {
 	path: ElementPath | null;
 };
 
+type RenderedSpan = {
+	text: string;
+	item: string;
+	path: ElementPath;
+	bbox: Box;
+	is_code: boolean;
+	url: string | null;
+	left: number;
+	top: number;
+	font: Font.t;
+	backgroundColor: string;
+};
+
 const getPageContainer = (page: number, tracker: Tracker) => {
-	if (document.getElementById(`page-${page}`)) {
-		return document.getElementById(`page-${page}`)!;
+	if (tracker.pages.length - 1 >= page) {
+		return tracker.pages[page];
 	} else {
-		let pageContainer = document.createElement("div");
-		pageContainer.id = `page-${page}`;
-		pageContainer.style.cssText = `
-            position: relative;
-            width: ${tracker.layout.width}px;
-            height: ${tracker.layout.height}px;
-            border: 1px solid black;
-        `;
-		document.getElementById("pdf-container")!.appendChild(pageContainer);
-		return pageContainer;
+		tracker.pages.push([]);
+		return tracker.pages[tracker.pages.length - 1];
 	}
 };
 
@@ -167,7 +222,6 @@ export const renderSectionLayout = (
 		}
 		case "Row": {
 			const row = layout as Layout.RenderedRow;
-
 			for (const elem of row.elements) {
 				renderSectionLayout(elem, {
 					...tracker,
@@ -183,7 +237,6 @@ export const renderSectionLayout = (
 				return;
 			}
 
-			
 			const spans =
 				element.alignment === "Justified"
 					? element.spans!
@@ -219,90 +272,19 @@ export const renderSectionLayout = (
 					layout.bounding_box.top_left.x +
 					tracker.layout.margin.left +
 					span.bbox!.top_left.x;
-
 				tracker.pageContainer = getPageContainer(page, tracker);
-				const spanElem = document.createElement("span");
-				spanElem.innerText = span.text;
-				spanElem.style.cssText = `
-                    position: absolute;
-                    left: ${x}px;
-                    top: ${y}px;
-                    font-family: "${Font.full_name(span.font!)}", sans-serif;
-                    font-size: ${span.font!.size}px;
-                    font-style: ${span.font!.style};
-                    font-weight: ${span.font!.weight};
-                    background-color: ${ColorMap[element.background_color]};
-                `;
-
-				spanElem.addEventListener("mouseover", () => {
-					spanElem.style.backgroundColor = "lightgray";
-					spanElem.style.cursor = "pointer";
+				tracker.pageContainer.push({
+					text: span.text,
+					item: element.item,
+					path: layout.path ?? tracker.path ?? { tag: "none" },
+					is_code: span.is_code,
+					url: element.url,
+					left: x,
+					top: y,
+					font: span.font!,
+					bbox: span.bbox!,
+					backgroundColor: `${ColorMap[element.background_color]}`,
 				});
-
-				spanElem.addEventListener("mouseout", () => {
-					spanElem.style.backgroundColor = ColorMap[element.background_color];
-					spanElem.style.animation = "none";
-				});
-
-				spanElem.addEventListener("click", (e) => {
-					e.stopPropagation();
-					const path = layout.path ?? tracker.path ?? { tag: "none" };
-
-					if (path.tag === "section") {
-						tracker.dispatch({
-							type: "set-editor-path",
-							path: { ...path },
-						});
-						return;
-					} else if (path.tag === "item") {
-						tracker.dispatch({
-							type: "set-editor-path",
-							path: { ...path, tag: "field", field: element.item },
-						});
-					} else {
-						console.error("Cannot path to item", tracker.path, element.item);
-					}
-				});
-
-				spanElem.addEventListener("contextmenu", (e) => {
-					e.stopPropagation();
-					e.preventDefault();
-					console.error("settings")
-					
-				})
-
-				if (span.is_code) {
-					const roundedRectangleElem = document.createElement("div");
-					roundedRectangleElem.style.cssText = `
-                        position: absolute;
-                        left: ${x - span.font!.size / 5}px;
-                        top: ${y}px;
-                        width: ${span.bbox!.width() + (span.font!.size / 5) * 2}px;
-                        height: ${span.bbox!.height()}px;
-                        border-radius: 5px;
-                        border: 1px solid black;
-                        background-color: rgba(0, 0, 0, 0.05);
-                    `;
-					tracker.pageContainer.appendChild(roundedRectangleElem);
-				}
-
-				if (element.url) {
-					const urlElem = document.createElement("a");
-					urlElem.style.cssText = `
-                        position: absolute;
-                        left: ${x - span.font!.size / 5}px;
-                        top: ${y}px;
-                        width: ${span.bbox!.width() + (span.font!.size / 5) * 2}px;
-                        height: ${span.bbox!.height()}px;
-                        border: 1px solid lightblue;
-						z-index: 3;
-                    `;
-					urlElem.href = element.url;
-					tracker.pageContainer.appendChild(urlElem);
-				}
-
-
-				tracker.pageContainer.appendChild(spanElem);
 			});
 			break;
 		}

@@ -10,23 +10,23 @@ import * as Resume from "./Resume";
 
 export type ElementPath =
 	| {
-		tag: "none";
-	}
+			tag: "none";
+	  }
 	| {
-		tag: "section";
-		section: string;
-	}
+			tag: "section";
+			section: string;
+	  }
 	| {
-		tag: "item";
-		section: string;
-		item: number;
-	}
+			tag: "item";
+			section: string;
+			item: number;
+	  }
 	| {
-		tag: "field";
-		section: string;
-		item: number;
-		field: string;
-	};
+			tag: "field";
+			section: string;
+			item: number;
+			field: string;
+	  };
 
 export type RenderProps = {
 	resume: Resume.t;
@@ -38,8 +38,8 @@ export type RenderProps = {
 	fontDict?: FontDict;
 };
 
-const cartesian =
-	(...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
+const cartesian = (...a) =>
+	a.reduce((a, b) => a.flatMap((d) => b.map((e) => [d, e].flat())));
 
 export class FontDict {
 	fonts: Map<string, fontkit.Font>;
@@ -49,7 +49,11 @@ export class FontDict {
 	}
 
 	async load_fonts(storage: Storage) {
-		const variants = cartesian(["Exo", "OpenSans", "SourceCodePro"], ["Medium", "Bold"], ["", "Italic"]);
+		const variants = cartesian(
+			["Exo", "OpenSans", "SourceCodePro"],
+			["Medium", "Bold"],
+			["", "Italic"],
+		);
 
 		await Promise.all(
 			variants.map(async ([name, weight, style]) => {
@@ -61,8 +65,9 @@ export class FontDict {
 				const font_data = await storage.load_font(fontName);
 				const fontkit_font = fontkit.create(font_data);
 				this.fonts.set(fontName, fontkit_font as fontkit.Font);
-			}));
-		
+			}),
+		);
+
 		return this;
 	}
 
@@ -131,7 +136,7 @@ export function render({
 					layout_schema.header_layout_schema,
 					section.data,
 					data_schema.header_schema,
-					bindings
+					bindings,
 				),
 				column_width,
 				fontDict,
@@ -156,7 +161,7 @@ export function render({
 						layout_schema.item_layout_schema,
 						item,
 						data_schema.item_schema,
-						bindings
+						bindings,
 					),
 					column_width,
 					fontDict,
