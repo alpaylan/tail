@@ -137,7 +137,9 @@ export const mergeSpans = (spans: Elem.Span[]): Elem.Span[] => {
 			currentSpan.font === spans[i].font &&
 			currentSpan.is_code === spans[i].is_code &&
 			currentSpan.is_bold === spans[i].is_bold &&
-			currentSpan.is_italic === spans[i].is_italic
+			currentSpan.is_italic === spans[i].is_italic &&
+			currentSpan.is_emoji === spans[i].is_emoji &&
+			currentSpan.emoji_url === spans[i].emoji_url
 		) {
 			currentSpan.text += spans[i].text;
 			currentSpan.bbox!.bottom_right = spans[i].bbox!.bottom_right;
@@ -183,20 +185,21 @@ export const renderSectionLayout = (
 				return;
 			}
 
-			const spans =
-				element.alignment === "Justified"
-					? element.spans!
-					: mergeSpans(element.spans!);
-			spans.forEach((span) => {
-				if (
-					!span ||
-					span.text === "" ||
-					span.text === " " ||
-					span.text === "\n" ||
-					span.text === "\n\n"
-				) {
-					return;
-				}
+				const spans =
+					element.alignment === "Justified"
+						? element.spans!
+						: mergeSpans(element.spans!);
+				spans.forEach((span) => {
+					if (
+						!span ||
+						(!span.is_emoji &&
+							(span.text === "" ||
+								span.text === " " ||
+								span.text === "\n" ||
+								span.text === "\n\n"))
+					) {
+						return;
+					}
 
 				const absoluteY =
 					layout.bounding_box.top_left.y +
@@ -204,9 +207,9 @@ export const renderSectionLayout = (
 					span.bbox!.top_left.y;
 				let page = Math.floor(
 					absoluteY /
-						(tracker.layout.height -
-							tracker.layout.margin.top -
-							tracker.layout.margin.bottom),
+					(tracker.layout.height -
+						tracker.layout.margin.top -
+						tracker.layout.margin.bottom),
 				);
 				const currentPageY =
 					absoluteY %
@@ -214,13 +217,50 @@ export const renderSectionLayout = (
 						tracker.layout.margin.top -
 						tracker.layout.margin.bottom);
 				const y = currentPageY + tracker.layout.margin.top;
-				const x =
-					layout.bounding_box.top_left.x +
-					tracker.layout.margin.left +
-					span.bbox!.top_left.x;
+					const x =
+						layout.bounding_box.top_left.x +
+						tracker.layout.margin.left +
+						span.bbox!.top_left.x;
 
-				tracker.pageContainer = getPageContainer(page, tracker);
-				const spanElem = document.createElement("span");
+					const selectPath = () => {
+						const path = layout.path ?? tracker.path ?? { tag: "none" };
+
+						if (path.tag === "section") {
+							tracker.dispatch({
+								type: "set-editor-path",
+								path: { ...path },
+							});
+							return;
+						} else if (path.tag === "item") {
+							tracker.dispatch({
+								type: "set-editor-path",
+								path: { ...path, tag: "field", field: element.item },
+							});
+						} else {
+							console.error("Cannot path to item", tracker.path, element.item);
+						}
+					};
+
+					tracker.pageContainer = getPageContainer(page, tracker);
+					const spanElem = document.createElement("span");
+					if (span.is_emoji && span.emoji_url) {
+						const imgElem = document.createElement("img");
+					const imgSize = span.font!.size * 1.6;
+					imgElem.src = span.emoji_url;
+					imgElem.style.cssText = `
+						position: absolute;
+						left: ${x}px;
+						top: ${y - span.font!.size * 0.2}px;
+							width: ${imgSize}px;
+							height: ${imgSize}px;
+						`;
+						imgElem.addEventListener("click", (e) => {
+							e.stopPropagation();
+							selectPath();
+						});
+						tracker.pageContainer.appendChild(imgElem);
+						return;
+					}
 				spanElem.innerText = span.text;
 				spanElem.style.cssText = `
                     position: absolute;
@@ -243,25 +283,10 @@ export const renderSectionLayout = (
 					spanElem.style.animation = "none";
 				});
 
-				spanElem.addEventListener("click", (e) => {
-					e.stopPropagation();
-					const path = layout.path ?? tracker.path ?? { tag: "none" };
-
-					if (path.tag === "section") {
-						tracker.dispatch({
-							type: "set-editor-path",
-							path: { ...path },
-						});
-						return;
-					} else if (path.tag === "item") {
-						tracker.dispatch({
-							type: "set-editor-path",
-							path: { ...path, tag: "field", field: element.item },
-						});
-					} else {
-						console.error("Cannot path to item", tracker.path, element.item);
-					}
-				});
+					spanElem.addEventListener("click", (e) => {
+						e.stopPropagation();
+						selectPath();
+					});
 
 				spanElem.addEventListener("contextmenu", (e) => {
 					e.stopPropagation();

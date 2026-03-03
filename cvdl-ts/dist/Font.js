@@ -37,7 +37,4 @@ function get_height(f, fonts) {
     const font = fonts.get_font(full_name(f));
     return (font.bbox.height / font.unitsPerEm) * f.size;
 }
-exports.FontStyles = [
-    "Normal",
-    "Italic",
-];
+exports.FontStyles = ["Normal", "Italic"];

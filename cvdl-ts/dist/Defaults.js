@@ -108,7 +108,7 @@ exports.WorkLayout = new LayoutSchema_1.LayoutSchema("Work Experience", "Work Ex
     item: "Work Experience",
     width: Width.percent(100),
     alignment: "Center",
-    font: exports.SectionTitleFont
+    font: exports.SectionTitleFont,
 }), Stack.from({
     elements: [
         Elem.from({
@@ -185,7 +185,7 @@ exports.VolunteerLayout = new LayoutSchema_1.LayoutSchema("Volunteer Experience"
     item: "Volunteer Experience",
     width: Width.percent(100),
     alignment: "Center",
-    font: exports.SectionTitleFont
+    font: exports.SectionTitleFont,
 }), Stack.from({
     elements: [
         Elem.from({
@@ -264,7 +264,7 @@ exports.EducationLayout = new LayoutSchema_1.LayoutSchema("Education", "Educatio
     item: "Education",
     width: Width.percent(100),
     alignment: "Center",
-    font: exports.SectionTitleFont
+    font: exports.SectionTitleFont,
 }), Stack.from({
     elements: [
         Elem.from({
@@ -341,7 +341,7 @@ exports.AwardsLayout = new LayoutSchema_1.LayoutSchema("Awards", "Awards", Elem.
     item: "Awards",
     width: Width.percent(100),
     alignment: "Center",
-    font: exports.SectionTitleFont
+    font: exports.SectionTitleFont,
 }), Stack.from({
     elements: [
         Elem.from({
@@ -390,7 +390,7 @@ exports.CertificatesLayout = new LayoutSchema_1.LayoutSchema("Certificates", "Ce
     item: "Certificates",
     width: Width.percent(100),
     alignment: "Center",
-    font: exports.SectionTitleFont
+    font: exports.SectionTitleFont,
 }), Stack.from({
     elements: [
         Elem.from({
@@ -435,7 +435,7 @@ exports.PublicationsLayout = new LayoutSchema_1.LayoutSchema("Publications", "Pu
     item: "Publications",
     width: Width.percent(100),
     alignment: "Center",
-    font: exports.SectionTitleFont
+    font: exports.SectionTitleFont,
 }), Stack.from({
     elements: [
         Elem.from({
@@ -482,7 +482,7 @@ exports.SkillsLayout = new LayoutSchema_1.LayoutSchema("Skills", "Skills", Elem.
     item: "Skills",
     width: Width.percent(100),
     alignment: "Center",
-    font: exports.SectionTitleFont
+    font: exports.SectionTitleFont,
 }), Stack.from({
     elements: [
         Elem.from({
@@ -515,7 +515,7 @@ exports.LanguagesLayout = new LayoutSchema_1.LayoutSchema("Languages", "Language
     item: "Languages",
     width: Width.percent(100),
     alignment: "Center",
-    font: exports.SectionTitleFont
+    font: exports.SectionTitleFont,
 }), Stack.from({
     elements: [
         Elem.from({
@@ -542,7 +542,7 @@ exports.InterestsLayout = new LayoutSchema_1.LayoutSchema("Interests", "Interest
     item: "Interests",
     width: Width.percent(100),
     alignment: "Center",
-    font: exports.SectionTitleFont
+    font: exports.SectionTitleFont,
 }), Stack.from({
     elements: [
         Elem.from({
@@ -569,7 +569,7 @@ exports.ReferencesLayout = new LayoutSchema_1.LayoutSchema("References", "Refere
     item: "References",
     width: Width.percent(100),
     alignment: "Center",
-    font: exports.SectionTitleFont
+    font: exports.SectionTitleFont,
 }), Stack.from({
     elements: [
         Elem.from({
@@ -608,7 +608,7 @@ exports.ProjectsLayout = new LayoutSchema_1.LayoutSchema("Projects", "Projects",
     item: "Projects",
     width: Width.percent(100),
     alignment: "Center",
-    font: exports.SectionTitleFont
+    font: exports.SectionTitleFont,
 }), Stack.from({
     elements: [
         Elem.from({
@@ -683,287 +683,423 @@ exports.DefaultSections = [
     Resume_1.ResumeSection.resumeSection("Basics", "Basics", "Basics", {
         id: Utils.randomString(),
         fields: {
-            "name": { tag: "String", value: "John Doe" },
-            "email": { tag: "String", value: "john@doe.com" },
-            "phone": { tag: "String", value: "555-555-5555" },
-        }
+            name: { tag: "String", value: "John Doe" },
+            email: { tag: "String", value: "john@doe.com" },
+            phone: { tag: "String", value: "555-555-5555" },
+        },
     }, []),
     Resume_1.ResumeSection.resumeSection("Work Experience", "Work Experience", "Work Experience", {
         id: Utils.randomString(),
-        fields: {}
+        fields: {},
     }, [
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "Url", value: { text: "Company", url: "http://company.com" } },
-                "position": { tag: "String", value: "President" },
-                "startDate": { tag: "String", value: "2013-01-01" },
-                "endDate": { tag: "String", value: "2014-01-01" },
-                "summary": { tag: "String", value: "Description..." },
-                "highlights": { tag: "List", value: [{ "tag": "String", "value": "Started the company" }] },
-            }
+                name: {
+                    tag: "Url",
+                    value: { text: "Company", url: "http://company.com" },
+                },
+                position: { tag: "String", value: "President" },
+                startDate: { tag: "String", value: "2013-01-01" },
+                endDate: { tag: "String", value: "2014-01-01" },
+                summary: { tag: "String", value: "Description..." },
+                highlights: {
+                    tag: "List",
+                    value: [{ tag: "String", value: "Started the company" }],
+                },
+            },
         },
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "Url", value: { text: "Company", url: "http://company.com" } },
-                "position": { tag: "String", value: "President" },
-                "url": { tag: "String", value: "http://company.com" },
-                "startDate": { tag: "String", value: "2013-01-01" },
-                "endDate": { tag: "String", value: "2014-01-01" },
-                "summary": { tag: "String", value: "Description..." },
-                "highlights": { tag: "List", value: [{ "tag": "String", "value": "Started the company" }] },
-            }
+                name: {
+                    tag: "Url",
+                    value: { text: "Company", url: "http://company.com" },
+                },
+                position: { tag: "String", value: "President" },
+                url: { tag: "String", value: "http://company.com" },
+                startDate: { tag: "String", value: "2013-01-01" },
+                endDate: { tag: "String", value: "2014-01-01" },
+                summary: { tag: "String", value: "Description..." },
+                highlights: {
+                    tag: "List",
+                    value: [{ tag: "String", value: "Started the company" }],
+                },
+            },
         },
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "Url", value: { text: "Company", url: "http://company.com" } },
-                "position": { tag: "String", value: "President" },
-                "url": { tag: "String", value: "http://company.com" },
-                "startDate": { tag: "String", value: "2013-01-01" },
-                "endDate": { tag: "String", value: "2014-01-01" },
-                "summary": { tag: "String", value: "Description..." },
-                "highlights": { tag: "List", value: [{ "tag": "String", "value": "Started the company" }] },
-            }
+                name: {
+                    tag: "Url",
+                    value: { text: "Company", url: "http://company.com" },
+                },
+                position: { tag: "String", value: "President" },
+                url: { tag: "String", value: "http://company.com" },
+                startDate: { tag: "String", value: "2013-01-01" },
+                endDate: { tag: "String", value: "2014-01-01" },
+                summary: { tag: "String", value: "Description..." },
+                highlights: {
+                    tag: "List",
+                    value: [{ tag: "String", value: "Started the company" }],
+                },
+            },
         },
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "Url", value: { text: "Company", url: "http://company.com" } },
-                "position": { tag: "String", value: "President" },
-                "url": { tag: "String", value: "http://company.com" },
-                "startDate": { tag: "String", value: "2013-01-01" },
-                "endDate": { tag: "String", value: "2014-01-01" },
-                "summary": { tag: "String", value: "Description..." },
-                "highlights": { tag: "List", value: [{ "tag": "String", "value": "Started the company" }] },
-            }
-        }
+                name: {
+                    tag: "Url",
+                    value: { text: "Company", url: "http://company.com" },
+                },
+                position: { tag: "String", value: "President" },
+                url: { tag: "String", value: "http://company.com" },
+                startDate: { tag: "String", value: "2013-01-01" },
+                endDate: { tag: "String", value: "2014-01-01" },
+                summary: { tag: "String", value: "Description..." },
+                highlights: {
+                    tag: "List",
+                    value: [{ tag: "String", value: "Started the company" }],
+                },
+            },
+        },
     ]),
     Resume_1.ResumeSection.resumeSection("Volunteer Experience", "Volunteer Experience", "Volunteer Experience", {
         id: Utils.randomString(),
-        fields: {}
+        fields: {},
     }, [
         {
             id: Utils.randomString(),
             fields: {
-                "organization": { tag: "Url", value: { text: "Organization", url: "http://organization.com" } },
-                "position": { tag: "String", value: "Volunteer" },
-                "startDate": { tag: "String", value: "2012-01-01" },
-                "endDate": { tag: "String", value: "2013-01-01" },
-                "summary": { tag: "String", value: "Description..." },
-                "highlights": { tag: "List", value: [{ "tag": "String", "value": "Awarded 'Volunteer of the Month'" }] },
-            }
+                organization: {
+                    tag: "Url",
+                    value: { text: "Organization", url: "http://organization.com" },
+                },
+                position: { tag: "String", value: "Volunteer" },
+                startDate: { tag: "String", value: "2012-01-01" },
+                endDate: { tag: "String", value: "2013-01-01" },
+                summary: { tag: "String", value: "Description..." },
+                highlights: {
+                    tag: "List",
+                    value: [
+                        { tag: "String", value: "Awarded 'Volunteer of the Month'" },
+                    ],
+                },
+            },
         },
         {
             id: Utils.randomString(),
             fields: {
-                "organization": { tag: "Url", value: { text: "Organization", url: "http://organization.com" } },
-                "position": { tag: "String", value: "Volunteer" },
-                "startDate": { tag: "String", value: "2012-01-01" },
-                "endDate": { tag: "String", value: "2013-01-01" },
-                "summary": { tag: "String", value: "Description..." },
-                "highlights": { tag: "List", value: [{ "tag": "String", "value": "Awarded 'Volunteer of the Month'" }] },
-            }
+                organization: {
+                    tag: "Url",
+                    value: { text: "Organization", url: "http://organization.com" },
+                },
+                position: { tag: "String", value: "Volunteer" },
+                startDate: { tag: "String", value: "2012-01-01" },
+                endDate: { tag: "String", value: "2013-01-01" },
+                summary: { tag: "String", value: "Description..." },
+                highlights: {
+                    tag: "List",
+                    value: [
+                        { tag: "String", value: "Awarded 'Volunteer of the Month'" },
+                    ],
+                },
+            },
         },
     ]),
     Resume_1.ResumeSection.resumeSection("Education", "Education", "Education", {
         id: Utils.randomString(),
-        fields: {}
+        fields: {},
     }, [
         {
             id: Utils.randomString(),
             fields: {
-                "institution": { tag: "Url", value: { text: "University", url: "http://university.com" } },
-                "area": { tag: "String", value: "Software Development" },
-                "studyType": { tag: "String", value: "Bachelor" },
-                "startDate": { tag: "String", value: "2011-01-01" },
-                "endDate": { tag: "String", value: "2013-01-01" },
-                "score": { tag: "String", value: "4.0" },
-                "courses": { tag: "List", value: [{ "tag": "String", "value": "DB1101 - Basic SQL" }] },
-            }
+                institution: {
+                    tag: "Url",
+                    value: { text: "University", url: "http://university.com" },
+                },
+                area: { tag: "String", value: "Software Development" },
+                studyType: { tag: "String", value: "Bachelor" },
+                startDate: { tag: "String", value: "2011-01-01" },
+                endDate: { tag: "String", value: "2013-01-01" },
+                score: { tag: "String", value: "4.0" },
+                courses: {
+                    tag: "List",
+                    value: [{ tag: "String", value: "DB1101 - Basic SQL" }],
+                },
+            },
         },
         {
             id: Utils.randomString(),
             fields: {
-                "institution": { tag: "Url", value: { text: "University", url: "http://university.com" } },
-                "area": { tag: "String", value: "Software Development" },
-                "studyType": { tag: "String", value: "Bachelor" },
-                "startDate": { tag: "String", value: "2011-01-01" },
-                "endDate": { tag: "String", value: "2013-01-01" },
-                "score": { tag: "String", value: "4.0" },
-                "courses": { tag: "List", value: [{ "tag": "String", "value": "DB1101 - Basic SQL" }] },
-            }
+                institution: {
+                    tag: "Url",
+                    value: { text: "University", url: "http://university.com" },
+                },
+                area: { tag: "String", value: "Software Development" },
+                studyType: { tag: "String", value: "Bachelor" },
+                startDate: { tag: "String", value: "2011-01-01" },
+                endDate: { tag: "String", value: "2013-01-01" },
+                score: { tag: "String", value: "4.0" },
+                courses: {
+                    tag: "List",
+                    value: [{ tag: "String", value: "DB1101 - Basic SQL" }],
+                },
+            },
         },
     ]),
     Resume_1.ResumeSection.resumeSection("Awards", "Awards", "Awards", {
         id: Utils.randomString(),
-        fields: {}
+        fields: {},
     }, [
         {
             id: Utils.randomString(),
             fields: {
-                "title": { tag: "String", value: "Greatest Software Developer" },
-                "awarder": { tag: "String", value: "SoftwareAwards.inc" },
-                "date": { tag: "String", value: "01-01-1970" },
-                "summary": { tag: "String", value: "An award given only to the best of the best" },
-            }
+                title: { tag: "String", value: "Greatest Software Developer" },
+                awarder: { tag: "String", value: "SoftwareAwards.inc" },
+                date: { tag: "String", value: "01-01-1970" },
+                summary: {
+                    tag: "String",
+                    value: "An award given only to the best of the best",
+                },
+            },
         },
         {
             id: Utils.randomString(),
             fields: {
-                "title": { tag: "String", value: "Greatest Software Developer" },
-                "awarder": { tag: "String", value: "SoftwareAwards.inc" },
-                "date": { tag: "String", value: "01-01-1970" },
-                "summary": { tag: "String", value: "An award given only to the best of the best" },
-            }
+                title: { tag: "String", value: "Greatest Software Developer" },
+                awarder: { tag: "String", value: "SoftwareAwards.inc" },
+                date: { tag: "String", value: "01-01-1970" },
+                summary: {
+                    tag: "String",
+                    value: "An award given only to the best of the best",
+                },
+            },
         },
     ]),
     Resume_1.ResumeSection.resumeSection("Certificates", "Certificates", "Certificates", {
         id: Utils.randomString(),
-        fields: {}
+        fields: {},
     }, [
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "Url", value: { text: "Greatest Software Development Course", url: "www.google.com" } },
-                "date": { tag: "String", value: "01-01-1970" },
-                "issuer": { tag: "String", value: "An course that teaches only to the best of the best" },
-            }
+                name: {
+                    tag: "Url",
+                    value: {
+                        text: "Greatest Software Development Course",
+                        url: "www.google.com",
+                    },
+                },
+                date: { tag: "String", value: "01-01-1970" },
+                issuer: {
+                    tag: "String",
+                    value: "An course that teaches only to the best of the best",
+                },
+            },
         },
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "Url", value: { text: "Greatest Software Development Course", url: "www.google.com" } },
-                "date": { tag: "String", value: "01-01-1970" },
-                "issuer": { tag: "String", value: "An course that teaches only to the best of the best" },
-            }
+                name: {
+                    tag: "Url",
+                    value: {
+                        text: "Greatest Software Development Course",
+                        url: "www.google.com",
+                    },
+                },
+                date: { tag: "String", value: "01-01-1970" },
+                issuer: {
+                    tag: "String",
+                    value: "An course that teaches only to the best of the best",
+                },
+            },
         },
     ]),
     Resume_1.ResumeSection.resumeSection("Publications", "Publications", "Publications", {
         id: Utils.randomString(),
-        fields: {}
+        fields: {},
     }, [
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "Url", value: { text: "How to develop good software", url: "www.google.com" } },
-                "publisher": { tag: "String", value: "SoftwareAwards.inc" },
-                "releaseDate": { tag: "String", value: "01-01-1970" },
-                "summary": { tag: "String", value: "A publication worthy of the best of the best" },
-            }
+                name: {
+                    tag: "Url",
+                    value: {
+                        text: "How to develop good software",
+                        url: "www.google.com",
+                    },
+                },
+                publisher: { tag: "String", value: "SoftwareAwards.inc" },
+                releaseDate: { tag: "String", value: "01-01-1970" },
+                summary: {
+                    tag: "String",
+                    value: "A publication worthy of the best of the best",
+                },
+            },
         },
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "Url", value: { text: "How to develop good software", url: "www.google.com" } },
-                "publisher": { tag: "String", value: "SoftwareAwards.inc" },
-                "releaseDate": { tag: "String", value: "01-01-1970" },
-                "summary": { tag: "String", value: "A publication worthy of the best of the best" },
-            }
+                name: {
+                    tag: "Url",
+                    value: {
+                        text: "How to develop good software",
+                        url: "www.google.com",
+                    },
+                },
+                publisher: { tag: "String", value: "SoftwareAwards.inc" },
+                releaseDate: { tag: "String", value: "01-01-1970" },
+                summary: {
+                    tag: "String",
+                    value: "A publication worthy of the best of the best",
+                },
+            },
         },
     ]),
     Resume_1.ResumeSection.resumeSection("Skills", "Skills", "Skills", {
         id: Utils.randomString(),
-        fields: {}
+        fields: {},
     }, [
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "String", value: "Software Development" },
-                "level": { tag: "String", value: "Senior" },
-                "keywords": { tag: "List", value: [{ tag: "String", value: "Javascript" }, { tag: "String", value: "Typescript" }] },
-            }
+                name: { tag: "String", value: "Software Development" },
+                level: { tag: "String", value: "Senior" },
+                keywords: {
+                    tag: "List",
+                    value: [
+                        { tag: "String", value: "Javascript" },
+                        { tag: "String", value: "Typescript" },
+                    ],
+                },
+            },
         },
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "String", value: "Software Development" },
-                "level": { tag: "String", value: "Senior" },
-                "keywords": { tag: "List", value: [{ tag: "String", value: "Javascript" }, { tag: "String", value: "Typescript" }] },
-            }
+                name: { tag: "String", value: "Software Development" },
+                level: { tag: "String", value: "Senior" },
+                keywords: {
+                    tag: "List",
+                    value: [
+                        { tag: "String", value: "Javascript" },
+                        { tag: "String", value: "Typescript" },
+                    ],
+                },
+            },
         },
     ]),
     Resume_1.ResumeSection.resumeSection("Languages", "Languages", "Languages", {
         id: Utils.randomString(),
-        fields: {}
+        fields: {},
     }, [
         {
             id: Utils.randomString(),
             fields: {
-                "language": { tag: "String", value: "Turkish" },
-                "fluency": { tag: "String", value: "Native" },
-            }
+                language: { tag: "String", value: "Turkish" },
+                fluency: { tag: "String", value: "Native" },
+            },
         },
         {
             id: Utils.randomString(),
             fields: {
-                "language": { tag: "String", value: "English" },
-                "fluency": { tag: "String", value: "Proficient" },
-            }
+                language: { tag: "String", value: "English" },
+                fluency: { tag: "String", value: "Proficient" },
+            },
         },
     ]),
     Resume_1.ResumeSection.resumeSection("Interests", "Interests", "Interests", {
         id: Utils.randomString(),
-        fields: {}
+        fields: {},
     }, [
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "String", value: "Software Development" },
-                "keywords": { tag: "List", value: [{ tag: "String", value: "Javascript" }, { tag: "String", value: "Typescript" }] },
-            }
+                name: { tag: "String", value: "Software Development" },
+                keywords: {
+                    tag: "List",
+                    value: [
+                        { tag: "String", value: "Javascript" },
+                        { tag: "String", value: "Typescript" },
+                    ],
+                },
+            },
         },
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "String", value: "Software Development" },
-                "keywords": { tag: "List", value: [{ tag: "String", value: "Javascript" }, { tag: "String", value: "Typescript" }] },
-            }
+                name: { tag: "String", value: "Software Development" },
+                keywords: {
+                    tag: "List",
+                    value: [
+                        { tag: "String", value: "Javascript" },
+                        { tag: "String", value: "Typescript" },
+                    ],
+                },
+            },
         },
     ]),
     Resume_1.ResumeSection.resumeSection("References", "References", "References", {
         id: Utils.randomString(),
-        fields: {}
+        fields: {},
     }, [
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "String", value: "Ken Thompson" },
-                "reference": { tag: "String", value: "Legendary Programmer" },
-            }
+                name: { tag: "String", value: "Ken Thompson" },
+                reference: { tag: "String", value: "Legendary Programmer" },
+            },
         },
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "String", value: "Alperen Keles" },
-                "reference": { tag: "String", value: "Random fun guy" },
-            }
+                name: { tag: "String", value: "Alperen Keles" },
+                reference: { tag: "String", value: "Random fun guy" },
+            },
         },
     ]),
     Resume_1.ResumeSection.resumeSection("Projects", "Projects", "Projects", {
         id: Utils.randomString(),
-        fields: {}
+        fields: {},
     }, [
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "Url", value: { text: "Tail", url: "http://tail.rocks" } },
-                "startDate": { tag: "String", value: "2012-01-01" },
-                "endDate": { tag: "String", value: "Never ends" },
-                "description": { tag: "String", value: "Next generation document builder" },
-                "highlights": { tag: "List", value: [{ "tag": "String", "value": "Looks pretty cool" }] },
-            }
+                name: {
+                    tag: "Url",
+                    value: { text: "Tail", url: "http://tail.rocks" },
+                },
+                startDate: { tag: "String", value: "2012-01-01" },
+                endDate: { tag: "String", value: "Never ends" },
+                description: {
+                    tag: "String",
+                    value: "Next generation document builder",
+                },
+                highlights: {
+                    tag: "List",
+                    value: [{ tag: "String", value: "Looks pretty cool" }],
+                },
+            },
         },
         {
             id: Utils.randomString(),
             fields: {
-                "name": { tag: "Url", value: { text: "Tail", url: "http://tail.rocks" } },
-                "startDate": { tag: "String", value: "2012-01-01" },
-                "endDate": { tag: "String", value: "Never ends" },
-                "description": { tag: "String", value: "Next generation document builder" },
-                "highlights": { tag: "List", value: [{ "tag": "String", "value": "Looks pretty cool" }] },
-            }
+                name: {
+                    tag: "Url",
+                    value: { text: "Tail", url: "http://tail.rocks" },
+                },
+                startDate: { tag: "String", value: "2012-01-01" },
+                endDate: { tag: "String", value: "Never ends" },
+                description: {
+                    tag: "String",
+                    value: "Next generation document builder",
+                },
+                highlights: {
+                    tag: "List",
+                    value: [{ tag: "String", value: "Looks pretty cool" }],
+                },
+            },
         },
     ]),
 ];

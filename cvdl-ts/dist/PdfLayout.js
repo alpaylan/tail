@@ -44,12 +44,10 @@ const render = async ({ resume_name, resume, data_schemas, layout_schemas, resum
         resume = await storage.load_resume(resume_name);
     }
     if (!data_schemas) {
-        data_schemas = await Promise.all(Resume.dataSchemas(resume)
-            .map((schema) => storage.load_data_schema(schema)));
+        data_schemas = await Promise.all(Resume.dataSchemas(resume).map((schema) => storage.load_data_schema(schema)));
     }
     if (!layout_schemas) {
-        layout_schemas = await Promise.all(Resume.layoutSchemas(resume)
-            .map((schema) => storage.load_layout_schema(schema)));
+        layout_schemas = await Promise.all(Resume.layoutSchemas(resume).map((schema) => storage.load_layout_schema(schema)));
     }
     if (!resume_layout) {
         resume_layout = await storage.load_resume_layout(resume.layout);
@@ -193,6 +191,13 @@ const renderSectionLayout = (layout, tracker) => {
                     tracker.layout.margin.left +
                     span.bbox.top_left.x;
                 tracker.pageContainer = getPageContainer(page, tracker);
+                console.log(`Rendering span "${span.text}" at (${x}, ${y}) on page ${page}\nspan ${JSON.stringify(span)}`);
+                // If the span is an emoji and has an emoji_url, render the image instead of the text
+                if (span.is_emoji && span.emoji_url) {
+                    const imgSize = span.font.size * 1.2;
+                    tracker.pageContainer.image(span.emoji_url, x, y - span.font.size * 0.2, { width: imgSize, height: imgSize });
+                    return;
+                }
                 tracker.pageContainer
                     .font(_1.Font.full_name(span.font))
                     .fontSize(span.font.size)

@@ -21,13 +21,15 @@ export default function Dropdown(props: { text: string; items: DropItem[] }) {
 						e.stopPropagation();
 						setCurrentChoice(+e.target.value);
 					}}
-					onClick={(e) => e.stopPropagation()}
-				>
-					{props.items.map((item, index) => (
-						<option value={index}>{item.text}</option>
-					))}
-				</select>
-			}
-		</button>
+						onClick={(e) => e.stopPropagation()}
+					>
+						{props.items.map((item, index) => (
+							<option key={`${item.text}-${index}`} value={index}>
+								{item.text}
+							</option>
+						))}
+					</select>
+				}
+			</button>
 	);
 }

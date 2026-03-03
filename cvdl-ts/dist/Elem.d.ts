@@ -12,6 +12,8 @@ export type Span = {
     is_italic: boolean;
     is_bold: boolean;
     is_code: boolean;
+    is_emoji?: boolean;
+    emoji_url?: string;
     text: string;
     link: string | null;
     font?: Font.t;

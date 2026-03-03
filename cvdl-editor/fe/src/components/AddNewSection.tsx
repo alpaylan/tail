@@ -68,7 +68,7 @@ const AddNewSection = () => {
 		return () => {
 			window.removeEventListener("keydown", handleKeyDown);
 		};
-	}, [canAddSection, sectionName, layoutSchema]);
+	}, [canAddSection, sectionName, layoutSchema, dispatch]);
 
 	return (
 		<>

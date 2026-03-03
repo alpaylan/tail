@@ -175,11 +175,11 @@ const ListEditor = ({
 	const [items, setItems] = useState(field.value.value);
 	return (
 		<div id={`${section}-${item}-${field.name}`}>
-			{items.map((listItem, index) => {
-				return (
-					<div>
-						<input
-							type="text"
+				{items.map((listItem, index) => {
+					return (
+						<div key={`${field.name}-${index}`}>
+							<input
+								type="text"
 							// TODO: This currently only works when you have List<String>
 							value={items[index].value}
 							autoFocus={

@@ -24,6 +24,7 @@ const Tabs = (props: { currentTab: tab; setCurrentTab: (n: tab) => void }) => {
 		<div style={{ display: "flex", flexDirection: "row" }}>
 			{tabs.map((tab) => (
 				<button
+					key={tab}
 					className={`bordered sharp ${props.currentTab === tab ? "selected" : ""}`}
 					onClick={() => props.setCurrentTab(tab)}
 				>
@@ -80,7 +81,7 @@ const JsonEditor = (props: { currentTab: tab }) => {
 
 	useEffect(() => {
 		setValue(getTab(state!, props.currentTab));
-	}, [props.currentTab, state?.resume.name]);
+	}, [props.currentTab, state]);
 
 	return (
 		<LibEditor

@@ -227,9 +227,9 @@ export const renderSectionLayout = (
 					span.bbox!.top_left.y;
 				const page = Math.floor(
 					absoluteY /
-						(tracker.layout.height -
-							tracker.layout.margin.top -
-							tracker.layout.margin.bottom),
+					(tracker.layout.height -
+						tracker.layout.margin.top -
+						tracker.layout.margin.bottom),
 				);
 				const currentPageY =
 					absoluteY %
@@ -243,7 +243,20 @@ export const renderSectionLayout = (
 					span.bbox!.top_left.x;
 
 				tracker.pageContainer = getPageContainer(page, tracker);
-
+				console.log(
+					`Rendering span "${span.text}" at (${x}, ${y}) on page ${page}\nspan ${JSON.stringify(span)}`,
+				);
+				// If the span is an emoji and has an emoji_url, render the image instead of the text
+				if (span.is_emoji && span.emoji_url) {
+					const imgSize = span.font.size * 1.2;
+					tracker.pageContainer.image(
+						span.emoji_url,
+						x,
+						y - span.font.size * 0.2,
+						{ width: imgSize, height: imgSize },
+					);
+					return;
+				}
 				tracker.pageContainer
 					.font(Font.full_name(span.font))
 					.fontSize(span.font.size)
@@ -254,13 +267,13 @@ export const renderSectionLayout = (
 					tracker.pageContainer
 						.roundedRect(
 							layout.bounding_box.top_left.x +
-								tracker.layout.margin.left +
-								span.bbox.top_left.x -
-								span.font.size / 5,
+							tracker.layout.margin.left +
+							span.bbox.top_left.x -
+							span.font.size / 5,
 							layout.bounding_box.top_left.y +
-								tracker.layout.margin.top +
-								tracker.height +
-								span.bbox.top_left.y,
+							tracker.layout.margin.top +
+							tracker.height +
+							span.bbox.top_left.y,
 							span.bbox.width() + (span.font.size / 5) * 2,
 							span.bbox.height(),
 							5,
@@ -272,13 +285,13 @@ export const renderSectionLayout = (
 					tracker.pageContainer
 						.rect(
 							layout.bounding_box.top_left.x +
-								tracker.layout.margin.left +
-								span.bbox.top_left.x -
-								span.font.size / 5,
+							tracker.layout.margin.left +
+							span.bbox.top_left.x -
+							span.font.size / 5,
 							layout.bounding_box.top_left.y +
-								tracker.layout.margin.top +
-								tracker.height +
-								span.bbox.top_left.y,
+							tracker.layout.margin.top +
+							tracker.height +
+							span.bbox.top_left.y,
 							span.bbox.width() + (span.font.size / 5) * 2,
 							span.bbox.height(),
 						)

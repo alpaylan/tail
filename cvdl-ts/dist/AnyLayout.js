@@ -28,7 +28,7 @@ exports.render = render;
 const ResumeLayout_1 = require("./ResumeLayout");
 const fontkit = __importStar(require("fontkit"));
 const Layout = __importStar(require("./Layout"));
-const cartesian = (...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
+const cartesian = (...a) => a.reduce((a, b) => a.flatMap((d) => b.map((e) => [d, e].flat())));
 class FontDict {
     constructor() {
         this.fonts = new Map();

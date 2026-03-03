@@ -136,6 +136,64 @@ function withBackgroundColor(e, background_color) {
 function scaleWidth(e, scale) {
     return withWidth(e, Width.scale(e.width, scale));
 }
+const EMOJI_MAP = {
+    smile: { type: "unicode", value: "😄" },
+    thumbsup: { type: "unicode", value: "👍" },
+    party: { type: "unicode", value: "🥳" },
+    // If you host custom images:
+    geyik: { type: "image", url: "geyik.png" },
+};
+function resolveEmoji(name) {
+    return EMOJI_MAP[name.toLowerCase()];
+}
+function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+}
+const emojiExtension = {
+    extensions: [
+        {
+            name: "emoji",
+            level: "inline", // inline tokenizer
+            start(src) {
+                // small perf hint for marked: where to start looking
+                const i = src.indexOf(":");
+                return i < 0 ? undefined : i;
+            },
+            tokenizer(src) {
+                // Match :emoji_name:
+                const match = /^:([a-z0-9_+\-]+):/i.exec(src);
+                if (!match)
+                    return;
+                const name = match[1];
+                const resolved = resolveEmoji(name);
+                // If we don't know this emoji, return nothing so marked keeps parsing normally
+                console.log(`Found emoji syntax :${name}:, resolved: ${resolved ? "yes" : "no"}`);
+                if (!resolved)
+                    return;
+                // Create a custom token
+                const token = {
+                    type: "emoji",
+                    raw: match[0],
+                    name, // custom field
+                };
+                return token;
+            },
+            renderer(token) {
+                const res = resolveEmoji(token.name);
+                if (!res)
+                    return token.raw; // fallback
+                if (res.type === "unicode") {
+                    // Return the unicode directly—keeps copy/paste and accessibility nice
+                    return res.value;
+                }
+                // Image fallback: accessible <img>, no extra styling assumptions
+                // alt uses :name: to mimic GitHub-style emoji labels
+                console.log(`Rendering custom emoji image for :${token.name}:`);
+                return `<img class="emoji" alt=":${escapeHtml(token.name)}:" draggable="false" loading="lazy" decoding="async" src="${res.url}">`;
+            },
+        },
+    ],
+};
 function flatten(ts, sp) {
     const spans = [];
     for (const t of ts) {
@@ -175,6 +233,22 @@ function flattenToken(t, sp) {
         }
         return result;
     })
+        .with({ type: "emoji", name: ts_pattern_1.P.select("name") }, ({ name }) => {
+        const res = resolveEmoji(name);
+        // Graceful fallback (shouldn't happen because tokenizer filters unknowns)
+        if (!res)
+            return [{ ...sp, text: `:${name}:`, link: null }];
+        if (res.type === "unicode") {
+            // simplest: just emit the unicode as plain text
+            return [{ ...sp, text: res.value, link: null }];
+        }
+        else {
+            // If you want image-based emojis, choose how your Span should represent images.
+            // extend your Span model (recommended) to support inline images/emojis.
+            // Example if you add fields: { is_emoji: true, emoji_url?: string }
+            return [{ ...sp, text: "WTF", link: null, is_emoji: true, emoji_url: res.url }];
+        }
+    })
         .otherwise((e) => {
         // console.log(`Unknown token type: ${JSON.stringify(e)}`);
         return [{ ...defaultSpanProps(), text: e.raw, link: null }];
@@ -182,6 +256,7 @@ function flattenToken(t, sp) {
 }
 function parseMarkdownItem(item) {
     const spans = [];
+    marked.use(emojiExtension);
     for (const token of marked.lexer(item)) {
         spans.push(...flatten([token], defaultSpanProps()));
     }
@@ -193,6 +268,13 @@ function fillFonts(e, fonts) {
         : [{ ...defaultSpanProps(), text: e.text, font: e.font, link: null }];
     const spans = [];
     for (const span of simpleSpans) {
+        if (span.is_emoji) {
+            // For simplicity, we use a fixed width for emojis if we have an image URL.
+            const widthText = span.emoji_url ? "😀" : span.text;
+            const emojiWidth = Font.get_width(e.font, widthText, fonts);
+            spans.push({ ...span, font: e.font, width: emojiWidth });
+            continue;
+        }
         const font = e.is_markdown
             ? (0, Utils_1.with_)(e.font, {
                 style: span.is_italic ? "Italic" : e.font.style,
@@ -253,7 +335,9 @@ function boundWidth(e, width) {
 function bind(t, bindings) {
     const result = {};
     for (const [key, value] of Object.entries(t)) {
-        if (value instanceof Object && "binding" in value && typeof value.binding === "string") {
+        if (value instanceof Object &&
+            "binding" in value &&
+            typeof value.binding === "string") {
             const bound = bindings.get(value.binding);
             if (bound === undefined) {
                 throw new Error(`Binding ${value.binding} not found`);

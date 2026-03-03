@@ -131,11 +131,11 @@ legend {
   flex-direction: column;
   margin: 1rem;
   width: 25%;
+}
 
-  label {
-    margin-bottom: 5px;
-    font-weight: 700;
-  }
+.panel-item label {
+  margin-bottom: 5px;
+  font-weight: 700;
 }
 
 .panel-item-elements {
@@ -143,11 +143,11 @@ legend {
   flex-direction: column;
   margin: 1rem;
   width: 50%;
+}
 
-  label {
-    margin-bottom: 5px;
-    font-weight: 700;
-  }
+.panel-item-elements label {
+  margin-bottom: 5px;
+  font-weight: 700;
 }
 
 

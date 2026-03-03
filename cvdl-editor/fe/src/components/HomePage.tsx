@@ -1,26 +1,16 @@
 "use client";
 
 import { useEffect, useReducer, useState } from "react";
-import "react-pdf/dist/Page/AnnotationLayer.css";
-import "react-pdf/dist/Page/TextLayer.css";
+import dynamic from "next/dynamic";
 import { FontDict } from "cvdl-ts/dist/AnyLayout";
-import { render as pdfRender } from "cvdl-ts/dist/PdfLayout";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
 import * as Resume from "cvdl-ts/dist/Resume";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { ResumeLayout } from "cvdl-ts/dist/ResumeLayout";
 import { DataSchema } from "cvdl-ts/dist/DataSchema";
-// import * as pdfjsLib from 'pdfjs-dist/webpack';
-// @ts-ignore
-import * as pdfjsLib from "pdfjs-dist";
-// @ts-ignore
-import workerSrc from "pdfjs-dist/build/pdf.worker.entry";
 import Section from "@/components/Section";
 import { render as domRender } from "@/logic/DomLayout";
 import Layout from "@/components/layout";
-import LayoutEditor from "@/components/LayoutEditor";
-import RawEditor from "@/components/RawEditor";
-import DataSchemaEditor from "@/components/DataSchemaEditor";
 import { convert, convertBack } from "@/logic/JsonResume";
 import { fetchGist, fetchGistById } from "@/api/fetchGist";
 import {
@@ -32,7 +22,9 @@ import AddNewSection from "./AddNewSection";
 import * as Defaults from "cvdl-ts/dist/Defaults";
 import Dropdown from "./Dropdown";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
+const LayoutEditor = dynamic(() => import("@/components/LayoutEditor"));
+const DataSchemaEditor = dynamic(() => import("@/components/DataSchemaEditor"));
+const RawEditor = dynamic(() => import("@/components/RawEditor"));
 
 const storage = new LocalStorage();
 
@@ -63,8 +55,9 @@ function App() {
 	useEffect(() => {
 		require("../registerStaticFiles.js");
 		storage.initiate_storage().then(() => {
-			fontDict.load_fonts(storage).then((fontDict) => {
-				setFontDict(fontDict);
+			const loadedFontDict = new FontDict();
+			loadedFontDict.load_fonts(storage).then((loaded) => {
+				setFontDict(loaded);
 				setStorageInitiated(true);
 			});
 		});
@@ -82,7 +75,7 @@ function App() {
 				});
 			}
 		}
-	}, []);
+	}, [dispatch]);
 
 	useEffect(() => {
 		if (!storageInitiated) {
@@ -155,7 +148,7 @@ function App() {
 			dispatch,
 			debug,
 		});
-	}, [resume, fontDict, debug, storageInitiated, state, dispatch]);
+	}, [resume, bindings, fontDict, debug, storageInitiated, state, dispatch]);
 
 	const saveResumeToGithub = () => {
 		if (!state.resume) {
@@ -205,7 +198,8 @@ function App() {
 		link.click();
 	};
 
-	const downloadResume = () => {
+	const downloadResume = async () => {
+		const { render: pdfRender } = await import("cvdl-ts/dist/PdfLayout");
 		pdfRender({
 			resume_name: resume,
 			resume: state.resume!,
