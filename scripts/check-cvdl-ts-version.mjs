@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import https from "node:https";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,6 +23,29 @@ const readJsonFile = (filePath) => {
 		return JSON.parse(fs.readFileSync(filePath, "utf8"));
 	} catch (error) {
 		fail(`could not parse ${filePath}: ${String(error)}`);
+	}
+};
+
+const runGit = (args) => {
+	try {
+		return execFileSync("git", args, {
+			cwd: repoRoot,
+			encoding: "utf8",
+		}).trim();
+	} catch (error) {
+		fail(`git command failed (git ${args.join(" ")}): ${String(error)}`);
+	}
+};
+
+const gitCommitExists = (sha) => {
+	try {
+		execFileSync("git", ["cat-file", "-e", `${sha}^{commit}`], {
+			cwd: repoRoot,
+			stdio: "ignore",
+		});
+		return true;
+	} catch {
+		return false;
 	}
 };
 
@@ -123,7 +147,11 @@ const getLatestPublishedVersion = () =>
 						reject(new Error("registry response did not include a version"));
 						return;
 					}
-					resolve(parsed.version);
+					resolve({
+						version: parsed.version,
+						gitHead:
+							typeof parsed.gitHead === "string" ? parsed.gitHead : undefined,
+					});
 				} catch (error) {
 					reject(error);
 				}
@@ -162,16 +190,40 @@ const main = async () => {
 	}
 
 	let latestPublishedVersion;
+	let latestPublishedGitHead;
 	try {
-		latestPublishedVersion = await getLatestPublishedVersion();
+		const latestPublished = await getLatestPublishedVersion();
+		latestPublishedVersion = latestPublished.version;
+		latestPublishedGitHead = latestPublished.gitHead;
 	} catch (error) {
 		fail(`could not fetch latest version from npm: ${String(error)}`);
 	}
 
-	// Rule 1: local cvdl-ts is ahead of npm latest -> publish first.
-	if (compareSemver(localCvdlTsVersion, latestPublishedVersion) > 0) {
+	if (!latestPublishedVersion || typeof latestPublishedVersion !== "string") {
+		fail("npm latest metadata did not include a valid version");
+	}
+	if (!latestPublishedGitHead || typeof latestPublishedGitHead !== "string") {
 		fail(
-			`local cvdl-ts version is "${localCvdlTsVersion}" but latest published is "${latestPublishedVersion}". Publish cvdl-ts before pushing.`,
+			`npm latest metadata for cvdl-ts@${latestPublishedVersion} is missing gitHead; cannot perform commit-based ahead check.`,
+		);
+	}
+
+	// Rule 1: local cvdl-ts commits ahead of the published gitHead -> publish first.
+	if (!gitCommitExists(latestPublishedGitHead)) {
+		fail(
+			`published gitHead ${latestPublishedGitHead} is not present locally. Fetch full history before pushing.`,
+		);
+	}
+	const mergeBase = runGit(["merge-base", latestPublishedGitHead, "HEAD"]);
+	const headOnlyCvdlTsCommitCount = Number(
+		runGit(["rev-list", "--count", `${mergeBase}..HEAD`, "--", "cvdl-ts"]),
+	);
+	if (Number.isNaN(headOnlyCvdlTsCommitCount)) {
+		fail("could not compute commit count for cvdl-ts changes");
+	}
+	if (headOnlyCvdlTsCommitCount > 0) {
+		fail(
+			`cvdl-ts has ${headOnlyCvdlTsCommitCount} local commit(s) not in published gitHead ${latestPublishedGitHead}. Publish a new cvdl-ts version before pushing.`,
 		);
 	}
 
@@ -183,7 +235,7 @@ const main = async () => {
 	}
 
 	console.log(
-		`cvdl-ts push check passed (local=${localCvdlTsVersion}, dependency=${declaredDependency}, latest=${latestPublishedVersion})`,
+		`cvdl-ts push check passed (localVersion=${localCvdlTsVersion}, dependency=${declaredDependency}, latest=${latestPublishedVersion}, publishedGitHead=${latestPublishedGitHead})`,
 	);
 };
 
