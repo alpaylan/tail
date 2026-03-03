@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+
+echo "Running cvdl-ts push checks..."
+node scripts/check-cvdl-ts-version.mjs
