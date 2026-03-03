@@ -1,9 +1,13 @@
 {
 	"name": "tail",
 	"private": true,
-	"workspaces": ["cvdl-ts", "cvdl-editor/fe2"],
+	"workspaces": [
+		"cvdl-ts",
+		"cvdl-editor/fe"
+	],
 	"scripts": {
-		"format": "biome format --write ./cvdl-editor/fe2 ./cvdl-ts"
+		"format": "biome format --write ./cvdl-editor/fe ./cvdl-ts",
+		"lint": "npm run --workspace cvdl-editor/fe lint"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.8.3"
