@@ -28,6 +28,7 @@ const RawEditor = dynamic(() => import("@/components/RawEditor"));
 
 const storage = new LocalStorage();
 const RESUME_GIST_LINKS_KEY = "tail_resume_gist_links";
+const GIST_FILE_NAME = "resume.json";
 
 type GithubSessionState = {
 	connected: boolean;
@@ -249,12 +250,12 @@ function App() {
 			const response = await fetch("/api/github/gists", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					content: JSON.stringify(convertBack(state.resume), null, 2),
-					fileName: `${currentResumeName}.json`,
-					description: `Tail resume: ${currentResumeName}`,
-					isPublic: true,
-				}),
+					body: JSON.stringify({
+						content: JSON.stringify(convertBack(state.resume), null, 2),
+						fileName: GIST_FILE_NAME,
+						description: `Tail resume: ${currentResumeName}`,
+						isPublic: true,
+					}),
 			});
 			const data = (await response.json()) as {
 				error?: string;
@@ -305,12 +306,12 @@ function App() {
 				{
 					method: "PATCH",
 					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({
-						content: JSON.stringify(convertBack(state.resume), null, 2),
-						fileName: currentResumeGistLink.fileName,
-						description: `Tail resume: ${currentResumeName}`,
-					}),
-				},
+						body: JSON.stringify({
+							content: JSON.stringify(convertBack(state.resume), null, 2),
+							fileName: GIST_FILE_NAME,
+							description: `Tail resume: ${currentResumeName}`,
+						}),
+					},
 			);
 			const data = (await response.json()) as {
 				error?: string;
