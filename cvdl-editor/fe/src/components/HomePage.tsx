@@ -12,7 +12,7 @@ import Section from "@/components/Section";
 import { render as domRender } from "@/logic/DomLayout";
 import Layout from "@/components/layout";
 import { convert, convertBack } from "@/logic/JsonResume";
-import { fetchGist, fetchGistById } from "@/api/fetchGist";
+import { fetchGist } from "@/api/fetchGist";
 import {
 	DocumentDispatchContext,
 	DocumentReducer,
@@ -27,6 +27,22 @@ const DataSchemaEditor = dynamic(() => import("@/components/DataSchemaEditor"));
 const RawEditor = dynamic(() => import("@/components/RawEditor"));
 
 const storage = new LocalStorage();
+const RESUME_GIST_LINKS_KEY = "tail_resume_gist_links";
+
+type GithubSessionState = {
+	connected: boolean;
+	login?: string | null;
+	name?: string | null;
+	avatarUrl?: string | null;
+	scope?: string | null;
+};
+
+type ResumeGistLink = {
+	id: string;
+	htmlUrl: string;
+	fileName: string;
+	updatedAt: string;
+};
 
 function App() {
 	console.log = () => {};
@@ -51,6 +67,15 @@ function App() {
 	const [currentTab, setCurrentTab] = useState<
 		"content-editor" | "layout-editor" | "schema-editor" | "raw-editor"
 	>("content-editor");
+	const [githubSession, setGithubSession] = useState<GithubSessionState>({
+		connected: false,
+	});
+	const [isGithubBusy, setIsGithubBusy] = useState<boolean>(false);
+	const [resumeGistLinks, setResumeGistLinks] = useState<
+		Record<string, ResumeGistLink>
+	>({});
+	const currentResumeName = state.resume?.name ?? resume;
+	const currentResumeGistLink = resumeGistLinks[currentResumeName];
 
 	useEffect(() => {
 		require("../registerStaticFiles.js");
@@ -62,10 +87,44 @@ function App() {
 			});
 		});
 
-		// Check if query parameter is present
+		const rawLinks = localStorage.getItem(RESUME_GIST_LINKS_KEY);
+		if (rawLinks) {
+			try {
+				setResumeGistLinks(JSON.parse(rawLinks) as Record<string, ResumeGistLink>);
+			} catch {
+				setResumeGistLinks({});
+			}
+		}
+
+		void fetch("/api/github/session", { cache: "no-store" })
+			.then((response) => {
+				if (!response.ok) {
+					setGithubSession({ connected: false });
+					return null;
+				}
+				return response.json();
+			})
+			.then((data) => {
+				if (data) {
+					setGithubSession(data as GithubSessionState);
+				}
+			})
+			.catch(() => {
+				setGithubSession({ connected: false });
+			});
+
+		// Check if query parameters are present
 		if (window.location.search) {
 			const urlParams = new URLSearchParams(window.location.search);
 			const load_resume = urlParams.get("user");
+			const githubStatus = urlParams.get("github");
+			const githubReason = urlParams.get("reason");
+
+			if (githubStatus === "connected") {
+				alert("GitHub account connected.");
+			} else if (githubStatus === "error") {
+				alert(`GitHub connection failed${githubReason ? ` (${githubReason})` : ""}.`);
+			}
 
 			if (load_resume && localStorage.getItem(load_resume) !== "loaded") {
 				fetchGist(load_resume).then((data) => {
@@ -73,6 +132,14 @@ function App() {
 					localStorage.setItem(load_resume, "loaded");
 					dispatch({ type: "load", value: resume });
 				});
+			}
+
+			if (githubStatus || githubReason) {
+				urlParams.delete("github");
+				urlParams.delete("reason");
+				const nextSearch = urlParams.toString();
+				const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}`;
+				window.history.replaceState({}, "", nextUrl);
 			}
 		}
 	}, [dispatch]);
@@ -129,8 +196,12 @@ function App() {
 		data_schema_loader();
 		bindings_loader();
 		layout_schema_loader();
-		resumes_loader();
-	}, [state.resume, storageInitiated]);
+			resumes_loader();
+		}, [state.resume, storageInitiated]);
+
+	useEffect(() => {
+		localStorage.setItem(RESUME_GIST_LINKS_KEY, JSON.stringify(resumeGistLinks));
+	}, [resumeGistLinks]);
 
 	useEffect(() => {
 		if (!storageInitiated) {
@@ -150,38 +221,137 @@ function App() {
 		});
 	}, [resume, bindings, fontDict, debug, storageInitiated, state, dispatch]);
 
-	const saveResumeToGithub = () => {
+	const connectGithub = () => {
+		const returnTo = `${window.location.pathname}${window.location.search}`;
+		window.location.href = `/api/github/login?returnTo=${encodeURIComponent(returnTo)}`;
+	};
+
+	const disconnectGithub = async () => {
+		setIsGithubBusy(true);
+		try {
+			await fetch("/api/github/logout", { method: "POST" });
+			setGithubSession({ connected: false });
+		} finally {
+			setIsGithubBusy(false);
+		}
+	};
+
+	const publishResumeToGithub = async () => {
 		if (!state.resume) {
 			return;
 		}
-		const githubToken = localStorage.getItem("github_token");
-		if (!githubToken) {
-			alert("Please login with Github to save your resume");
+		if (!githubSession.connected) {
+			alert("Connect your GitHub account first.");
 			return;
 		}
-		alert(githubToken);
-		fetch("https://api.github.com/gists", {
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${githubToken}`,
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				description: "Resume",
-				public: true,
-				files: {
-					[`${resume}.json`]: {
-						content: JSON.stringify(state.resume),
-					},
-				},
-			}),
-		}).then((response) => {
-			if (response.status === 201) {
-				alert("Resume saved successfully");
-			} else {
-				alert("Error saving resume");
+		setIsGithubBusy(true);
+		try {
+			const response = await fetch("/api/github/gists", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					content: JSON.stringify(convertBack(state.resume), null, 2),
+					fileName: `${currentResumeName}.json`,
+					description: `Tail resume: ${currentResumeName}`,
+					isPublic: true,
+				}),
+			});
+			const data = (await response.json()) as {
+				error?: string;
+				id?: string;
+				htmlUrl?: string;
+				fileName?: string;
+				updatedAt?: string;
+			};
+			if (!response.ok || !data.id || !data.htmlUrl || !data.fileName) {
+				alert(data.error ?? "Failed to publish gist.");
+				return;
 			}
-		});
+
+			setResumeGistLinks((previous) => ({
+				...previous,
+				[currentResumeName]: {
+					id: data.id!,
+					htmlUrl: data.htmlUrl!,
+					fileName: data.fileName!,
+					updatedAt: data.updatedAt ?? new Date().toISOString(),
+				},
+			}));
+			alert(`Published to GitHub gist: ${data.htmlUrl}`);
+		} catch (error) {
+			alert(`Failed to publish gist: ${String(error)}`);
+		} finally {
+			setIsGithubBusy(false);
+		}
+	};
+
+	const updateResumeOnGithub = async () => {
+		if (!state.resume) {
+			return;
+		}
+		if (!githubSession.connected) {
+			alert("Connect your GitHub account first.");
+			return;
+		}
+		if (!currentResumeGistLink) {
+			await publishResumeToGithub();
+			return;
+		}
+
+		setIsGithubBusy(true);
+		try {
+			const response = await fetch(
+				`/api/github/gists/${encodeURIComponent(currentResumeGistLink.id)}`,
+				{
+					method: "PATCH",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						content: JSON.stringify(convertBack(state.resume), null, 2),
+						fileName: currentResumeGistLink.fileName,
+						description: `Tail resume: ${currentResumeName}`,
+					}),
+				},
+			);
+			const data = (await response.json()) as {
+				error?: string;
+				id?: string;
+				htmlUrl?: string;
+				fileName?: string;
+				updatedAt?: string;
+			};
+			if (!response.ok || !data.id || !data.htmlUrl || !data.fileName) {
+				alert(data.error ?? "Failed to update gist.");
+				return;
+			}
+
+			setResumeGistLinks((previous) => ({
+				...previous,
+				[currentResumeName]: {
+					id: data.id!,
+					htmlUrl: data.htmlUrl!,
+					fileName: data.fileName!,
+					updatedAt: data.updatedAt ?? new Date().toISOString(),
+				},
+			}));
+			alert(`Updated GitHub gist: ${data.htmlUrl}`);
+		} catch (error) {
+			alert(`Failed to update gist: ${String(error)}`);
+		} finally {
+			setIsGithubBusy(false);
+		}
+	};
+
+	const copyCurrentGistUrl = async () => {
+		if (!currentResumeGistLink) {
+			alert("No linked gist for this resume yet.");
+			return;
+		}
+		try {
+			await navigator.clipboard.writeText(currentResumeGistLink.htmlUrl);
+			alert("Gist URL copied to clipboard.");
+		} catch {
+			prompt("Copy gist URL", currentResumeGistLink.htmlUrl);
+		}
 	};
 
 	const saveResume = () => {
@@ -243,17 +413,6 @@ function App() {
 		input.click();
 	};
 
-	const uploadResumeFromGist = () => {
-		// Prompt for Gist ID
-		const gistId = prompt("Enter Gist ID");
-		if (!gistId) {
-			return;
-		}
-		fetchGistById(gistId).then((data) => {
-			const resume = "layout" in data ? data : convert(data);
-			dispatch({ type: "load", value: resume });
-		});
-	};
 
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
@@ -399,37 +558,83 @@ function App() {
 								overflow: "auto",
 							}}
 						>
-							<div
-								style={{
-									display: "flex",
-									flexDirection: "row",
-									marginBottom: "5px",
-								}}
-							>
-								<button className="bordered" onClick={uploadResume}>
-									&#x1F4C1; Import
-								</button>
-								<button className="bordered" onClick={uploadResumeFromGist}>
-									&#x1F517; Import
-								</button>
-								<button className="bordered" onClick={downloadResume}>
-									⤓ Download
-								</button>
-								<Dropdown
-									text="Export"
-									items={[
-										{ text: "pdf", fn: downloadResume },
-										{ text: "JsonResume", fn: downloadJsonResume },
-									]}
-								/>
-								<button className="bordered" onClick={() => setDebug(!debug)}>
-									&#x1F41E; Debug
-								</button>
-							</div>
-							<div
-								id="pdf-container"
-								style={{ display: "flex", flexDirection: "column" }}
-							></div>
+								<div
+									style={{
+										display: "flex",
+										flexDirection: "row",
+										marginBottom: "5px",
+									}}
+								>
+									<button className="bordered" onClick={uploadResume}>
+										&#x1F4C1; Import
+									</button>
+									<button className="bordered" onClick={downloadResume}>
+										⤓ Download
+									</button>
+									<Dropdown
+										text="Export"
+										items={[
+											{ text: "pdf", fn: downloadResume },
+											{ text: "JsonResume", fn: downloadJsonResume },
+										]}
+									/>
+									{githubSession.connected ? (
+										<>
+											<button
+												className={`bordered ${isGithubBusy ? "disabled" : ""}`}
+												disabled={isGithubBusy}
+												onClick={publishResumeToGithub}
+											>
+												GitHub Publish
+											</button>
+											<button
+												className={`bordered ${isGithubBusy ? "disabled" : ""}`}
+												disabled={isGithubBusy}
+												onClick={updateResumeOnGithub}
+											>
+												GitHub Update
+											</button>
+											<button className="bordered" onClick={copyCurrentGistUrl}>
+												GitHub Copy URL
+											</button>
+											<button
+												className={`bordered ${isGithubBusy ? "disabled" : ""}`}
+												disabled={isGithubBusy}
+												onClick={disconnectGithub}
+											>
+												GitHub Disconnect
+											</button>
+										</>
+									) : (
+										<button
+											className={`bordered ${isGithubBusy ? "disabled" : ""}`}
+											disabled={isGithubBusy}
+											onClick={connectGithub}
+										>
+											GitHub Connect
+										</button>
+									)}
+									<button className="bordered" onClick={() => setDebug(!debug)}>
+										&#x1F41E; Debug
+									</button>
+								</div>
+								<div style={{ marginBottom: "8px", fontSize: "0.85rem" }}>
+									{githubSession.connected ? (
+										<span>
+											GitHub connected
+											{githubSession.login ? ` as @${githubSession.login}` : ""}.
+											{currentResumeGistLink
+												? ` Synced gist: ${currentResumeGistLink.id}`
+												: " This resume is not linked to a gist yet."}
+										</span>
+									) : (
+										<span>GitHub not connected.</span>
+									)}
+								</div>
+								<div
+									id="pdf-container"
+									style={{ display: "flex", flexDirection: "column" }}
+								></div>
 							{/* {
                                 (storageInitiated && state.resume && state.dataSchemas.length !== 0 && state.layoutSchemas.length !== 0) &&
                                 <ReactLayout

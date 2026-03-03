@@ -16,6 +16,30 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## GitHub Integration Setup
+
+Use a **GitHub OAuth App** (not a GitHub App) for this integration.
+
+1. Go to GitHub -> `Settings` -> `Developer settings` -> `OAuth Apps` -> `New OAuth App`.
+2. Set:
+   - `Application name`: anything (for example `Tail Local`)
+   - `Homepage URL`: `http://localhost:3000`
+   - `Authorization callback URL`: `http://localhost:3000/api/github/callback`
+3. Create the app and copy `Client ID` and `Client Secret`.
+4. Create a session secret (example):
+
+```bash
+openssl rand -base64 32
+```
+
+5. Put these in `.env`:
+
+```bash
+GITHUB_CLIENT_ID=your_github_oauth_app_client_id
+GITHUB_CLIENT_SECRET=your_github_oauth_app_client_secret
+GITHUB_SESSION_SECRET=long_random_secret_for_cookie_encryption
+```
+
 You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
 
 [API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
