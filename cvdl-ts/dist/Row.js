@@ -27,6 +27,7 @@ exports.from = from;
 exports.row = row;
 exports.default_ = default_;
 exports.elementsWidth = elementsWidth;
+exports.elementOuterWidth = elementOuterWidth;
 exports.boundWidth = boundWidth;
 exports.scaleWidth = scaleWidth;
 const Margin = __importStar(require("./Margin"));
@@ -60,9 +61,10 @@ function default_() {
     };
 }
 function elementsWidth(r) {
-    return r.elements
-        .map((e) => Width.get_fixed_unchecked(e.width))
-        .reduce((a, b) => a + b, 0.0);
+    return r.elements.map(elementOuterWidth).reduce((a, b) => a + b, 0.0);
+}
+function elementOuterWidth(e) {
+    return e.margin.left + Width.get_fixed_unchecked(e.width) + e.margin.right;
 }
 function boundWidth(r, width) {
     const bound = r.width.tag === "Absolute"
@@ -73,7 +75,32 @@ function boundWidth(r, width) {
     if (bound === null) {
         throw new Error("Cannot bound width of non-unitized widths!");
     }
-    return row(r.elements.map((e) => Layout.boundWidth(e, bound)), r.margin, r.alignment, Width.absolute(bound), r.is_frozen, Width.is_fill(r.width));
+    const fixedWidths = r.elements.map((e) => {
+        switch (e.width.tag) {
+            case "Fill":
+                return null;
+            case "Absolute":
+                return Math.min(e.width.value, bound);
+            case "Percent":
+                // Row children are usually scaled before bounding, but this keeps
+                // direct boundWidth() calls stable if Percent widths appear.
+                return Math.min((e.width.value * bound) / 100.0, bound);
+        }
+    });
+    const totalFixedOuterWidth = fixedWidths.reduce((acc, next, index) => next === null
+        ? acc
+        : acc + r.elements[index].margin.left + next + r.elements[index].margin.right, 0);
+    const fillElementCount = fixedWidths.filter((next) => next === null).length;
+    const totalFillMargins = fixedWidths.reduce((acc, next, index) => next === null
+        ? acc +
+            r.elements[index].margin.left +
+            r.elements[index].margin.right
+        : acc, 0);
+    const fillWidth = fillElementCount > 0
+        ? Math.max(0, bound - totalFixedOuterWidth - totalFillMargins) /
+            fillElementCount
+        : 0;
+    return row(r.elements.map((e, index) => { var _a; return Layout.boundWidth(e, (_a = fixedWidths[index]) !== null && _a !== void 0 ? _a : fillWidth); }), r.margin, r.alignment, Width.absolute(bound), r.is_frozen, Width.is_fill(r.width));
 }
 function scaleWidth(r, w) {
     return (0, Utils_1.with_)(r, {

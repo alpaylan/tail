@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { FontDict } from "cvdl-ts/dist/AnyLayout";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
@@ -29,7 +29,9 @@ const RawEditor = dynamic(() => import("@/components/RawEditor"));
 
 const storage = new LocalStorage();
 const RESUME_GIST_LINKS_KEY = "tail_resume_gist_links";
+const ACTIVE_RESUME_KEY = "tail_active_resume";
 const GIST_FILE_NAME = "resume.json";
+const DEBUG_STATE_SYNC_DELAY_MS = 120;
 
 type GithubSessionState = {
 	connected: boolean;
@@ -61,7 +63,13 @@ function App() {
 		editHistory: [],
 		resumeLayout: Defaults.DefaultResumeLayout,
 	});
-	const [resume, setResume] = useState<string>("Default");
+	const [resume, setResume] = useState<string>(() => {
+		if (typeof window === "undefined") {
+			return "Default";
+		}
+		return localStorage.getItem(ACTIVE_RESUME_KEY) ?? "Default";
+	});
+	const resumeRef = useRef(resume);
 	const [resumes, setResumes] = useState<string[] | null>(null);
 	// const [resumeData, setResumeData] = useState<Resume | null>(state)
 	const [bindings, setBindings] = useState<Map<string, unknown>>(new Map());
@@ -80,6 +88,10 @@ function App() {
 	>({});
 	const currentResumeName = state.resume?.name ?? resume;
 	const currentResumeGistLink = resumeGistLinks[currentResumeName];
+
+	useEffect(() => {
+		resumeRef.current = resume;
+	}, [resume]);
 
 	useEffect(() => {
 		require("../registerStaticFiles.js");
@@ -170,8 +182,28 @@ function App() {
 			.then(() => storage.list_resumes())
 			.then((nextResumeNames: string[]) => {
 				setResumes(nextResumeNames);
+				if (nextResumeNames.length === 0) {
+					return;
+				}
+				const rememberedResume = localStorage.getItem(ACTIVE_RESUME_KEY);
+				const nextResume =
+					rememberedResume && nextResumeNames.includes(rememberedResume)
+						? rememberedResume
+						: nextResumeNames.includes(resumeRef.current)
+							? resumeRef.current
+							: nextResumeNames[0];
+				if (nextResume !== resumeRef.current) {
+					setResume(nextResume);
+				}
 			});
 	}, [storageInitiated]);
+
+	useEffect(() => {
+		if (!resume) {
+			return;
+		}
+		localStorage.setItem(ACTIVE_RESUME_KEY, resume);
+	}, [resume]);
 
 	useEffect(() => {
 		if (!storageInitiated) {
@@ -236,6 +268,51 @@ function App() {
 			debug,
 		});
 	}, [resume, bindings, fontDict, debug, storageInitiated, state, dispatch]);
+
+	useEffect(() => {
+		if (!storageInitiated || process.env.NODE_ENV === "production") {
+			return;
+		}
+
+		const timer = window.setTimeout(() => {
+			const snapshot = {
+				resumeName: currentResumeName,
+				tab: currentTab,
+				debug,
+				state: {
+					resume: state.resume,
+					dataSchemas: state.dataSchemas,
+					layoutSchemas: state.layoutSchemas,
+					resumeLayout: state.resumeLayout,
+					editorPath: state.editorPath,
+					editorPathVersion: state.editorPathVersion,
+					previewFocus: state.previewFocus,
+					editHistory: state.editHistory,
+				},
+				bindings: Array.from(bindings.entries()),
+			};
+
+			void fetch("/api/debug/state", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(snapshot),
+				keepalive: true,
+			}).catch(() => {
+				// Best effort only.
+			});
+		}, DEBUG_STATE_SYNC_DELAY_MS);
+
+		return () => {
+			window.clearTimeout(timer);
+		};
+	}, [
+		storageInitiated,
+		currentResumeName,
+		currentTab,
+		debug,
+		state,
+		bindings,
+	]);
 
 	const connectGithub = () => {
 		const returnTo = `${window.location.pathname}${window.location.search}`;

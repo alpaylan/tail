@@ -327,22 +327,24 @@ export function computeTextboxPositions(
 			top_left = top_left.move_y_by(row.margin.top).move_x_by(row.margin.left);
 			const originalTopLeft = top_left;
 			let per_elem_space: number = 0.0;
+			const rowElementsWidth = Row.elementsWidth(row);
 			switch (row.alignment) {
 				case "Center":
 					top_left = top_left.move_x_by(
-						(Width.get_fixed_unchecked(row.width) - Row.elementsWidth(row)) /
-							2.0,
+						(Width.get_fixed_unchecked(row.width) - rowElementsWidth) / 2.0,
 					);
 					break;
 				case "Right":
 					top_left = top_left.move_x_by(
-						Width.get_fixed_unchecked(row.width) - Row.elementsWidth(row),
+						Width.get_fixed_unchecked(row.width) - rowElementsWidth,
 					);
 					break;
 				case "Justified":
-					per_elem_space =
-						(Width.get_fixed_unchecked(row.width) - Row.elementsWidth(row)) /
-						(row.elements.length - 1);
+					if (row.elements.length > 1) {
+						per_elem_space =
+							(Width.get_fixed_unchecked(row.width) - rowElementsWidth) /
+							(row.elements.length - 1);
+					}
 					break;
 			}
 
@@ -352,7 +354,7 @@ export function computeTextboxPositions(
 				const result = computeTextboxPositions(element, top_left, font_dict);
 				depth = Math.max(depth, result.depth);
 				top_left = top_left.move_x_by(
-					Width.get_fixed_unchecked(element.width) + per_elem_space,
+					Row.elementOuterWidth(element) + per_elem_space,
 				);
 				renderedElements.push(result.renderedLayout);
 			}
@@ -387,18 +389,20 @@ export function computeTextboxPositions(
 				.move_y_by(elem.margin.top)
 				.move_x_by(elem.margin.left);
 			let line = 1;
-			let cursor = top_left.x;
+			let cursor = 0;
+			const maxLineWidth =
+				Width.get_fixed_unchecked(elem.width) - elem.margin.right;
+			const wrapTolerance = 1e-6;
 			elem.spans.forEach((span) => {
 				if (
-					cursor - top_left.x + span.width >
-						Width.get_fixed_unchecked(elem.width) - elem.margin.right ||
+					cursor + span.width > maxLineWidth + wrapTolerance ||
 					span.text === "\n\n"
 				) {
-					cursor = top_left.x;
+					cursor = 0;
 					line += 1;
 				}
 				span.bbox = new Box(
-					new Point(cursor - top_left.x, (line - 1) * height),
+					new Point(cursor, (line - 1) * height),
 					new Point(cursor + span.width, line * height),
 				);
 				span.line = line;

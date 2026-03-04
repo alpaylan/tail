@@ -354,12 +354,13 @@ function bind(t, bindings) {
     return result;
 }
 function instantiate(e, section, fields, bindings) {
+    var _a;
     e = bind(e, bindings);
     if (!e.is_ref) {
         return e;
     }
     const itemType = fields.find((f) => f.name === e.item);
-    if ((itemType === null || itemType === void 0 ? void 0 : itemType.type.tag) === "MarkdownString") {
+    if (((_a = itemType === null || itemType === void 0 ? void 0 : itemType.type) === null || _a === void 0 ? void 0 : _a.tag) === "MarkdownString") {
         e.is_markdown = true;
     }
     const text = section.fields[e.item];

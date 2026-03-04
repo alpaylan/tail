@@ -17,6 +17,7 @@ export declare function from(w: Optional<Row>): Row;
 export declare function row(elements: Layout.t[], margin: Margin.t, alignment: Alignment.t, width: Width.t, is_frozen: boolean, is_fill: boolean): Row;
 export declare function default_(): Row;
 export declare function elementsWidth(r: Row): number;
+export declare function elementOuterWidth(e: Layout.t): number;
 export declare function boundWidth(r: Row, width: number): Row;
 export declare function scaleWidth(r: Row, w: number): Row;
 export {};

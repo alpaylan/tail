@@ -10,6 +10,7 @@ import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import * as Layout from "cvdl-ts/dist/Layout";
 import * as Elem from "cvdl-ts/dist/Elem";
 import * as Stack from "cvdl-ts/dist/Stack";
+import * as Row from "cvdl-ts/dist/Row";
 import * as Resume from "cvdl-ts/dist/Resume";
 
 type LensStep =
@@ -111,6 +112,13 @@ const followLens = (lens: Lens, obj: any) => {
 		}
 	}, obj);
 };
+
+const rowPercentWidthTotal = (row: Row.t): number =>
+	row.elements.reduce(
+		(sum, child) =>
+			sum + (child.width.tag === "Percent" ? child.width.value : 0),
+		0,
+	);
 
 const collectReferencedFields = (layout: Layout.PreBindingLayout): string[] => {
 	const fields = new Set<string>();
@@ -250,6 +258,107 @@ const ContainerControlPanel = (props: {
 	const [marginRight, setMarginRight] = useState(container.margin.right);
 	const [marginTop, setMarginTop] = useState(container.margin.top);
 	const [marginBottom, setMarginBottom] = useState(container.margin.bottom);
+	const [selectedElementIndices, setSelectedElementIndices] = useState<number[]>(
+		[],
+	);
+	const selectedIndices = [...selectedElementIndices].sort((a, b) => a - b);
+	const isSelectionContiguous =
+		selectedIndices.length <= 1 ||
+		selectedIndices.every((index, i) =>
+			i === 0 ? true : index === selectedIndices[i - 1] + 1,
+		);
+	const isRootContainer =
+		props.lens.length === 1 &&
+		"attribute" in props.lens[0] &&
+		(props.lens[0].attribute === "header_layout_schema" ||
+			props.lens[0].attribute === "item_layout_schema");
+
+	const replaceCurrentContainer = (nextContainer: Layout.Container) => {
+		if (isRootContainer) {
+			const rootStep = props.lens[0] as { attribute: string };
+			(props.layoutSchema as any)[rootStep.attribute] = nextContainer;
+			props.setLayout(props.layout);
+			return;
+		}
+		const parentLens = props.lens.slice(0, -1);
+		const parent = followLens(parentLens, props.layoutSchema) as Layout.Container;
+		const currentStep = props.lens[props.lens.length - 1];
+		if (!currentStep || !("index" in currentStep)) {
+			return;
+		}
+		parent.elements[currentStep.index] = nextContainer;
+		props.setLayout(props.layout);
+	};
+
+	const convertContainerType = (nextTag: "Row" | "Stack") => {
+		if (container.tag === nextTag) {
+			return;
+		}
+		const nextContainer: Layout.Container =
+			nextTag === "Row"
+				? {
+						...Row.default_(),
+						elements: container.elements,
+						margin: container.margin,
+						alignment: container.alignment,
+						width: container.width,
+						is_fill: container.is_fill,
+						is_frozen:
+							container.tag === "Row"
+								? (container as Row.t).is_frozen
+								: false,
+				  }
+				: {
+						...Stack.default_(),
+						elements: container.elements,
+						margin: container.margin,
+						alignment: container.alignment,
+						width: container.width,
+						is_fill: container.is_fill,
+				  };
+		replaceCurrentContainer(nextContainer);
+	};
+
+	const dissolveContainer = () => {
+		if (isRootContainer) {
+			return;
+		}
+		const parentLens = props.lens.slice(0, -1);
+		const parent = followLens(parentLens, props.layoutSchema) as Layout.Container;
+		const currentStep = props.lens[props.lens.length - 1];
+		if (!currentStep || !("index" in currentStep)) {
+			return;
+		}
+		const replaceIndex = currentStep.index;
+		parent.elements.splice(replaceIndex, 1, ...container.elements);
+		props.setLayout(props.layout);
+		if (container.elements.length > 0) {
+			props.setLens([...parentLens, { index: replaceIndex }]);
+		} else {
+			props.setLens(parentLens);
+		}
+	};
+
+	const wrapSelectedElements = (tag: "Row" | "Stack") => {
+		if (selectedIndices.length === 0) {
+			return;
+		}
+		if (!isSelectionContiguous) {
+			alert("Please select contiguous sibling elements to wrap.");
+			return;
+		}
+		const startIndex = selectedIndices[0];
+		const wrappedElements = selectedIndices.map(
+			(index) => container.elements[index],
+		);
+		const wrapper: Layout.Container =
+			tag === "Row" ? Row.default_() : Stack.default_();
+		wrapper.elements = wrappedElements;
+		container.elements.splice(startIndex, wrappedElements.length, wrapper);
+		setSelectedElementIndices([]);
+		props.setLayout(props.layout);
+		props.setLens([...props.lens, { index: startIndex }]);
+	};
 	const fieldNames = (() => {
 		if (!props.dataSchema) {
 			return [];
@@ -261,6 +370,10 @@ const ContainerControlPanel = (props: {
 				: props.dataSchema.item_schema;
 		return fields.map((field) => field.name);
 	})();
+	const rowPercentTotal =
+		container.tag === "Row" ? rowPercentWidthTotal(container as Row.t) : null;
+	const isRowPercentOverflow =
+		rowPercentTotal !== null && rowPercentTotal > 100;
 
 	useEffect(() => {
 		if (fieldNames.length === 0) {
@@ -271,6 +384,16 @@ const ContainerControlPanel = (props: {
 			setNewRefField(fieldNames[0]);
 		}
 	}, [fieldNames, newRefField]);
+
+	useEffect(() => {
+		setSelectedElementIndices([]);
+	}, [props.lens]);
+
+	useEffect(() => {
+		setSelectedElementIndices((indices) =>
+			indices.filter((index) => index < container.elements.length),
+		);
+	}, [container.elements.length]);
 
 	return (
 		<div style={{ display: "flex", flexDirection: "row" }}>
@@ -341,7 +464,15 @@ const ContainerControlPanel = (props: {
 				<div className="panel-item">
 					<button
 						className="bordered"
+						disabled={isRootContainer}
+						style={{
+							color: isRootContainer ? "lightgrey" : undefined,
+							borderColor: isRootContainer ? "lightgrey" : undefined,
+						}}
 						onClick={() => {
+							if (isRootContainer) {
+								return;
+							}
 							const parent = followLens(
 								props.lens.slice(0, -1),
 								props.layoutSchema,
@@ -357,9 +488,47 @@ const ContainerControlPanel = (props: {
 						Delete
 					</button>
 				</div>
+				<div className="panel-item-elements">
+					<label>Container</label>
+					<div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+						<button
+							className="bordered"
+							onClick={() =>
+								convertContainerType(
+									container.tag === "Stack" ? "Row" : "Stack",
+								)
+							}
+						>
+							{container.tag === "Stack" ? "Change to Row" : "Change to Stack"}
+						</button>
+						<button
+							className="bordered"
+							disabled={isRootContainer}
+							style={{
+								color: isRootContainer ? "lightgrey" : undefined,
+								borderColor: isRootContainer ? "lightgrey" : undefined,
+							}}
+							onClick={dissolveContainer}
+						>
+							Dissolve Into Parent
+						</button>
+					</div>
+				</div>
 
 				<div className="panel-item-elements">
 					{container.elements.length !== 0 && <label>Elements</label>}
+					{container.tag === "Row" && (
+						<div
+							style={{
+								marginBottom: "8px",
+								color: isRowPercentOverflow ? "#b91c1c" : "#15803d",
+								fontWeight: 600,
+							}}
+						>
+							Row % total: {rowPercentTotal}%
+							{isRowPercentOverflow ? " (over 100%)" : ""}
+						</div>
+					)}
 					<div style={{ display: "flex", flexDirection: "column" }}>
 						{container.elements.map((element, index) => {
 							return (
@@ -371,6 +540,18 @@ const ContainerControlPanel = (props: {
 										justifyContent: "space-between",
 									}}
 								>
+									<input
+										type="checkbox"
+										checked={selectedElementIndices.includes(index)}
+										onChange={(e) => {
+											setSelectedElementIndices((prev) => {
+												if (e.target.checked) {
+													return [...prev, index];
+												}
+												return prev.filter((i) => i !== index);
+											});
+										}}
+									/>
 									<button
 										className="bordered"
 										onClick={() => {
@@ -431,6 +612,46 @@ const ContainerControlPanel = (props: {
 								</div>
 							);
 						})}
+					</div>
+					<div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+						<button
+							className="bordered"
+							disabled={
+								selectedIndices.length === 0 || !isSelectionContiguous
+							}
+							style={{
+								color:
+									selectedIndices.length === 0 || !isSelectionContiguous
+										? "lightgrey"
+										: undefined,
+								borderColor:
+									selectedIndices.length === 0 || !isSelectionContiguous
+										? "lightgrey"
+										: undefined,
+							}}
+							onClick={() => wrapSelectedElements("Stack")}
+						>
+							Wrap Selected as Stack
+						</button>
+						<button
+							className="bordered"
+							disabled={
+								selectedIndices.length === 0 || !isSelectionContiguous
+							}
+							style={{
+								color:
+									selectedIndices.length === 0 || !isSelectionContiguous
+										? "lightgrey"
+										: undefined,
+								borderColor:
+									selectedIndices.length === 0 || !isSelectionContiguous
+										? "lightgrey"
+										: undefined,
+							}}
+							onClick={() => wrapSelectedElements("Row")}
+						>
+							Wrap Selected as Row
+						</button>
 					</div>
 				</div>
 				<div className="panel-item">
@@ -582,6 +803,19 @@ const ElemControlPanel = (props: {
 	const [marginRight, setMarginRight] = useState(elem.margin.right);
 	const [marginTop, setMarginTop] = useState(elem.margin.top);
 	const [marginBottom, setMarginBottom] = useState(elem.margin.bottom);
+	const parentRowPercentTotal = (() => {
+		if (props.lens.length < 2) {
+			return null;
+		}
+		const parentLens = props.lens.slice(0, -1);
+		const parent = followLens(parentLens, props.layoutSchema) as Layout.t;
+		if (parent.tag !== "Row") {
+			return null;
+		}
+		return rowPercentWidthTotal(parent as Row.t);
+	})();
+	const isParentRowPercentOverflow =
+		parentRowPercentTotal !== null && parentRowPercentTotal > 100;
 	return (
 		<div style={{ display: "flex", flexDirection: "row" }}>
 			<div className="panel">
@@ -713,6 +947,18 @@ const ElemControlPanel = (props: {
 								}
 							}}
 						/>
+					)}
+					{parentRowPercentTotal !== null && (
+						<div
+							style={{
+								marginTop: "6px",
+								color: isParentRowPercentOverflow ? "#b91c1c" : "#15803d",
+								fontWeight: 600,
+							}}
+						>
+							Parent row % total: {parentRowPercentTotal}%
+							{isParentRowPercentOverflow ? " (over 100%)" : ""}
+						</div>
 					)}
 				</div>
 				<div className="panel-item">
@@ -1094,13 +1340,13 @@ const AddNewLayout = (props: {
 									newLayout.data_schema_name = dataSchema;
 									newLayout.schema_name = sectionName;
 
-									storage.save_layout_schema(newLayout);
-									dispatch!({
-										type: "add-layout",
-										layout_schema: newLayout,
-									});
-								}}
-							>
+										storage.save_layout_schema(newLayout);
+										dispatch!({
+											type: "add-layout",
+											layout: newLayout,
+										});
+									}}
+								>
 								{" "}
 								Add{" "}
 							</button>
@@ -1143,6 +1389,7 @@ const LayoutEditor = () => {
 		state?.editorPathVersion ?? null,
 	);
 	const initializedFromExistingFocus = useRef(false);
+	const lastAppliedEditorPathVersion = useRef<number | null>(null);
 
 	useEffect(() => {
 		if (layoutSchemaControlPanel === null || layoutSchema === null) {
@@ -1254,6 +1501,9 @@ const LayoutEditor = () => {
 		if (!editorPath || editorPath.tag === "none" || !resumeSections) {
 			return;
 		}
+		if (lastAppliedEditorPathVersion.current === editorPathVersion) {
+			return;
+		}
 		if (preserveExistingFocus.current) {
 			if (preservedEditorPathVersion.current === null) {
 				preservedEditorPathVersion.current = editorPathVersion;
@@ -1287,6 +1537,7 @@ const LayoutEditor = () => {
 						: [{ attribute: editorPath.item === -1 ? "header_layout_schema" : "item_layout_schema" }]
 					: [{ attribute: "item_layout_schema" }];
 		selectLayoutBySchemaName(targetSection.layout_schema, nextLens, "auto");
+		lastAppliedEditorPathVersion.current = editorPathVersion;
 	}, [
 		editorPath,
 		resumeSections,
@@ -1346,7 +1597,7 @@ const LayoutEditor = () => {
 		);
 		setLayoutSchema(nextLayoutSchema);
 		storage.save_layout_schema(nextLayoutSchema);
-		dispatch!({ type: "layout-update", layout: nextLayoutSchema });
+		dispatch!({ type: "layout-update", value: nextLayoutSchema });
 	};
 	return (
 		<div>

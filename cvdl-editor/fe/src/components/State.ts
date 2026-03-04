@@ -207,6 +207,40 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 		};
 	}
 
+	if (action.type === "layout-update") {
+		storage.save_layout_schema(action.value);
+		const hasExisting = state.layoutSchemas.some(
+			(schema) => schema.schema_name === action.value.schema_name,
+		);
+		const nextLayoutSchemas = hasExisting
+			? state.layoutSchemas.map((schema) =>
+					schema.schema_name === action.value.schema_name ? action.value : schema,
+				)
+			: [...state.layoutSchemas, action.value];
+		return {
+			...state,
+			layoutSchemas: nextLayoutSchemas,
+		};
+	}
+
+	if (action.type === "add-layout") {
+		storage.save_layout_schema(action.layout);
+		const hasExisting = state.layoutSchemas.some(
+			(schema) => schema.schema_name === action.layout.schema_name,
+		);
+		const nextLayoutSchemas = hasExisting
+			? state.layoutSchemas.map((schema) =>
+					schema.schema_name === action.layout.schema_name
+						? action.layout
+						: schema,
+				)
+			: [...state.layoutSchemas, action.layout];
+		return {
+			...state,
+			layoutSchemas: nextLayoutSchemas,
+		};
+	}
+
 	if (action.type === "set-editor-path") {
 		path = action.path;
 		pathVersion += 1;
