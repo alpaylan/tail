@@ -32,7 +32,9 @@ const AnyLayout_1 = require("./AnyLayout");
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const Resume = __importStar(require("./Resume"));
 const _1 = require(".");
+const Box_1 = require("./Box");
 const render = async ({ resume_name, resume, data_schemas, layout_schemas, resume_layout, bindings, storage, fontDict, }) => {
+    var _a;
     let start_time = Date.now();
     if (!resume && !resume_name) {
         throw "Rendering requires either resume_name or resume";
@@ -95,9 +97,12 @@ const render = async ({ resume_name, resume, data_schemas, layout_schemas, resum
         fontDict: fontDict,
     };
     for (const layout of layouts) {
-        (0, exports.renderSectionLayout)(layout, tracker);
-        tracker.height +=
-            layout.bounding_box.height() + layout.margin.top + layout.margin.bottom;
+        const flowOffset = (_a = layout.flow_offset_y) !== null && _a !== void 0 ? _a : tracker.height;
+        (0, exports.renderSectionLayout)(layout, { ...tracker, height: flowOffset });
+        if (layout.flow_offset_y === undefined) {
+            tracker.height +=
+                layout.bounding_box.height() + layout.margin.top + layout.margin.bottom;
+        }
     }
     console.log("Rendering is completed. Saving the document...");
     console.log("Document is saved to output.pdf");
@@ -122,20 +127,38 @@ const getPageContainer = (page, tracker) => {
     return tracker.pageContainer;
 };
 const mergeSpans = (spans) => {
+    if (spans.length === 0) {
+        return [];
+    }
+    const firstSpan = spans[0];
+    if (!firstSpan) {
+        return [];
+    }
     const merged_spans = [];
-    let currentSpan = spans[0];
+    let currentSpan = firstSpan;
     for (let i = 1; i < spans.length; i++) {
-        if (currentSpan.bbox.top_left.y === spans[i].bbox.top_left.y &&
-            currentSpan.font === spans[i].font &&
-            currentSpan.is_code === spans[i].is_code &&
-            currentSpan.is_bold === spans[i].is_bold &&
-            currentSpan.is_italic === spans[i].is_italic) {
-            currentSpan.text += spans[i].text;
-            currentSpan.bbox.bottom_right = spans[i].bbox.bottom_right;
+        const nextSpan = spans[i];
+        if (!nextSpan) {
+            continue;
+        }
+        const hasBothBBoxes = Boolean(currentSpan.bbox && nextSpan.bbox);
+        if (hasBothBBoxes &&
+            currentSpan.bbox.top_left.y === nextSpan.bbox.top_left.y &&
+            currentSpan.font === nextSpan.font &&
+            currentSpan.is_code === nextSpan.is_code &&
+            currentSpan.is_bold === nextSpan.is_bold &&
+            currentSpan.is_italic === nextSpan.is_italic) {
+            currentSpan = {
+                ...currentSpan,
+                text: currentSpan.text + nextSpan.text,
+                bbox: currentSpan.bbox && nextSpan.bbox
+                    ? new Box_1.Box(currentSpan.bbox.top_left, nextSpan.bbox.bottom_right)
+                    : currentSpan.bbox,
+            };
         }
         else {
             merged_spans.push(currentSpan);
-            currentSpan = spans[i];
+            currentSpan = nextSpan;
         }
     }
     merged_spans.push(currentSpan);

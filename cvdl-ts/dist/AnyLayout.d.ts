@@ -28,11 +28,13 @@ export type RenderProps = {
     bindings: Map<string, unknown>;
     storage: Storage;
     fontDict?: FontDict;
+    incremental?: boolean;
 };
+export declare function resetIncrementalCaches(): void;
 export declare class FontDict {
     fonts: Map<string, fontkit.Font>;
     constructor();
     load_fonts(storage: Storage): Promise<this>;
     get_font(name: string): fontkit.Font;
 }
-export declare function render({ resume, layout_schemas, data_schemas, resume_layout, bindings, fontDict, }: RenderProps): Layout.RenderedLayout[];
+export declare function render({ resume, layout_schemas, data_schemas, resume_layout, bindings, fontDict, incremental, }: RenderProps): Layout.RenderedLayout[];

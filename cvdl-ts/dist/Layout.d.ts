@@ -43,6 +43,7 @@ export type RenderedElem = Elem.t & {
 };
 export type RenderedLayout = (RenderedStack | RenderedRow | RenderedElem) & {
     path?: ElementPath;
+    flow_offset_y?: number;
 };
 export declare function default_(tag: string): Stack.t | Row.t | Elem.t;
 export declare function empty(): Layout;

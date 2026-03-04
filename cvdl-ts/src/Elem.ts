@@ -440,7 +440,7 @@ export function instantiate(
 	}
 
 	const itemType = fields.find((f) => f.name === e.item);
-	if (itemType.type.tag === "MarkdownString") {
+	if (itemType?.type?.tag === "MarkdownString") {
 		e.is_markdown = true;
 	}
 

@@ -359,7 +359,7 @@ function instantiate(e, section, fields, bindings) {
         return e;
     }
     const itemType = fields.find((f) => f.name === e.item);
-    if (itemType.type.tag === "MarkdownString") {
+    if ((itemType === null || itemType === void 0 ? void 0 : itemType.type.tag) === "MarkdownString") {
         e.is_markdown = true;
     }
     const text = section.fields[e.item];

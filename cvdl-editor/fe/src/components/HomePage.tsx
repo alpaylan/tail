@@ -12,6 +12,7 @@ import Section from "@/components/Section";
 import { render as domRender } from "@/logic/DomLayout";
 import Layout from "@/components/layout";
 import { convert, convertBack } from "@/logic/JsonResume";
+import { AlperenPdfTailResume } from "@/data/AlperenPdfResume";
 import { fetchGist } from "@/api/fetchGist";
 import {
 	DocumentDispatchContext,
@@ -53,6 +54,8 @@ function App() {
 	const [state, dispatch] = useReducer(DocumentReducer, {
 		resume: Resume.resume("Default", "SingleColumnSchema", []),
 		editorPath: { tag: "none" },
+		editorPathVersion: 0,
+		previewFocus: { tag: "none" },
 		dataSchemas: [],
 		layoutSchemas: [],
 		editHistory: [],
@@ -157,6 +160,18 @@ function App() {
 			console.error(e);
 		}
 	}, [resume, storageInitiated]);
+
+	useEffect(() => {
+		if (!storageInitiated) {
+			return;
+		}
+		storage
+			.save_resume(AlperenPdfTailResume.name, AlperenPdfTailResume)
+			.then(() => storage.list_resumes())
+			.then((nextResumeNames: string[]) => {
+				setResumes(nextResumeNames);
+			});
+	}, [storageInitiated]);
 
 	useEffect(() => {
 		if (!storageInitiated) {
@@ -454,111 +469,120 @@ function App() {
 	return (
 		<EditorContext.Provider value={state}>
 			<DocumentDispatchContext.Provider value={dispatch}>
-				<Layout>
-					<div
-						style={{ display: "flex", flexDirection: "row", height: "100%" }}
-					>
+					<Layout>
 						<div
-							style={{
-								display: "flex",
-								flexDirection: "column",
-								margin: "20px",
-							}}
+							style={{ display: "flex", flexDirection: "row", height: "100%" }}
 						>
-							<button
-								className={`bordered ${currentTab === "content-editor" ? "selected" : ""}`}
-								onClick={() => setCurrentTab("content-editor")}
-							>
-								Content Editor
-							</button>
-							<button
-								className={`bordered ${currentTab === "layout-editor" ? "selected" : ""}`}
-								onClick={() => setCurrentTab("layout-editor")}
-							>
-								Layout Editor
-							</button>
-							<button
-								className={`bordered ${currentTab === "schema-editor" ? "selected" : ""}`}
-								onClick={() => setCurrentTab("schema-editor")}
-							>
-								Schema Editor
-							</button>
-							<button
-								className={`bordered ${currentTab === "raw-editor" ? "selected" : ""}`}
-								onClick={() => setCurrentTab("raw-editor")}
-							>
-								Raw Editor
-							</button>
-						</div>
-						<div
-							style={{
-								display: "flex",
-								flexDirection: "column",
-								width: "50%",
-								margin: "20px",
-								minWidth: "250px",
-								maxHeight: "calc(100vh - 40px)",
-								overflow: "auto",
-							}}
-						>
-							<div style={{ display: "flex", flexDirection: "row" }}>
-								<select
-									value={state.resume?.name}
-									onChange={(e) => {
-										setResume(e.target.value);
-										dispatch({
-											type: "switch-resume",
-											resumeName: e.target.value,
-										});
-									}}
-								>
-									{resumes &&
-										resumes.map((resume) => {
-											return (
-												<option key={resume} value={resume}>
-													{resume}
-												</option>
-											);
-										})}
-								</select>
-								<button
-									className="bordered"
-									onClick={() => {
-										const name = prompt("Enter new resume name");
-										if (name) {
-											setResume(name);
-											dispatch({ type: "create-new-resume", resumeName: name });
-										}
-									}}
-								>
-									⊕ New Resume
-								</button>
-							</div>
+							{!debug && (
+								<>
+									<div
+										style={{
+											display: "flex",
+											flexDirection: "column",
+											margin: "20px",
+										}}
+									>
+										<button
+											className={`bordered ${currentTab === "content-editor" ? "selected" : ""}`}
+											onClick={() => setCurrentTab("content-editor")}
+										>
+											Content Editor
+										</button>
+										<button
+											className={`bordered ${currentTab === "layout-editor" ? "selected" : ""}`}
+											onClick={() => setCurrentTab("layout-editor")}
+										>
+											Layout Editor
+										</button>
+										<button
+											className={`bordered ${currentTab === "schema-editor" ? "selected" : ""}`}
+											onClick={() => setCurrentTab("schema-editor")}
+										>
+											Schema Editor
+										</button>
+										<button
+											className={`bordered ${currentTab === "raw-editor" ? "selected" : ""}`}
+											onClick={() => setCurrentTab("raw-editor")}
+										>
+											Raw Editor
+										</button>
+									</div>
+									<div
+										style={{
+											display: "flex",
+											flexDirection: "column",
+											width: "50%",
+											margin: "20px",
+											minWidth: "250px",
+											maxHeight: "calc(100vh - 40px)",
+											overflow: "auto",
+										}}
+									>
+										<div style={{ display: "flex", flexDirection: "row" }}>
+											<select
+												value={state.resume?.name}
+												onChange={(e) => {
+													setResume(e.target.value);
+													dispatch({
+														type: "switch-resume",
+														resumeName: e.target.value,
+													});
+												}}
+											>
+												{resumes &&
+													resumes.map((resume) => {
+														return (
+															<option key={resume} value={resume}>
+																{resume}
+															</option>
+														);
+													})}
+											</select>
+											<button
+												className="bordered"
+												onClick={() => {
+													const name = prompt("Enter new resume name");
+													if (name) {
+														setResume(name);
+														dispatch({
+															type: "create-new-resume",
+															resumeName: name,
+														});
+													}
+												}}
+											>
+												⊕ New Resume
+											</button>
+										</div>
 
-							{currentTab === "content-editor" && (
-								<div>
-									<h1>Content Editor</h1>
-									<AddNewSection />
-									{state.resume &&
-										state.resume.sections.map((section, index) => {
-											return <Section key={index} section={section} />;
-										})}
-								</div>
+										{currentTab === "content-editor" && (
+											<div>
+												<h1>Content Editor</h1>
+												<AddNewSection />
+												{state.resume &&
+													state.resume.sections.map((section, index) => {
+														return <Section key={index} section={section} />;
+													})}
+											</div>
+										)}
+										{currentTab === "layout-editor" && <LayoutEditor />}
+										{currentTab === "schema-editor" && <DataSchemaEditor />}
+										{currentTab === "raw-editor" && <RawEditor />}
+									</div>
+								</>
 							)}
-							{currentTab === "layout-editor" && <LayoutEditor />}
-							{currentTab === "schema-editor" && <DataSchemaEditor />}
-							{currentTab === "raw-editor" && <RawEditor />}
-						</div>
-						<div
-							style={{
-								display: "flex",
-								flexDirection: "column",
-								margin: "20px",
-								minWidth: "640px",
-								maxHeight: "calc(100vh - 40px)",
-								overflow: "auto",
-							}}
-						>
+							<div
+								style={{
+									display: "flex",
+									flexDirection: "column",
+									flex: debug ? 1 : undefined,
+									width: debug ? "100%" : undefined,
+									margin: debug ? "8px" : "20px",
+									minWidth: debug ? "0" : "640px",
+									maxHeight: debug ? "calc(100vh - 16px)" : "calc(100vh - 40px)",
+									overflow: "auto",
+								}}
+							>
 								<div
 									style={{
 										display: "flex",
@@ -616,7 +640,7 @@ function App() {
 										</button>
 									)}
 									<button className="bordered" onClick={() => setDebug(!debug)}>
-										&#x1F41E; Debug
+										&#x1F41E; Debug {debug ? "ON" : "OFF"}
 									</button>
 								</div>
 								<div style={{ marginBottom: "8px", fontSize: "0.85rem" }}>

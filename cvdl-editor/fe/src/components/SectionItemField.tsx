@@ -6,14 +6,43 @@ import { match, P } from "ts-pattern";
 import { ItemContent } from "cvdl-ts/dist/Resume";
 import * as Utils from "cvdl-ts/dist/Utils";
 
-export function debounce<T extends Function>(cb: T, wait = 200) {
-	let h = 0;
-	let callable = (...args: any) => {
-		clearTimeout(h);
-		h = setTimeout(() => cb(...args), wait) as any;
-	};
-	return callable as any as T;
-}
+const asStringValue = (value: ItemContent.t): ItemContent.PureString => {
+	if (value.tag === "String") {
+		return value;
+	}
+	if (value.tag === "Url") {
+		return ItemContent.string(value.value.text);
+	}
+	if (value.tag === "List") {
+		return ItemContent.string(
+			value.value
+				.map((item) => item.value)
+				.filter((item) => item !== "")
+				.join(", "),
+		);
+	}
+	return ItemContent.string("");
+};
+
+const asListValue = (value: ItemContent.t): ItemContent.List => {
+	if (value.tag === "List") {
+		return value;
+	}
+	if (value.tag === "String" && value.value !== "") {
+		return ItemContent.list([ItemContent.string(value.value)]);
+	}
+	return ItemContent.list([]);
+};
+
+const asUrlValue = (value: ItemContent.t): ItemContent.Url => {
+	if (value.tag === "Url") {
+		return value;
+	}
+	if (value.tag === "String" && value.value !== "") {
+		return ItemContent.url(value.value, value.value);
+	}
+	return ItemContent.url("", "");
+};
 
 const DefaultEditor = ({
 	section,
@@ -327,50 +356,72 @@ const SectionItemField = ({
 	item,
 	field,
 }: { section: string; item: number; field: FieldProps }) => {
+	const normalizedField: FieldProps = match(field.type)
+		.with({ tag: "Url" }, () => ({
+			...field,
+			value: asUrlValue(field.value),
+		}))
+		.with({ tag: "List" }, () => ({
+			...field,
+			value: asListValue(field.value),
+		}))
+		.otherwise(() => ({
+			...field,
+			value: asStringValue(field.value),
+		}));
+
 	return (
-		<div key={field.name} style={{ display: "flex", flexDirection: "column" }}>
-			<b> {field.name} </b>
-			{match(field.type)
+		<div key={normalizedField.name} style={{ display: "flex", flexDirection: "column" }}>
+			<b> {normalizedField.name} </b>
+			{match(normalizedField.type)
 				.with({ tag: "String" }, () => (
 					<DefaultEditor
 						section={section}
 						item={item}
-						field={field as FieldProps & { value: ItemContent.PureString }}
+						field={
+							normalizedField as FieldProps & { value: ItemContent.PureString }
+						}
 					/>
 				))
 				.with({ tag: "MarkdownString" }, () => (
 					<MarkdownEditor
 						section={section}
 						item={item}
-						field={field as FieldProps & { value: ItemContent.PureString }}
+						field={
+							normalizedField as FieldProps & { value: ItemContent.PureString }
+						}
 					/>
 				))
 				.with({ tag: "Date" }, () => (
 					<DefaultEditor
 						section={section}
 						item={item}
-						field={field as FieldProps & { value: ItemContent.PureString }}
+						field={
+							normalizedField as FieldProps & { value: ItemContent.PureString }
+						}
 					/>
 				))
 				.with({ tag: "List" }, () => (
 					<ListEditor
 						section={section}
 						item={item}
-						field={field as FieldProps & { value: ItemContent.List }}
+						field={normalizedField as FieldProps & { value: ItemContent.List }}
 					/>
 				))
 				.with({ tag: "Types" }, () => (
 					<DefaultEditor
 						section={section}
 						item={item}
-						field={field as FieldProps & { value: ItemContent.PureString }}
+						field={
+							normalizedField as FieldProps & { value: ItemContent.PureString }
+						}
 					/>
 				))
 				.with({ tag: "Url" }, () => (
 					<UrlEditor
 						section={section}
 						item={item}
-						field={field as FieldProps & { value: ItemContent.Url }}
+						field={normalizedField as FieldProps & { value: ItemContent.Url }}
 					/>
 				))
 				.otherwise(() => (

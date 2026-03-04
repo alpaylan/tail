@@ -8,10 +8,12 @@
 	"scripts": {
 		"format": "biome format --write ./cvdl-editor/fe ./cvdl-ts",
 		"lint": "npm run --workspace cvdl-editor/fe lint",
+		"test:preview-highlight": "node scripts/test-preview-highlight-assumptions.mjs",
 		"check:cvdl-ts-push": "node scripts/check-cvdl-ts-version.mjs",
 		"setup:hooks": "git config core.hooksPath .githooks"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "1.8.3"
+		"@biomejs/biome": "1.8.3",
+		"playwright": "^1.58.2"
 	}
 }

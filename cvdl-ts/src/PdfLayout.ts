@@ -9,6 +9,7 @@ import { Storage } from "./Storage";
 
 import * as Elem from "./Elem";
 import { Font, Layout } from ".";
+import { Box } from "./Box";
 
 export type RenderResult = {
 	blob: Blob;
@@ -120,9 +121,12 @@ export const render = async ({
 	};
 
 	for (const layout of layouts) {
-		renderSectionLayout(layout, tracker);
-		tracker.height +=
-			layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;
+		const flowOffset = layout.flow_offset_y ?? tracker.height;
+		renderSectionLayout(layout, { ...tracker, height: flowOffset });
+		if (layout.flow_offset_y === undefined) {
+			tracker.height +=
+				layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;
+		}
 	}
 
 	console.log("Rendering is completed. Saving the document...");
@@ -159,21 +163,42 @@ const getPageContainer = (page: number, tracker: Tracker) => {
 };
 
 export const mergeSpans = (spans: Elem.Span[]): Elem.Span[] => {
+	if (spans.length === 0) {
+		return [];
+	}
+
+	const firstSpan = spans[0];
+	if (!firstSpan) {
+		return [];
+	}
+
 	const merged_spans: Elem.Span[] = [];
-	let currentSpan = spans[0];
+	let currentSpan = firstSpan;
 	for (let i = 1; i < spans.length; i++) {
+		const nextSpan = spans[i];
+		if (!nextSpan) {
+			continue;
+		}
+		const hasBothBBoxes = Boolean(currentSpan.bbox && nextSpan.bbox);
 		if (
-			currentSpan.bbox.top_left.y === spans[i].bbox.top_left.y &&
-			currentSpan.font === spans[i].font &&
-			currentSpan.is_code === spans[i].is_code &&
-			currentSpan.is_bold === spans[i].is_bold &&
-			currentSpan.is_italic === spans[i].is_italic
+			hasBothBBoxes &&
+			currentSpan.bbox!.top_left.y === nextSpan.bbox!.top_left.y &&
+			currentSpan.font === nextSpan.font &&
+			currentSpan.is_code === nextSpan.is_code &&
+			currentSpan.is_bold === nextSpan.is_bold &&
+			currentSpan.is_italic === nextSpan.is_italic
 		) {
-			currentSpan.text += spans[i].text;
-			currentSpan.bbox.bottom_right = spans[i].bbox.bottom_right;
+			currentSpan = {
+				...currentSpan,
+				text: currentSpan.text + nextSpan.text,
+				bbox:
+					currentSpan.bbox && nextSpan.bbox
+						? new Box(currentSpan.bbox.top_left, nextSpan.bbox.bottom_right)
+						: currentSpan.bbox,
+			};
 		} else {
 			merged_spans.push(currentSpan);
-			currentSpan = spans[i];
+			currentSpan = nextSpan;
 		}
 	}
 	merged_spans.push(currentSpan);

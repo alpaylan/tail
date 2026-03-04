@@ -51,6 +51,7 @@ export type RenderedElem = Elem.t & { bounding_box: Box };
 
 export type RenderedLayout = (RenderedStack | RenderedRow | RenderedElem) & {
 	path?: ElementPath;
+	flow_offset_y?: number;
 };
 
 export function default_(tag: string) {

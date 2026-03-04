@@ -6,7 +6,7 @@ import { FontStyle, FontWeight } from "cvdl-ts/dist/Font";
 import { Color, ColorMap } from "cvdl-ts/dist/Layout";
 import { LayoutSchema } from "cvdl-ts/dist/LayoutSchema";
 import { LocalStorage } from "cvdl-ts/dist/LocalStorage";
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import * as Layout from "cvdl-ts/dist/Layout";
 import * as Elem from "cvdl-ts/dist/Elem";
 import * as Stack from "cvdl-ts/dist/Stack";
@@ -22,6 +22,86 @@ type LensStep =
 
 type Lens = LensStep[];
 
+const focusScopeFromLens = (
+	lens: Lens | null,
+): "all" | "header_layout_schema" | "item_layout_schema" => {
+	const firstStep = lens?.[0];
+	if (firstStep && "attribute" in firstStep) {
+		if (firstStep.attribute === "header_layout_schema") {
+			return "header_layout_schema";
+		}
+		if (firstStep.attribute === "item_layout_schema") {
+			return "item_layout_schema";
+		}
+	}
+	return "all";
+};
+
+const lensForLayoutScope = (
+	scope: "all" | "header_layout_schema" | "item_layout_schema",
+): Lens | null => {
+	if (scope === "header_layout_schema") {
+		return [{ attribute: "header_layout_schema" }];
+	}
+	if (scope === "item_layout_schema") {
+		return [{ attribute: "item_layout_schema" }];
+	}
+	return null;
+};
+
+const lensForDataFieldGroup = (
+	group: "header_schema" | "item_schema",
+): Lens => {
+	return group === "header_schema"
+		? [{ attribute: "header_layout_schema" }]
+		: [{ attribute: "item_layout_schema" }];
+};
+
+const schemaGroupFromLens = (lens: Lens): "header_schema" | "item_schema" => {
+	const firstStep = lens[0];
+	if (firstStep && "attribute" in firstStep) {
+		return firstStep.attribute === "header_layout_schema"
+			? "header_schema"
+			: "item_schema";
+	}
+	return "item_schema";
+};
+
+const findFieldLensInLayout = (
+	layout: Layout.t,
+	baseLens: Lens,
+	fieldName: string,
+): Lens | null => {
+	if (layout.tag === "Elem") {
+		return layout.is_ref && layout.item === fieldName ? baseLens : null;
+	}
+	for (let index = 0; index < layout.elements.length; index += 1) {
+		const child = layout.elements[index];
+		const childLens = findFieldLensInLayout(
+			child,
+			[...baseLens, { index }],
+			fieldName,
+		);
+		if (childLens) {
+			return childLens;
+		}
+	}
+	return null;
+};
+
+const resolveFieldLensForLayoutSchema = (
+	layoutSchema: LayoutSchema,
+	group: "header_schema" | "item_schema",
+	fieldName: string,
+): Lens => {
+	const rootLens = lensForDataFieldGroup(group);
+	const rootLayout =
+		group === "header_schema"
+			? layoutSchema.header_layout_schema
+			: layoutSchema.item_layout_schema;
+	return findFieldLensInLayout(rootLayout, rootLens, fieldName) ?? rootLens;
+};
+
 const followLens = (lens: Lens, obj: any) => {
 	return lens.reduce((acc, step) => {
 		if ("attribute" in step) {
@@ -30,6 +110,21 @@ const followLens = (lens: Lens, obj: any) => {
 			return acc.elements[step.index];
 		}
 	}, obj);
+};
+
+const collectReferencedFields = (layout: Layout.PreBindingLayout): string[] => {
+	const fields = new Set<string>();
+	const walk = (node: Layout.PreBindingLayout) => {
+		if (node.tag === "Elem") {
+			if (node.is_ref && typeof node.item === "string") {
+				fields.add(node.item);
+			}
+			return;
+		}
+		node.elements.forEach((child) => walk(child as Layout.PreBindingLayout));
+	};
+	walk(layout);
+	return [...fields];
 };
 
 type LayoutVisitorStep = "down" | "up" | "next" | "prev";
@@ -92,6 +187,7 @@ const layoutFollowLens = (lens: LayoutVisitor, layout: Layout.t) => {
 const ControlPanel = (props: {
 	layout: Layout.t;
 	layoutSchema: LayoutSchema;
+	dataSchema: DataSchema.t | null;
 	setLayout: any;
 	lens: Lens;
 	setLens: (lens: Lens) => void;
@@ -104,6 +200,7 @@ const ControlPanel = (props: {
 					current={current}
 					layout={props.layout}
 					layoutSchema={props.layoutSchema}
+					dataSchema={props.dataSchema}
 					setLayout={props.setLayout}
 					lens={props.lens}
 					setLens={props.setLens}
@@ -115,6 +212,7 @@ const ControlPanel = (props: {
 					current={current}
 					layout={props.layout}
 					layoutSchema={props.layoutSchema}
+					dataSchema={props.dataSchema}
 					setLayout={props.setLayout}
 					lens={props.lens}
 					setLens={props.setLens}
@@ -140,16 +238,39 @@ const ContainerControlPanel = (props: {
 	current: Layout.t;
 	layout: Layout.t;
 	layoutSchema: LayoutSchema;
+	dataSchema: DataSchema.t | null;
 	setLayout: any;
 	lens: Lens;
 	setLens: (lens: Lens) => void;
 }) => {
 	const [newElement, setNewElement] = useState<string>("");
+	const [newRefField, setNewRefField] = useState<string>("");
 	const container = props.current as Layout.Container;
 	const [marginLeft, setMarginLeft] = useState(container.margin.left);
 	const [marginRight, setMarginRight] = useState(container.margin.right);
 	const [marginTop, setMarginTop] = useState(container.margin.top);
 	const [marginBottom, setMarginBottom] = useState(container.margin.bottom);
+	const fieldNames = (() => {
+		if (!props.dataSchema) {
+			return [];
+		}
+		const group = schemaGroupFromLens(props.lens);
+		const fields =
+			group === "header_schema"
+				? props.dataSchema.header_schema
+				: props.dataSchema.item_schema;
+		return fields.map((field) => field.name);
+	})();
+
+	useEffect(() => {
+		if (fieldNames.length === 0) {
+			setNewRefField("");
+			return;
+		}
+		if (newRefField === "" || !fieldNames.includes(newRefField)) {
+			setNewRefField(fieldNames[0]);
+		}
+	}, [fieldNames, newRefField]);
 
 	return (
 		<div style={{ display: "flex", flexDirection: "row" }}>
@@ -254,7 +375,7 @@ const ContainerControlPanel = (props: {
 										className="bordered"
 										onClick={() => {
 											props.setLayout(props.layout);
-											props.lens.push({ index: index });
+											props.setLens([...props.lens, { index }]);
 										}}
 									>
 										{element.tag === "Elem"
@@ -401,6 +522,46 @@ const ContainerControlPanel = (props: {
 						{" "}
 						Add
 					</button>
+				</div>
+				<div className="panel-item-elements">
+					<label>Add Field Element</label>
+					{fieldNames.length === 0 ? (
+						<div style={{ opacity: 0.6 }}>No fields in this schema scope.</div>
+					) : (
+						<>
+							<select
+								value={newRefField}
+								onChange={(e) => {
+									setNewRefField(e.target.value);
+								}}
+							>
+								{fieldNames.map((fieldName) => (
+									<option key={fieldName} value={fieldName}>
+										{fieldName}
+									</option>
+								))}
+							</select>
+							<button
+								className="bordered"
+								onClick={() => {
+									if (!newRefField) {
+										return;
+									}
+									const elem = Elem.default_();
+									elem.is_ref = true;
+									elem.item = newRefField;
+									container.elements.push(elem);
+									props.setLayout(props.layout);
+									props.setLens([
+										...props.lens,
+										{ index: container.elements.length - 1 },
+									]);
+								}}
+							>
+								Add
+							</button>
+						</>
+					)}
 				</div>
 			</div>
 		</div>
@@ -825,7 +986,7 @@ const AddNewLayout = (props: {
 	const [addingSection, setAddingSection] = useState<boolean>(false);
 	const [sectionName, setSectionName] = useState<string>("");
 	const [dataSchema, setDataSchema] = useState<string>(
-		state?.dataSchemas[0].schema_name ?? "",
+		state?.dataSchemas?.[0]?.schema_name ?? "",
 	);
 	const [availableLayoutSchemas, setAvailableLayoutSchemas] = useState<
 		LayoutSchema[]
@@ -963,12 +1124,25 @@ const LayoutEditor = () => {
 	const [dataSchema, setDataSchema] = useState<DataSchema.t | null>(null);
 	const [layoutSchemaControlPanel, setLayoutSchemaControlPanel] =
 		useState<Lens | null>(null);
+	const [selectionSource, setSelectionSource] = useState<"auto" | "manual">(
+		"manual",
+	);
 	const [creatingNewLayoutSchema, setCreatingNewLayoutSchema] =
 		useState<boolean>(false);
 	const [selectedLayout, setSelectedLayout] = useState<Layout.t | null>(null);
 	const [allAvailableLayouts, setAllAvailableLayouts] = useState<string[]>(
 		(state?.layoutSchemas ?? []).map((schema) => schema.schema_name),
 	);
+	const editorPath = state?.editorPath;
+	const editorPathVersion = state?.editorPathVersion ?? 0;
+	const resumeSections = state?.resume.sections;
+	const preserveExistingFocus = useRef(
+		Boolean(state?.previewFocus && state.previewFocus.tag !== "none"),
+	);
+	const preservedEditorPathVersion = useRef<number | null>(
+		state?.editorPathVersion ?? null,
+	);
+	const initializedFromExistingFocus = useRef(false);
 
 	useEffect(() => {
 		if (layoutSchemaControlPanel === null || layoutSchema === null) {
@@ -977,14 +1151,202 @@ const LayoutEditor = () => {
 		const current = followLens(layoutSchemaControlPanel!, layoutSchema!);
 		setSelectedLayout(current);
 	}, [layoutSchema, layoutSchemaControlPanel]);
-	const setLayout = (sectionLayout: Layout.t) => {
+
+	useEffect(() => {
+		if (!layoutSchema || !state?.dataSchemas) {
+			setDataSchema(null);
+			return;
+		}
+		const nextDataSchema =
+			state.dataSchemas.find(
+				(schema) => schema.schema_name === layoutSchema.data_schema_name,
+			) ?? null;
+		setDataSchema(nextDataSchema);
+	}, [layoutSchema, state?.dataSchemas]);
+
+	const selectLayoutBySchemaName = useCallback((
+		nextLayoutSchemaName: string,
+		nextLens: Lens | null = null,
+		source: "auto" | "manual" = "manual",
+	) => {
+		const nextLayoutSchema =
+			state?.layoutSchemas.find((schema) => schema.schema_name === nextLayoutSchemaName) ??
+			null;
+		if (!nextLayoutSchema) {
+			return;
+		}
+		const nextDataSchema =
+			state?.dataSchemas.find(
+				(schema) => schema.schema_name === nextLayoutSchema.data_schema_name,
+			) ?? null;
+		setLayoutSchema(nextLayoutSchema);
+		setDataSchema(nextDataSchema);
+		setLayoutSchemaControlPanel(nextLens);
+		setSelectionSource(source);
+	}, [state?.layoutSchemas, state?.dataSchemas]);
+
+	const setLayoutLens = useCallback(
+		(nextLens: Lens | null, source: "auto" | "manual" = "manual") => {
+			if (source === "manual") {
+				preserveExistingFocus.current = false;
+			}
+			setLayoutSchemaControlPanel(nextLens);
+			setSelectionSource(source);
+		},
+		[],
+	);
+
+	useEffect(() => {
+		if (!state || initializedFromExistingFocus.current || !preserveExistingFocus.current) {
+			return;
+		}
+		const previewFocus = state.previewFocus;
+		if (!previewFocus || previewFocus.tag === "none") {
+			return;
+		}
+		if (previewFocus.tag === "layout-schema") {
+			selectLayoutBySchemaName(
+				previewFocus.schemaName,
+				lensForLayoutScope(previewFocus.scope),
+				"manual",
+			);
+			initializedFromExistingFocus.current = true;
+			preservedEditorPathVersion.current = editorPathVersion;
+			return;
+		}
+		if (previewFocus.tag === "data-field" || previewFocus.tag === "data-schema") {
+			const sourceSection = state.resume.sections.find(
+				(section) => section.data_schema === previewFocus.schemaName,
+			);
+			if (!sourceSection) {
+				preserveExistingFocus.current = false;
+				return;
+			}
+			const sourceLayoutSchema =
+				state.layoutSchemas.find(
+					(schema) => schema.schema_name === sourceSection.layout_schema,
+				) ?? null;
+			const nextLens =
+				previewFocus.tag === "data-field"
+					? sourceLayoutSchema
+						? resolveFieldLensForLayoutSchema(
+								sourceLayoutSchema,
+								previewFocus.group,
+								previewFocus.fieldName,
+							)
+						: lensForDataFieldGroup(previewFocus.group)
+					: previewFocus.handoffField
+						? sourceLayoutSchema
+							? resolveFieldLensForLayoutSchema(
+									sourceLayoutSchema,
+									previewFocus.handoffField.group,
+									previewFocus.handoffField.fieldName,
+								)
+							: lensForDataFieldGroup(previewFocus.handoffField.group)
+						: null;
+			selectLayoutBySchemaName(sourceSection.layout_schema, nextLens, "manual");
+			initializedFromExistingFocus.current = true;
+			preservedEditorPathVersion.current = editorPathVersion;
+		}
+	}, [state, editorPathVersion, selectLayoutBySchemaName]);
+
+	useEffect(() => {
+		if (!editorPath || editorPath.tag === "none" || !resumeSections) {
+			return;
+		}
+		if (preserveExistingFocus.current) {
+			if (preservedEditorPathVersion.current === null) {
+				preservedEditorPathVersion.current = editorPathVersion;
+			}
+			if (editorPathVersion === preservedEditorPathVersion.current) {
+				return;
+			}
+		}
+		const sectionName = editorPath.section;
+		const targetSection = resumeSections.find(
+			(section) => section.section_name === sectionName,
+		);
+		if (!targetSection) {
+			return;
+		}
+		preserveExistingFocus.current = false;
+		const sourceLayoutSchema =
+			state?.layoutSchemas.find(
+				(schema) => schema.schema_name === targetSection.layout_schema,
+			) ?? null;
+		const nextLens: Lens =
+			editorPath.tag === "section"
+				? [{ attribute: "header_layout_schema" }]
+				: editorPath.tag === "field"
+					? sourceLayoutSchema
+						? resolveFieldLensForLayoutSchema(
+								sourceLayoutSchema,
+								editorPath.item === -1 ? "header_schema" : "item_schema",
+								editorPath.field,
+							)
+						: [{ attribute: editorPath.item === -1 ? "header_layout_schema" : "item_layout_schema" }]
+					: [{ attribute: "item_layout_schema" }];
+		selectLayoutBySchemaName(targetSection.layout_schema, nextLens, "auto");
+	}, [
+		editorPath,
+		resumeSections,
+		selectLayoutBySchemaName,
+		editorPathVersion,
+		state?.layoutSchemas,
+	]);
+
+	useEffect(() => {
+		if (!dispatch) {
+			return;
+		}
 		if (!layoutSchema) {
 			return;
 		}
-		layoutSchema.item_layout_schema = sectionLayout;
-		setLayoutSchema(layoutSchema);
-		storage.save_layout_schema(layoutSchema);
-		dispatch!({ type: "layout-update", layout: layoutSchema });
+		if (preserveExistingFocus.current) {
+			return;
+		}
+		dispatch({
+			type: "set-preview-focus",
+			focus: {
+				tag: "layout-schema",
+				schemaName: layoutSchema.schema_name,
+				scope:
+					selectionSource === "auto"
+						? "all"
+						: focusScopeFromLens(layoutSchemaControlPanel),
+				fieldNames:
+					selectionSource === "manual" && layoutSchemaControlPanel !== null
+						? collectReferencedFields(
+								followLens(
+									layoutSchemaControlPanel,
+									layoutSchema,
+								) as Layout.PreBindingLayout,
+							)
+						: undefined,
+				handoffFieldName:
+					selectionSource === "auto" && editorPath?.tag === "field"
+						? editorPath.field
+						: undefined,
+			},
+		});
+	}, [dispatch, layoutSchema, layoutSchemaControlPanel, selectionSource, editorPath]);
+
+	const setLayout = (_updatedLayout: Layout.t) => {
+		if (!layoutSchema) {
+			return;
+		}
+		preserveExistingFocus.current = false;
+		// Controls mutate nested layout nodes in place. Persist the whole schema
+		// object so edits under either header or item scopes are retained.
+		const nextLayoutSchema = new LayoutSchema(
+			layoutSchema.schema_name,
+			layoutSchema.data_schema_name,
+			layoutSchema.header_layout_schema,
+			layoutSchema.item_layout_schema,
+		);
+		setLayoutSchema(nextLayoutSchema);
+		storage.save_layout_schema(nextLayoutSchema);
+		dispatch!({ type: "layout-update", layout: nextLayoutSchema });
 	};
 	return (
 		<div>
@@ -1007,26 +1369,24 @@ const LayoutEditor = () => {
 					{layoutSchemaNames && layoutSchemaNames.length !== 0 && (
 						<h2>Currently Used Layouts</h2>
 					)}
-					{[...new Set(layoutSchemaNames)].map((name, index) => {
-						return (
-							<button
-								className="bordered"
-								key={index}
-								onClick={() => {
-									const layoutSchema = state?.layoutSchemas.find(
-										(schema) => schema.schema_name === name,
-									)!;
-									const dataSchema = state?.dataSchemas.find(
-										(schema) =>
-											schema.schema_name === layoutSchema?.data_schema_name,
-									)!;
-									setLayoutSchema(layoutSchema);
-									setDataSchema(dataSchema);
-									setLayoutSchemaControlPanel(null);
-								}}
-							>
-								{name}
-							</button>
+						{[...new Set(layoutSchemaNames)].map((name, index) => {
+							return (
+								<button
+									className="bordered"
+									key={index}
+									style={{
+										fontWeight:
+											layoutSchema?.schema_name === name ? "bold" : "normal",
+										borderColor:
+											layoutSchema?.schema_name === name ? "#2563eb" : undefined,
+									}}
+									onClick={() => {
+										preserveExistingFocus.current = false;
+										selectLayoutBySchemaName(name, null, "manual");
+									}}
+								>
+									{name}
+								</button>
 						);
 					})}
 				</div>
@@ -1042,29 +1402,27 @@ const LayoutEditor = () => {
 					}}
 				>
 					<h2>All Available Layouts</h2>
-					{allAvailableLayouts.map((name, index) => {
-						if (layoutSchemaNames?.includes(name)) {
-							return null;
-						}
-						return (
-							<button
-								className="bordered"
-								key={index}
-								onClick={() => {
-									const layoutSchema = state?.layoutSchemas.find(
-										(schema) => schema.schema_name === name,
-									)!;
-									const dataSchema = state?.dataSchemas.find(
-										(schema) =>
-											schema.schema_name === layoutSchema?.data_schema_name,
-									)!;
-									setLayoutSchema(layoutSchema);
-									setDataSchema(dataSchema);
-									setLayoutSchemaControlPanel(null);
-								}}
-							>
-								{name}
-							</button>
+						{allAvailableLayouts.map((name, index) => {
+							if (layoutSchemaNames?.includes(name)) {
+								return null;
+							}
+							return (
+								<button
+									className="bordered"
+									key={index}
+									style={{
+										fontWeight:
+											layoutSchema?.schema_name === name ? "bold" : "normal",
+										borderColor:
+											layoutSchema?.schema_name === name ? "#2563eb" : undefined,
+									}}
+									onClick={() => {
+										preserveExistingFocus.current = false;
+										selectLayoutBySchemaName(name, null, "manual");
+									}}
+								>
+									{name}
+								</button>
 						);
 					})}
 				</div>
@@ -1081,13 +1439,13 @@ const LayoutEditor = () => {
 							}}
 						>
 							<LayoutEditWindow
-								setLens={setLayoutSchemaControlPanel}
+								setLens={(nextLens: Lens) => setLayoutLens(nextLens, "manual")}
 								lens={[{ attribute: "header_layout_schema" }]}
 								layout={layoutSchema.header_layout_schema}
 							/>
 							<div style={{ height: "5px" }}></div>
 							<LayoutEditWindow
-								setLens={setLayoutSchemaControlPanel}
+								setLens={(nextLens: Lens) => setLayoutLens(nextLens, "manual")}
 								lens={[{ attribute: "item_layout_schema" }]}
 								layout={layoutSchema.item_layout_schema}
 							/>
@@ -1096,9 +1454,10 @@ const LayoutEditor = () => {
 							<ControlPanel
 								layout={layoutSchema.item_layout_schema}
 								layoutSchema={layoutSchema}
+								dataSchema={dataSchema}
 								setLayout={setLayout}
 								lens={layoutSchemaControlPanel}
-								setLens={setLayoutSchemaControlPanel}
+								setLens={(nextLens: Lens) => setLayoutLens(nextLens, "manual")}
 							/>
 						)}
 					</div>

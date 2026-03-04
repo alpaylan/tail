@@ -18,8 +18,36 @@ export type EditorState = {
 	layoutSchemas: LayoutSchema[];
 	resumeLayout: ResumeLayout;
 	editorPath: ElementPath;
+	editorPathVersion: number;
+	previewFocus: PreviewFocus;
 	editHistory: DocumentAction[];
 };
+
+export type PreviewFocus =
+	| {
+			tag: "none";
+	  }
+	| {
+			tag: "data-schema";
+			schemaName: string;
+			handoffField?: {
+				group: "header_schema" | "item_schema";
+				fieldName: string;
+			};
+	  }
+	| {
+			tag: "data-field";
+			schemaName: string;
+			group: "header_schema" | "item_schema";
+			fieldName: string;
+	  }
+	| {
+			tag: "layout-schema";
+			schemaName: string;
+			scope: "all" | "header_layout_schema" | "item_layout_schema";
+			fieldNames?: string[];
+			handoffFieldName?: string;
+	  };
 
 export const EditorContext = createContext<EditorState | null>(null);
 
@@ -117,6 +145,9 @@ type DocumentAction =
 export type ContentEditorAction = {
 	type: "set-editor-path";
 	path: ElementPath;
+} | {
+	type: "set-preview-focus";
+	focus: PreviewFocus;
 };
 
 export type EditorAction = DocumentAction | ContentEditorAction;
@@ -127,23 +158,24 @@ const cloneEditorHistory = (history: DocumentAction[]) => {
 	});
 };
 
-const reId = (resume: Resume.t) => {
-	const newResume = JSON.parse(JSON.stringify(resume)) as Resume.t;
-	newResume.sections = newResume.sections.map((section) => {
-		const newSection = { ...section };
-		newSection.items = newSection.items.map((item) => {
-			const newItem = { ...item };
-			newItem.id = Utils.randomString();
-			return newItem;
-		});
-		return newSection;
-	});
-	return newResume;
+let hasLoggedReIdRemoval = false;
+const cloneResumeForReducer = (resume: Resume.t) => {
+	// Historical note: IDs were previously regenerated on every reducer action to
+	// force React subtree refreshes. We now keep IDs stable for incremental engine keys.
+	if (!hasLoggedReIdRemoval) {
+		console.info(
+			"[state] Keeping item IDs stable in reducer (reId behavior removed for incremental rendering).",
+		);
+		hasLoggedReIdRemoval = true;
+	}
+	return JSON.parse(JSON.stringify(resume)) as Resume.t;
 };
 
 export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
-	let newState = reId(state.resume);
+	let newState = cloneResumeForReducer(state.resume);
 	let path = state.editorPath;
+	let pathVersion = state.editorPathVersion;
+	let previewFocus = state.previewFocus;
 	let editHistory = cloneEditorHistory(state.editHistory) as DocumentAction[];
 	let undoing = false;
 
@@ -177,6 +209,7 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 
 	if (action.type === "set-editor-path") {
 		path = action.path;
+		pathVersion += 1;
 		if (path.tag === "section") {
 			document
 				.getElementById(path.section)
@@ -190,6 +223,14 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 				.getElementById(path.section + "-" + path.item + "-" + path.field)
 				?.scrollIntoView({ behavior: "smooth", block: "center" });
 		}
+	}
+
+	if (action.type === "set-preview-focus") {
+		previewFocus = action.focus;
+		return {
+			...state,
+			previewFocus,
+		};
 	}
 
 	if (action.type === "load") {
@@ -477,6 +518,8 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 		...state,
 		resume: newState,
 		editorPath: path,
+		editorPathVersion: pathVersion,
+		previewFocus,
 		editHistory: editHistory,
 	};
 };
