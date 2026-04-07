@@ -142,13 +142,15 @@ type DocumentAction =
 			value: LayoutSchema[];
 	  };
 
-export type ContentEditorAction = {
-	type: "set-editor-path";
-	path: ElementPath;
-} | {
-	type: "set-preview-focus";
-	focus: PreviewFocus;
-};
+export type ContentEditorAction =
+	| {
+			type: "set-editor-path";
+			path: ElementPath;
+	  }
+	| {
+			type: "set-preview-focus";
+			focus: PreviewFocus;
+	  };
 
 export type EditorAction = DocumentAction | ContentEditorAction;
 
@@ -214,7 +216,9 @@ export const DocumentReducer = (state: EditorState, action_: EditorAction) => {
 		);
 		const nextLayoutSchemas = hasExisting
 			? state.layoutSchemas.map((schema) =>
-					schema.schema_name === action.value.schema_name ? action.value : schema,
+					schema.schema_name === action.value.schema_name
+						? action.value
+						: schema,
 				)
 			: [...state.layoutSchemas, action.value];
 		return {

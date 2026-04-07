@@ -15,20 +15,59 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FontDict = void 0;
+exports.resolveRenderInputs = resolveRenderInputs;
 exports.resetIncrementalCaches = resetIncrementalCaches;
 exports.render = render;
 const ResumeLayout_1 = require("./ResumeLayout");
 const fontkit = __importStar(require("fontkit"));
 const Layout = __importStar(require("./Layout"));
+const Resume = __importStar(require("./Resume"));
+async function resolveRenderInputs(props) {
+    let { resume, data_schemas, layout_schemas, resume_layout, fontDict } = props;
+    const { resume_name, bindings, storage } = props;
+    if (!resume) {
+        if (!resume_name) {
+            throw new Error("Rendering requires either resume_name or resume");
+        }
+        resume = await storage.load_resume(resume_name);
+    }
+    if (!fontDict) {
+        fontDict = new FontDict();
+    }
+    const [resolvedDataSchemas, resolvedLayoutSchemas, resolvedResumeLayout] = await Promise.all([
+        data_schemas !== null && data_schemas !== void 0 ? data_schemas : Promise.all(Resume.dataSchemas(resume).map((schema) => storage.load_data_schema(schema))),
+        layout_schemas !== null && layout_schemas !== void 0 ? layout_schemas : Promise.all(Resume.layoutSchemas(resume).map((schema) => storage.load_layout_schema(schema))),
+        resume_layout !== null && resume_layout !== void 0 ? resume_layout : storage.load_resume_layout(resume.layout),
+    ]);
+    return {
+        resume,
+        data_schemas: resolvedDataSchemas,
+        layout_schemas: resolvedLayoutSchemas,
+        resume_layout: resolvedResumeLayout,
+        bindings,
+        storage,
+        fontDict,
+    };
+}
 const blockCache = new Map();
 let flowPlacementCache = {
     order: [],
@@ -194,7 +233,9 @@ function render({ resume, layout_schemas, data_schemas, resume_layout, bindings,
                     return Layout.computeBoxes(Layout.normalize(Layout.instantiate(layout_schema.item_layout_schema, item, data_schema.item_schema, bindings), column_width, fontDict), fontDict);
                 })();
             layout.path = { tag: "item", section: section.section_name, item: index };
-            blockHeights.push(layout.bounding_box.height() + layout.margin.top + layout.margin.bottom);
+            blockHeights.push(layout.bounding_box.height() +
+                layout.margin.top +
+                layout.margin.bottom);
             layouts.push(layout);
         }
         end_time = Date.now();

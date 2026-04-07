@@ -204,11 +204,11 @@ const ListEditor = ({
 	const [items, setItems] = useState(field.value.value);
 	return (
 		<div id={`${section}-${item}-${field.name}`}>
-				{items.map((listItem, index) => {
-					return (
-						<div key={`${field.name}-${index}`}>
-							<input
-								type="text"
+			{items.map((listItem, index) => {
+				return (
+					<div key={`${field.name}-${index}`}>
+						<input
+							type="text"
 							// TODO: This currently only works when you have List<String>
 							value={items[index].value}
 							autoFocus={
@@ -371,7 +371,10 @@ const SectionItemField = ({
 		}));
 
 	return (
-		<div key={normalizedField.name} style={{ display: "flex", flexDirection: "column" }}>
+		<div
+			key={normalizedField.name}
+			style={{ display: "flex", flexDirection: "column" }}
+		>
 			<b> {normalizedField.name} </b>
 			{match(normalizedField.type)
 				.with({ tag: "String" }, () => (

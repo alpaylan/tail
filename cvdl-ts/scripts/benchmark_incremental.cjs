@@ -25,7 +25,8 @@ const updateItemFieldRandomly = (item, rng, suffix) => {
 	if (names.length === 0) return false;
 	const name = names[randomInt(rng, names.length)];
 	const current = item.fields[name];
-	if (!current || typeof current !== "object" || !("tag" in current)) return false;
+	if (!current || typeof current !== "object" || !("tag" in current))
+		return false;
 
 	if (current.tag === "String") {
 		item.fields[name] = {
@@ -359,7 +360,7 @@ const main = async () => {
 						steps: 140,
 						seed: 99,
 					},
-			  ]
+				]
 			: [
 					{
 						name: "default-medium",
@@ -388,7 +389,7 @@ const main = async () => {
 						steps: 50,
 						seed: 99,
 					},
-			  ];
+				];
 
 	console.log(`Running incremental benchmark profile="${profile}"`);
 

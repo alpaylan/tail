@@ -33,22 +33,31 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Width = exports.Storage = exports.ResumeLayout = exports.Resume = exports.RemoteStorage = exports.Point = exports.PdfLayout = exports.Margin = exports.LocalStorage = exports.LayoutSchema = exports.Layout = exports.Font = exports.FileStorage = exports.DocxLayout = exports.DataSchema = exports.Box = exports.AnyLayout = exports.Alignment = void 0;
-exports.Alignment = __importStar(require("./Alignment"));
-exports.AnyLayout = __importStar(require("./AnyLayout"));
-exports.Box = __importStar(require("./Box"));
-exports.DataSchema = __importStar(require("./DataSchema"));
-exports.DocxLayout = __importStar(require("./DocxLayout"));
-exports.FileStorage = __importStar(require("./FileStorage"));
-exports.Font = __importStar(require("./Font"));
-exports.Layout = __importStar(require("./Layout"));
-exports.LayoutSchema = __importStar(require("./LayoutSchema"));
-exports.LocalStorage = __importStar(require("./LocalStorage"));
-exports.Margin = __importStar(require("./Margin"));
-exports.PdfLayout = __importStar(require("./PdfLayout"));
-exports.Point = __importStar(require("./Point"));
-exports.RemoteStorage = __importStar(require("./RemoteStorage"));
-exports.Resume = __importStar(require("./Resume"));
-exports.ResumeLayout = __importStar(require("./ResumeLayout"));
-exports.Storage = __importStar(require("./Storage"));
-exports.Width = __importStar(require("./Width"));
+const fs_1 = require("fs");
+const AnyLayout_1 = require("./AnyLayout");
+const Defaults = __importStar(require("./Defaults"));
+const DocxLayout = __importStar(require("./DocxLayout"));
+const FileStorage_1 = require("./FileStorage");
+async function main() {
+    var _a;
+    const outputPath = (_a = process.argv[2]) !== null && _a !== void 0 ? _a : "output.docx";
+    const storage = new FileStorage_1.FileStorage("assets/fonts/");
+    const fontDict = new AnyLayout_1.FontDict();
+    await fontDict.load_fonts(storage);
+    const result = await DocxLayout.render({
+        resume: Defaults.DefaultResume,
+        data_schemas: Defaults.DefaultDataSchemas,
+        layout_schemas: Defaults.DefaultLayoutSchemas,
+        resume_layout: Defaults.DefaultResumeLayout,
+        bindings: Defaults.DefaultBindings,
+        fontDict,
+        storage,
+    });
+    const buffer = new Uint8Array(await result.blob.arrayBuffer());
+    (0, fs_1.writeFileSync)(outputPath, buffer);
+    console.log(`Document is saved to ${outputPath}`);
+}
+main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+});

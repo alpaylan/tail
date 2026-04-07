@@ -182,11 +182,14 @@ function resolveEmoji(name: string): EmojiResolution | undefined {
 }
 
 function escapeHtml(s: string) {
-	return s.replace(/[&<>"']/g, (ch) =>
-		({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]!)
+	return s.replace(
+		/[&<>"']/g,
+		(ch) =>
+			({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+				ch
+			]!,
 	);
 }
-
 
 const emojiExtension: marked.MarkedExtension = {
 	extensions: [
@@ -207,7 +210,9 @@ const emojiExtension: marked.MarkedExtension = {
 				const resolved = resolveEmoji(name);
 
 				// If we don't know this emoji, return nothing so marked keeps parsing normally
-				console.log(`Found emoji syntax :${name}:, resolved: ${resolved ? "yes" : "no"}`);
+				console.log(
+					`Found emoji syntax :${name}:, resolved: ${resolved ? "yes" : "no"}`,
+				);
 				if (!resolved) return;
 
 				// Create a custom token
@@ -251,6 +256,19 @@ function flattenToken(t: marked.Token, sp: SpanProps): Span[] {
 		.with({ type: "paragraph", tokens: P.select("tokens") }, ({ tokens }) => {
 			return flatten(tokens, sp);
 		})
+		.with(
+			{
+				type: "link",
+				href: P.select("href"),
+				tokens: P.select("tokens"),
+			},
+			({ href, tokens }: { href?: string; tokens: marked.Token[] }) => {
+				return flatten(tokens, sp).map((span) => ({
+					...span,
+					link: href ?? null,
+				}));
+			},
+		)
 		.with({ type: "strong", tokens: P.select("tokens") }, ({ tokens }) => {
 			return flatten(tokens, { ...sp, is_bold: true });
 		})
@@ -283,22 +301,33 @@ function flattenToken(t: marked.Token, sp: SpanProps): Span[] {
 
 			return result;
 		})
-		.with({ type: "emoji", name: P.select("name") }, ({ name }: { name: string }) => {
-			const res = resolveEmoji(name);
+		.with(
+			{ type: "emoji", name: P.select("name") },
+			({ name }: { name: string }) => {
+				const res = resolveEmoji(name);
 
-			// Graceful fallback (shouldn't happen because tokenizer filters unknowns)
-			if (!res) return [{ ...sp, text: `:${name}:`, link: null }];
+				// Graceful fallback (shouldn't happen because tokenizer filters unknowns)
+				if (!res) return [{ ...sp, text: `:${name}:`, link: null }];
 
-			if (res.type === "unicode") {
-				// simplest: just emit the unicode as plain text
-				return [{ ...sp, text: res.value, link: null }];
-			} else {
-				// If you want image-based emojis, choose how your Span should represent images.
-				// extend your Span model (recommended) to support inline images/emojis.
-				// Example if you add fields: { is_emoji: true, emoji_url?: string }
-				return [{ ...sp, text: "WTF", link: null, is_emoji: true, emoji_url: res.url } as any];
-			}
-		})
+				if (res.type === "unicode") {
+					// simplest: just emit the unicode as plain text
+					return [{ ...sp, text: res.value, link: null }];
+				} else {
+					// If you want image-based emojis, choose how your Span should represent images.
+					// extend your Span model (recommended) to support inline images/emojis.
+					// Example if you add fields: { is_emoji: true, emoji_url?: string }
+					return [
+						{
+							...sp,
+							text: "WTF",
+							link: null,
+							is_emoji: true,
+							emoji_url: res.url,
+						} as any,
+					];
+				}
+			},
+		)
 		.otherwise((e: marked.Token) => {
 			// console.log(`Unknown token type: ${JSON.stringify(e)}`);
 			return [{ ...defaultSpanProps(), text: e.raw, link: null }];
@@ -319,7 +348,7 @@ export function parseMarkdownItem(item: string): Span[] {
 export function fillFonts(e: Elem, fonts: FontDict): Elem {
 	const simpleSpans = e.is_markdown
 		? parseMarkdownItem(e.text)
-		: [{ ...defaultSpanProps(), text: e.text, font: e.font, link: null }];
+		: [{ ...defaultSpanProps(), text: e.text, font: e.font, link: e.url }];
 	const spans: Span[] = [];
 	for (const span of simpleSpans) {
 		if (span.is_emoji) {
@@ -332,10 +361,10 @@ export function fillFonts(e: Elem, fonts: FontDict): Elem {
 
 		const font = e.is_markdown
 			? with_(e.font, {
-				style: span.is_italic ? "Italic" : e.font.style,
-				weight: span.is_bold ? "Bold" : e.font.weight,
-				name: span.is_code ? "SourceCodePro" : e.font.name,
-			})
+					style: span.is_italic ? "Italic" : e.font.style,
+					weight: span.is_bold ? "Bold" : e.font.weight,
+					name: span.is_code ? "SourceCodePro" : e.font.name,
+				})
 			: e.font;
 
 		if (span.text === " ") {

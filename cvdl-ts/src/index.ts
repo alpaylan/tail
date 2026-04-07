@@ -2,6 +2,7 @@ export * as Alignment from "./Alignment";
 export * as AnyLayout from "./AnyLayout";
 export * as Box from "./Box";
 export * as DataSchema from "./DataSchema";
+export * as DocxLayout from "./DocxLayout";
 export * as FileStorage from "./FileStorage";
 export * as Font from "./Font";
 export * as Layout from "./Layout";

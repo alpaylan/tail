@@ -106,7 +106,9 @@ function App() {
 		const rawLinks = localStorage.getItem(RESUME_GIST_LINKS_KEY);
 		if (rawLinks) {
 			try {
-				setResumeGistLinks(JSON.parse(rawLinks) as Record<string, ResumeGistLink>);
+				setResumeGistLinks(
+					JSON.parse(rawLinks) as Record<string, ResumeGistLink>,
+				);
 			} catch {
 				setResumeGistLinks({});
 			}
@@ -139,7 +141,9 @@ function App() {
 			if (githubStatus === "connected") {
 				alert("GitHub account connected.");
 			} else if (githubStatus === "error") {
-				alert(`GitHub connection failed${githubReason ? ` (${githubReason})` : ""}.`);
+				alert(
+					`GitHub connection failed${githubReason ? ` (${githubReason})` : ""}.`,
+				);
 			}
 
 			if (load_resume && localStorage.getItem(load_resume) !== "loaded") {
@@ -244,11 +248,14 @@ function App() {
 		data_schema_loader();
 		bindings_loader();
 		layout_schema_loader();
-			resumes_loader();
-		}, [state.resume, storageInitiated]);
+		resumes_loader();
+	}, [state.resume, storageInitiated]);
 
 	useEffect(() => {
-		localStorage.setItem(RESUME_GIST_LINKS_KEY, JSON.stringify(resumeGistLinks));
+		localStorage.setItem(
+			RESUME_GIST_LINKS_KEY,
+			JSON.stringify(resumeGistLinks),
+		);
 	}, [resumeGistLinks]);
 
 	useEffect(() => {
@@ -305,14 +312,7 @@ function App() {
 		return () => {
 			window.clearTimeout(timer);
 		};
-	}, [
-		storageInitiated,
-		currentResumeName,
-		currentTab,
-		debug,
-		state,
-		bindings,
-	]);
+	}, [storageInitiated, currentResumeName, currentTab, debug, state, bindings]);
 
 	const connectGithub = () => {
 		const returnTo = `${window.location.pathname}${window.location.search}`;
@@ -342,12 +342,12 @@ function App() {
 			const response = await fetch("/api/github/gists", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({
-						content: JSON.stringify(convertBack(state.resume), null, 2),
-						fileName: GIST_FILE_NAME,
-						description: `Tail resume: ${currentResumeName}`,
-						isPublic: true,
-					}),
+				body: JSON.stringify({
+					content: JSON.stringify(convertBack(state.resume), null, 2),
+					fileName: GIST_FILE_NAME,
+					description: `Tail resume: ${currentResumeName}`,
+					isPublic: true,
+				}),
 			});
 			const data = (await response.json()) as {
 				error?: string;
@@ -398,12 +398,12 @@ function App() {
 				{
 					method: "PATCH",
 					headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({
-							content: JSON.stringify(convertBack(state.resume), null, 2),
-							fileName: GIST_FILE_NAME,
-							description: `Tail resume: ${currentResumeName}`,
-						}),
-					},
+					body: JSON.stringify({
+						content: JSON.stringify(convertBack(state.resume), null, 2),
+						fileName: GIST_FILE_NAME,
+						description: `Tail resume: ${currentResumeName}`,
+					}),
+				},
 			);
 			const data = (await response.json()) as {
 				error?: string;
@@ -506,7 +506,6 @@ function App() {
 		input.click();
 	};
 
-
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if ((e.key === "z" && e.ctrlKey) || (e.key === "z" && e.metaKey)) {
@@ -546,197 +545,197 @@ function App() {
 	return (
 		<EditorContext.Provider value={state}>
 			<DocumentDispatchContext.Provider value={dispatch}>
-					<Layout>
-						<div
-							style={{ display: "flex", flexDirection: "row", height: "100%" }}
-						>
-							{!debug && (
-								<>
-									<div
-										style={{
-											display: "flex",
-											flexDirection: "column",
-											margin: "20px",
-										}}
-									>
-										<button
-											className={`bordered ${currentTab === "content-editor" ? "selected" : ""}`}
-											onClick={() => setCurrentTab("content-editor")}
-										>
-											Content Editor
-										</button>
-										<button
-											className={`bordered ${currentTab === "layout-editor" ? "selected" : ""}`}
-											onClick={() => setCurrentTab("layout-editor")}
-										>
-											Layout Editor
-										</button>
-										<button
-											className={`bordered ${currentTab === "schema-editor" ? "selected" : ""}`}
-											onClick={() => setCurrentTab("schema-editor")}
-										>
-											Schema Editor
-										</button>
-										<button
-											className={`bordered ${currentTab === "raw-editor" ? "selected" : ""}`}
-											onClick={() => setCurrentTab("raw-editor")}
-										>
-											Raw Editor
-										</button>
-									</div>
-									<div
-										style={{
-											display: "flex",
-											flexDirection: "column",
-											width: "50%",
-											margin: "20px",
-											minWidth: "250px",
-											maxHeight: "calc(100vh - 40px)",
-											overflow: "auto",
-										}}
-									>
-										<div style={{ display: "flex", flexDirection: "row" }}>
-											<select
-												value={state.resume?.name}
-												onChange={(e) => {
-													setResume(e.target.value);
-													dispatch({
-														type: "switch-resume",
-														resumeName: e.target.value,
-													});
-												}}
-											>
-												{resumes &&
-													resumes.map((resume) => {
-														return (
-															<option key={resume} value={resume}>
-																{resume}
-															</option>
-														);
-													})}
-											</select>
-											<button
-												className="bordered"
-												onClick={() => {
-													const name = prompt("Enter new resume name");
-													if (name) {
-														setResume(name);
-														dispatch({
-															type: "create-new-resume",
-															resumeName: name,
-														});
-													}
-												}}
-											>
-												⊕ New Resume
-											</button>
-										</div>
-
-										{currentTab === "content-editor" && (
-											<div>
-												<h1>Content Editor</h1>
-												<AddNewSection />
-												{state.resume &&
-													state.resume.sections.map((section, index) => {
-														return <Section key={index} section={section} />;
-													})}
-											</div>
-										)}
-										{currentTab === "layout-editor" && <LayoutEditor />}
-										{currentTab === "schema-editor" && <DataSchemaEditor />}
-										{currentTab === "raw-editor" && <RawEditor />}
-									</div>
-								</>
-							)}
-							<div
-								style={{
-									display: "flex",
-									flexDirection: "column",
-									flex: debug ? 1 : undefined,
-									width: debug ? "100%" : undefined,
-									margin: debug ? "8px" : "20px",
-									minWidth: debug ? "0" : "640px",
-									maxHeight: debug ? "calc(100vh - 16px)" : "calc(100vh - 40px)",
-									overflow: "auto",
-								}}
-							>
+				<Layout>
+					<div
+						style={{ display: "flex", flexDirection: "row", height: "100%" }}
+					>
+						{!debug && (
+							<>
 								<div
 									style={{
 										display: "flex",
-										flexDirection: "row",
-										marginBottom: "5px",
+										flexDirection: "column",
+										margin: "20px",
 									}}
 								>
-									<button className="bordered" onClick={uploadResume}>
-										&#x1F4C1; Import
+									<button
+										className={`bordered ${currentTab === "content-editor" ? "selected" : ""}`}
+										onClick={() => setCurrentTab("content-editor")}
+									>
+										Content Editor
 									</button>
-									<button className="bordered" onClick={downloadResume}>
-										⤓ Download
+									<button
+										className={`bordered ${currentTab === "layout-editor" ? "selected" : ""}`}
+										onClick={() => setCurrentTab("layout-editor")}
+									>
+										Layout Editor
 									</button>
-									<Dropdown
-										text="Export"
-										items={[
-											{ text: "pdf", fn: downloadResume },
-											{ text: "JsonResume", fn: downloadJsonResume },
-										]}
-									/>
-									{githubSession.connected ? (
-										<>
-											<button
-												className={`bordered ${isGithubBusy ? "disabled" : ""}`}
-												disabled={isGithubBusy}
-												onClick={publishResumeToGithub}
-											>
-												GitHub Publish
-											</button>
-											<button
-												className={`bordered ${isGithubBusy ? "disabled" : ""}`}
-												disabled={isGithubBusy}
-												onClick={updateResumeOnGithub}
-											>
-												GitHub Update
-											</button>
-											<button className="bordered" onClick={copyCurrentGistUrl}>
-												GitHub Copy URL
-											</button>
-											<button
-												className={`bordered ${isGithubBusy ? "disabled" : ""}`}
-												disabled={isGithubBusy}
-												onClick={disconnectGithub}
-											>
-												GitHub Disconnect
-											</button>
-										</>
-									) : (
+									<button
+										className={`bordered ${currentTab === "schema-editor" ? "selected" : ""}`}
+										onClick={() => setCurrentTab("schema-editor")}
+									>
+										Schema Editor
+									</button>
+									<button
+										className={`bordered ${currentTab === "raw-editor" ? "selected" : ""}`}
+										onClick={() => setCurrentTab("raw-editor")}
+									>
+										Raw Editor
+									</button>
+								</div>
+								<div
+									style={{
+										display: "flex",
+										flexDirection: "column",
+										width: "50%",
+										margin: "20px",
+										minWidth: "250px",
+										maxHeight: "calc(100vh - 40px)",
+										overflow: "auto",
+									}}
+								>
+									<div style={{ display: "flex", flexDirection: "row" }}>
+										<select
+											value={state.resume?.name}
+											onChange={(e) => {
+												setResume(e.target.value);
+												dispatch({
+													type: "switch-resume",
+													resumeName: e.target.value,
+												});
+											}}
+										>
+											{resumes &&
+												resumes.map((resume) => {
+													return (
+														<option key={resume} value={resume}>
+															{resume}
+														</option>
+													);
+												})}
+										</select>
+										<button
+											className="bordered"
+											onClick={() => {
+												const name = prompt("Enter new resume name");
+												if (name) {
+													setResume(name);
+													dispatch({
+														type: "create-new-resume",
+														resumeName: name,
+													});
+												}
+											}}
+										>
+											⊕ New Resume
+										</button>
+									</div>
+
+									{currentTab === "content-editor" && (
+										<div>
+											<h1>Content Editor</h1>
+											<AddNewSection />
+											{state.resume &&
+												state.resume.sections.map((section, index) => {
+													return <Section key={index} section={section} />;
+												})}
+										</div>
+									)}
+									{currentTab === "layout-editor" && <LayoutEditor />}
+									{currentTab === "schema-editor" && <DataSchemaEditor />}
+									{currentTab === "raw-editor" && <RawEditor />}
+								</div>
+							</>
+						)}
+						<div
+							style={{
+								display: "flex",
+								flexDirection: "column",
+								flex: debug ? 1 : undefined,
+								width: debug ? "100%" : undefined,
+								margin: debug ? "8px" : "20px",
+								minWidth: debug ? "0" : "640px",
+								maxHeight: debug ? "calc(100vh - 16px)" : "calc(100vh - 40px)",
+								overflow: "auto",
+							}}
+						>
+							<div
+								style={{
+									display: "flex",
+									flexDirection: "row",
+									marginBottom: "5px",
+								}}
+							>
+								<button className="bordered" onClick={uploadResume}>
+									&#x1F4C1; Import
+								</button>
+								<button className="bordered" onClick={downloadResume}>
+									⤓ Download
+								</button>
+								<Dropdown
+									text="Export"
+									items={[
+										{ text: "pdf", fn: downloadResume },
+										{ text: "JsonResume", fn: downloadJsonResume },
+									]}
+								/>
+								{githubSession.connected ? (
+									<>
 										<button
 											className={`bordered ${isGithubBusy ? "disabled" : ""}`}
 											disabled={isGithubBusy}
-											onClick={connectGithub}
+											onClick={publishResumeToGithub}
 										>
-											GitHub Connect
+											GitHub Publish
 										</button>
-									)}
-									<button className="bordered" onClick={() => setDebug(!debug)}>
-										&#x1F41E; Debug {debug ? "ON" : "OFF"}
+										<button
+											className={`bordered ${isGithubBusy ? "disabled" : ""}`}
+											disabled={isGithubBusy}
+											onClick={updateResumeOnGithub}
+										>
+											GitHub Update
+										</button>
+										<button className="bordered" onClick={copyCurrentGistUrl}>
+											GitHub Copy URL
+										</button>
+										<button
+											className={`bordered ${isGithubBusy ? "disabled" : ""}`}
+											disabled={isGithubBusy}
+											onClick={disconnectGithub}
+										>
+											GitHub Disconnect
+										</button>
+									</>
+								) : (
+									<button
+										className={`bordered ${isGithubBusy ? "disabled" : ""}`}
+										disabled={isGithubBusy}
+										onClick={connectGithub}
+									>
+										GitHub Connect
 									</button>
-								</div>
-								<div style={{ marginBottom: "8px", fontSize: "0.85rem" }}>
-									{githubSession.connected ? (
-										<span>
-											GitHub connected
-											{githubSession.login ? ` as @${githubSession.login}` : ""}.
-											{currentResumeGistLink
-												? ` Synced gist: ${currentResumeGistLink.id}`
-												: " This resume is not linked to a gist yet."}
-										</span>
-									) : (
-										<span>GitHub not connected.</span>
-									)}
-								</div>
-								<div
-									id="pdf-container"
-									style={{ display: "flex", flexDirection: "column" }}
-								></div>
+								)}
+								<button className="bordered" onClick={() => setDebug(!debug)}>
+									&#x1F41E; Debug {debug ? "ON" : "OFF"}
+								</button>
+							</div>
+							<div style={{ marginBottom: "8px", fontSize: "0.85rem" }}>
+								{githubSession.connected ? (
+									<span>
+										GitHub connected
+										{githubSession.login ? ` as @${githubSession.login}` : ""}.
+										{currentResumeGistLink
+											? ` Synced gist: ${currentResumeGistLink.id}`
+											: " This resume is not linked to a gist yet."}
+									</span>
+								) : (
+									<span>GitHub not connected.</span>
+								)}
+							</div>
+							<div
+								id="pdf-container"
+								style={{ display: "flex", flexDirection: "column" }}
+							></div>
 							{/* {
                                 (storageInitiated && state.resume && state.dataSchemas.length !== 0 && state.layoutSchemas.length !== 0) &&
                                 <ReactLayout

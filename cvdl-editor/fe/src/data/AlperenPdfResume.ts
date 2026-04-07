@@ -92,7 +92,12 @@ export const AlperenPdfJsonResume: JsonResume = {
 			endDate: "Sept 2019",
 			summary:
 				"Bochum, Germany. Worked on translation validation of binary obfuscation techniques.",
-			highlights: ["C++", "Z3 SMT Solver", "ARM Assembly", "Symbolic Execution"],
+			highlights: [
+				"C++",
+				"Z3 SMT Solver",
+				"ARM Assembly",
+				"Symbolic Execution",
+			],
 		},
 	],
 	volunteer: [

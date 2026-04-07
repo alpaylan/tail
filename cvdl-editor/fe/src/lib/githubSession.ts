@@ -1,4 +1,9 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
+import {
+	createCipheriv,
+	createDecipheriv,
+	createHash,
+	randomBytes,
+} from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 const GITHUB_SESSION_COOKIE = "tail_github_session";

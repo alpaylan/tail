@@ -1,4 +1,4 @@
-export module DateFormat {
+export namespace DateFormat {
 	export type t =
 		| "YYYY-MM-DD"
 		| "MM-DD-YYYY"
@@ -61,7 +61,7 @@ export module DateFormat {
 	};
 }
 
-export module DocumentDataType {
+export namespace DocumentDataType {
 	export type Date = { tag: "Date"; format: DateFormat.t };
 	export type URL = { tag: "String" };
 	export type PureString = { tag: "Url" };
@@ -89,7 +89,7 @@ export type Field = {
 	type: DocumentDataType.t;
 };
 
-export module DataSchema {
+export namespace DataSchema {
 	export type t = {
 		schema_name: string;
 		header_schema: Field[];

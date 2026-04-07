@@ -1,3 +1,4 @@
+"use strict";
 // import * as Margin from "./Margin";
 // import * as Alignment from "./Alignment";
 // import * as Width from "./Width";

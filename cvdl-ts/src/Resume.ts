@@ -26,7 +26,7 @@ export function layoutSchemas(resume: t): string[] {
 	return resume.sections.map((section) => section.layout_schema);
 }
 
-export module ResumeSection {
+export namespace ResumeSection {
 	export type t = {
 		section_name: string;
 		data_schema: string;
@@ -52,7 +52,7 @@ export module ResumeSection {
 	}
 }
 
-export module ItemContent {
+export namespace ItemContent {
 	export type PureString = {
 		tag: "String";
 		value: string;

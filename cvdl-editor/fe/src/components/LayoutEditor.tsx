@@ -258,9 +258,9 @@ const ContainerControlPanel = (props: {
 	const [marginRight, setMarginRight] = useState(container.margin.right);
 	const [marginTop, setMarginTop] = useState(container.margin.top);
 	const [marginBottom, setMarginBottom] = useState(container.margin.bottom);
-	const [selectedElementIndices, setSelectedElementIndices] = useState<number[]>(
-		[],
-	);
+	const [selectedElementIndices, setSelectedElementIndices] = useState<
+		number[]
+	>([]);
 	const selectedIndices = [...selectedElementIndices].sort((a, b) => a - b);
 	const isSelectionContiguous =
 		selectedIndices.length <= 1 ||
@@ -281,7 +281,10 @@ const ContainerControlPanel = (props: {
 			return;
 		}
 		const parentLens = props.lens.slice(0, -1);
-		const parent = followLens(parentLens, props.layoutSchema) as Layout.Container;
+		const parent = followLens(
+			parentLens,
+			props.layoutSchema,
+		) as Layout.Container;
 		const currentStep = props.lens[props.lens.length - 1];
 		if (!currentStep || !("index" in currentStep)) {
 			return;
@@ -304,10 +307,8 @@ const ContainerControlPanel = (props: {
 						width: container.width,
 						is_fill: container.is_fill,
 						is_frozen:
-							container.tag === "Row"
-								? (container as Row.t).is_frozen
-								: false,
-				  }
+							container.tag === "Row" ? (container as Row.t).is_frozen : false,
+					}
 				: {
 						...Stack.default_(),
 						elements: container.elements,
@@ -315,7 +316,7 @@ const ContainerControlPanel = (props: {
 						alignment: container.alignment,
 						width: container.width,
 						is_fill: container.is_fill,
-				  };
+					};
 		replaceCurrentContainer(nextContainer);
 	};
 
@@ -324,7 +325,10 @@ const ContainerControlPanel = (props: {
 			return;
 		}
 		const parentLens = props.lens.slice(0, -1);
-		const parent = followLens(parentLens, props.layoutSchema) as Layout.Container;
+		const parent = followLens(
+			parentLens,
+			props.layoutSchema,
+		) as Layout.Container;
 		const currentStep = props.lens[props.lens.length - 1];
 		if (!currentStep || !("index" in currentStep)) {
 			return;
@@ -616,9 +620,7 @@ const ContainerControlPanel = (props: {
 					<div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
 						<button
 							className="bordered"
-							disabled={
-								selectedIndices.length === 0 || !isSelectionContiguous
-							}
+							disabled={selectedIndices.length === 0 || !isSelectionContiguous}
 							style={{
 								color:
 									selectedIndices.length === 0 || !isSelectionContiguous
@@ -635,9 +637,7 @@ const ContainerControlPanel = (props: {
 						</button>
 						<button
 							className="bordered"
-							disabled={
-								selectedIndices.length === 0 || !isSelectionContiguous
-							}
+							disabled={selectedIndices.length === 0 || !isSelectionContiguous}
 							style={{
 								color:
 									selectedIndices.length === 0 || !isSelectionContiguous
@@ -1340,13 +1340,13 @@ const AddNewLayout = (props: {
 									newLayout.data_schema_name = dataSchema;
 									newLayout.schema_name = sectionName;
 
-										storage.save_layout_schema(newLayout);
-										dispatch!({
-											type: "add-layout",
-											layout: newLayout,
-										});
-									}}
-								>
+									storage.save_layout_schema(newLayout);
+									dispatch!({
+										type: "add-layout",
+										layout: newLayout,
+									});
+								}}
+							>
 								{" "}
 								Add{" "}
 							</button>
@@ -1411,26 +1411,30 @@ const LayoutEditor = () => {
 		setDataSchema(nextDataSchema);
 	}, [layoutSchema, state?.dataSchemas]);
 
-	const selectLayoutBySchemaName = useCallback((
-		nextLayoutSchemaName: string,
-		nextLens: Lens | null = null,
-		source: "auto" | "manual" = "manual",
-	) => {
-		const nextLayoutSchema =
-			state?.layoutSchemas.find((schema) => schema.schema_name === nextLayoutSchemaName) ??
-			null;
-		if (!nextLayoutSchema) {
-			return;
-		}
-		const nextDataSchema =
-			state?.dataSchemas.find(
-				(schema) => schema.schema_name === nextLayoutSchema.data_schema_name,
-			) ?? null;
-		setLayoutSchema(nextLayoutSchema);
-		setDataSchema(nextDataSchema);
-		setLayoutSchemaControlPanel(nextLens);
-		setSelectionSource(source);
-	}, [state?.layoutSchemas, state?.dataSchemas]);
+	const selectLayoutBySchemaName = useCallback(
+		(
+			nextLayoutSchemaName: string,
+			nextLens: Lens | null = null,
+			source: "auto" | "manual" = "manual",
+		) => {
+			const nextLayoutSchema =
+				state?.layoutSchemas.find(
+					(schema) => schema.schema_name === nextLayoutSchemaName,
+				) ?? null;
+			if (!nextLayoutSchema) {
+				return;
+			}
+			const nextDataSchema =
+				state?.dataSchemas.find(
+					(schema) => schema.schema_name === nextLayoutSchema.data_schema_name,
+				) ?? null;
+			setLayoutSchema(nextLayoutSchema);
+			setDataSchema(nextDataSchema);
+			setLayoutSchemaControlPanel(nextLens);
+			setSelectionSource(source);
+		},
+		[state?.layoutSchemas, state?.dataSchemas],
+	);
 
 	const setLayoutLens = useCallback(
 		(nextLens: Lens | null, source: "auto" | "manual" = "manual") => {
@@ -1444,7 +1448,11 @@ const LayoutEditor = () => {
 	);
 
 	useEffect(() => {
-		if (!state || initializedFromExistingFocus.current || !preserveExistingFocus.current) {
+		if (
+			!state ||
+			initializedFromExistingFocus.current ||
+			!preserveExistingFocus.current
+		) {
 			return;
 		}
 		const previewFocus = state.previewFocus;
@@ -1461,7 +1469,10 @@ const LayoutEditor = () => {
 			preservedEditorPathVersion.current = editorPathVersion;
 			return;
 		}
-		if (previewFocus.tag === "data-field" || previewFocus.tag === "data-schema") {
+		if (
+			previewFocus.tag === "data-field" ||
+			previewFocus.tag === "data-schema"
+		) {
 			const sourceSection = state.resume.sections.find(
 				(section) => section.data_schema === previewFocus.schemaName,
 			);
@@ -1534,7 +1545,14 @@ const LayoutEditor = () => {
 								editorPath.item === -1 ? "header_schema" : "item_schema",
 								editorPath.field,
 							)
-						: [{ attribute: editorPath.item === -1 ? "header_layout_schema" : "item_layout_schema" }]
+						: [
+								{
+									attribute:
+										editorPath.item === -1
+											? "header_layout_schema"
+											: "item_layout_schema",
+								},
+							]
 					: [{ attribute: "item_layout_schema" }];
 		selectLayoutBySchemaName(targetSection.layout_schema, nextLens, "auto");
 		lastAppliedEditorPathVersion.current = editorPathVersion;
@@ -1580,7 +1598,13 @@ const LayoutEditor = () => {
 						: undefined,
 			},
 		});
-	}, [dispatch, layoutSchema, layoutSchemaControlPanel, selectionSource, editorPath]);
+	}, [
+		dispatch,
+		layoutSchema,
+		layoutSchemaControlPanel,
+		selectionSource,
+		editorPath,
+	]);
 
 	const setLayout = (_updatedLayout: Layout.t) => {
 		if (!layoutSchema) {
@@ -1620,24 +1644,24 @@ const LayoutEditor = () => {
 					{layoutSchemaNames && layoutSchemaNames.length !== 0 && (
 						<h2>Currently Used Layouts</h2>
 					)}
-						{[...new Set(layoutSchemaNames)].map((name, index) => {
-							return (
-								<button
-									className="bordered"
-									key={index}
-									style={{
-										fontWeight:
-											layoutSchema?.schema_name === name ? "bold" : "normal",
-										borderColor:
-											layoutSchema?.schema_name === name ? "#2563eb" : undefined,
-									}}
-									onClick={() => {
-										preserveExistingFocus.current = false;
-										selectLayoutBySchemaName(name, null, "manual");
-									}}
-								>
-									{name}
-								</button>
+					{[...new Set(layoutSchemaNames)].map((name, index) => {
+						return (
+							<button
+								className="bordered"
+								key={index}
+								style={{
+									fontWeight:
+										layoutSchema?.schema_name === name ? "bold" : "normal",
+									borderColor:
+										layoutSchema?.schema_name === name ? "#2563eb" : undefined,
+								}}
+								onClick={() => {
+									preserveExistingFocus.current = false;
+									selectLayoutBySchemaName(name, null, "manual");
+								}}
+							>
+								{name}
+							</button>
 						);
 					})}
 				</div>
@@ -1653,27 +1677,27 @@ const LayoutEditor = () => {
 					}}
 				>
 					<h2>All Available Layouts</h2>
-						{allAvailableLayouts.map((name, index) => {
-							if (layoutSchemaNames?.includes(name)) {
-								return null;
-							}
-							return (
-								<button
-									className="bordered"
-									key={index}
-									style={{
-										fontWeight:
-											layoutSchema?.schema_name === name ? "bold" : "normal",
-										borderColor:
-											layoutSchema?.schema_name === name ? "#2563eb" : undefined,
-									}}
-									onClick={() => {
-										preserveExistingFocus.current = false;
-										selectLayoutBySchemaName(name, null, "manual");
-									}}
-								>
-									{name}
-								</button>
+					{allAvailableLayouts.map((name, index) => {
+						if (layoutSchemaNames?.includes(name)) {
+							return null;
+						}
+						return (
+							<button
+								className="bordered"
+								key={index}
+								style={{
+									fontWeight:
+										layoutSchema?.schema_name === name ? "bold" : "normal",
+									borderColor:
+										layoutSchema?.schema_name === name ? "#2563eb" : undefined,
+								}}
+								onClick={() => {
+									preserveExistingFocus.current = false;
+									selectLayoutBySchemaName(name, null, "manual");
+								}}
+							>
+								{name}
+							</button>
 						);
 					})}
 				</div>

@@ -1,7 +1,6 @@
 "use server";
 
 export async function fetchGist(username: string) {
-	
 	return fetch(`https://registry.jsonresume.org/${username}.json`, {
 		method: "GET",
 		headers: {
@@ -9,7 +8,7 @@ export async function fetchGist(username: string) {
 		},
 	})
 		.then((response) => response.json())
-			.catch((error) => {
-				console.error("Error:", error);
-			});
+		.catch((error) => {
+			console.error("Error:", error);
+		});
 }

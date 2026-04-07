@@ -125,7 +125,9 @@ export const render = async ({
 		renderSectionLayout(layout, { ...tracker, height: flowOffset });
 		if (layout.flow_offset_y === undefined) {
 			tracker.height +=
-				layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;
+				layout.bounding_box!.height() +
+				layout.margin.top +
+				layout.margin.bottom;
 		}
 	}
 
@@ -252,9 +254,9 @@ export const renderSectionLayout = (
 					span.bbox!.top_left.y;
 				const page = Math.floor(
 					absoluteY /
-					(tracker.layout.height -
-						tracker.layout.margin.top -
-						tracker.layout.margin.bottom),
+						(tracker.layout.height -
+							tracker.layout.margin.top -
+							tracker.layout.margin.bottom),
 				);
 				const currentPageY =
 					absoluteY %
@@ -292,13 +294,13 @@ export const renderSectionLayout = (
 					tracker.pageContainer
 						.roundedRect(
 							layout.bounding_box.top_left.x +
-							tracker.layout.margin.left +
-							span.bbox.top_left.x -
-							span.font.size / 5,
+								tracker.layout.margin.left +
+								span.bbox.top_left.x -
+								span.font.size / 5,
 							layout.bounding_box.top_left.y +
-							tracker.layout.margin.top +
-							tracker.height +
-							span.bbox.top_left.y,
+								tracker.layout.margin.top +
+								tracker.height +
+								span.bbox.top_left.y,
 							span.bbox.width() + (span.font.size / 5) * 2,
 							span.bbox.height(),
 							5,
@@ -310,13 +312,13 @@ export const renderSectionLayout = (
 					tracker.pageContainer
 						.rect(
 							layout.bounding_box.top_left.x +
-							tracker.layout.margin.left +
-							span.bbox.top_left.x -
-							span.font.size / 5,
+								tracker.layout.margin.left +
+								span.bbox.top_left.x -
+								span.font.size / 5,
 							layout.bounding_box.top_left.y +
-							tracker.layout.margin.top +
-							tracker.height +
-							span.bbox.top_left.y,
+								tracker.layout.margin.top +
+								tracker.height +
+								span.bbox.top_left.y,
 							span.bbox.width() + (span.font.size / 5) * 2,
 							span.bbox.height(),
 						)
