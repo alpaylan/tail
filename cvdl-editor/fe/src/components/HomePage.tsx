@@ -479,6 +479,23 @@ function App() {
 		});
 	};
 
+	const downloadDocx = async () => {
+		const { render: docxRender } = await import("cvdl-ts/dist/DocxLayout");
+		docxRender({
+			resume_name: resume,
+			resume: state.resume!,
+			bindings,
+			storage,
+			fontDict,
+		}).then(({ blob }) => {
+			const docx = window.URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = docx;
+			link.download = `${state.resume.name}.docx`;
+			link.click();
+		});
+	};
+
 	const downloadJsonResume = () => {
 		const pdf = window.URL.createObjectURL(
 			new Blob([JSON.stringify(convertBack(state.resume), null, 2)]),
@@ -676,6 +693,7 @@ function App() {
 									text="Export"
 									items={[
 										{ text: "pdf", fn: downloadResume },
+										{ text: "docx", fn: downloadDocx },
 										{ text: "JsonResume", fn: downloadJsonResume },
 									]}
 								/>
