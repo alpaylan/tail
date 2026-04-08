@@ -12,6 +12,7 @@ import {
 	ExternalHyperlink,
 	ShadingType,
 	TableLayoutType,
+	LineRuleType,
 	ITableCellBorders,
 	IRunOptions,
 } from "docx";
@@ -22,7 +23,6 @@ import {
 	RenderResult,
 } from "./AnyLayout";
 import * as Layout from "./Layout";
-import * as Alignment from "./Alignment";
 import * as Elem from "./Elem";
 import * as Width from "./Width";
 
@@ -30,16 +30,6 @@ export type { RenderResult, BackendRenderProps as RenderProps };
 
 const ptToHalfPt = (pt: number) => Math.round(pt * 2);
 const ptToTwip = (pt: number) => Math.round(pt * 20);
-
-const ALIGNMENT_MAP: Record<
-	Alignment.t,
-	(typeof AlignmentType)[keyof typeof AlignmentType]
-> = {
-	Left: AlignmentType.LEFT,
-	Center: AlignmentType.CENTER,
-	Right: AlignmentType.RIGHT,
-	Justified: AlignmentType.JUSTIFIED,
-};
 
 const noBorder = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
 const noBorders: ITableCellBorders = {
@@ -55,6 +45,14 @@ const tableBorders = {
 	right: noBorder,
 	insideHorizontal: noBorder,
 	insideVertical: noBorder,
+};
+
+const zeroCellMargins = {
+	top: 0,
+	bottom: 0,
+	left: 0,
+	right: 0,
+	marginUnitType: WidthType.DXA,
 };
 
 const spanToRunOptions = (span: Elem.Span): IRunOptions => {
@@ -83,13 +81,37 @@ const spanToRun = (span: Elem.Span): TextRun | ExternalHyperlink =>
 
 type BlockElement = Paragraph | Table;
 
+const spacerCell = (widthPt: number): TableCell =>
+	new TableCell({
+		children: [new Paragraph({})],
+		width: { size: ptToTwip(widthPt), type: WidthType.DXA },
+		borders: noBorders,
+		margins: zeroCellMargins,
+	});
+
+const alignmentMap: Record<string, (typeof AlignmentType)[keyof typeof AlignmentType]> = {
+	Left: AlignmentType.LEFT,
+	Center: AlignmentType.CENTER,
+	Right: AlignmentType.RIGHT,
+	Justified: AlignmentType.JUSTIFIED,
+};
+
+// Render an Elem as one paragraph per line.
+// Use Word's native alignment (Center/Right/Justified) instead of indent so that
+// text gets the full cell width. Only use indent for Left-aligned text when the
+// layout engine placed it at a non-zero x offset.
 const renderElem = (elem: Elem.t): BlockElement[] => {
 	if (!elem.spans?.length || elem.text === "") return [];
 
-	const spans = elem.spans.filter((s) => s.text !== "\n" && s.text !== "\n\n");
+	const spans = elem.spans.filter(
+		(s) => s.text !== "" && s.text !== "\n" && s.text !== "\n\n",
+	);
 	if (spans.length === 0) return [];
 
-	// Group spans by line number
+	const wordAlign = alignmentMap[elem.alignment] ?? AlignmentType.LEFT;
+	const useNativeAlign = elem.alignment !== "Left";
+
+	// Group spans by line
 	const lineMap = new Map<number, Elem.Span[]>();
 	for (const span of spans) {
 		const line = span.line ?? 1;
@@ -97,66 +119,151 @@ const renderElem = (elem: Elem.t): BlockElement[] => {
 		lineMap.get(line)!.push(span);
 	}
 
-	const children: (TextRun | ExternalHyperlink)[] = [];
+	const paragraphs: Paragraph[] = [];
 	const sortedLines = Array.from(lineMap.keys()).sort((a, b) => a - b);
+
 	for (let i = 0; i < sortedLines.length; i++) {
-		if (i > 0) children.push(new TextRun({ break: 1 }));
-		for (const span of lineMap.get(sortedLines[i])!) {
-			if (span.text !== "") children.push(spanToRun(span));
-		}
+		const lineSpans = lineMap.get(sortedLines[i])!;
+		const runs = lineSpans.map(spanToRun);
+		if (runs.length === 0) continue;
+
+		// For non-Left alignment, let Word handle positioning (full cell width available).
+		// For Left alignment, use span bbox offset as indent.
+		const leftIndent = useNativeAlign
+			? 0
+			: (lineSpans[0]?.bbox?.top_left.x ?? 0);
+
+		// Compute line height from span bbox (matches layout engine's Font.get_height)
+		const lineHeight = lineSpans[0]?.bbox
+			? lineSpans[0].bbox.bottom_right.y - lineSpans[0].bbox.top_left.y
+			: undefined;
+
+		paragraphs.push(
+			new Paragraph({
+				children: runs,
+				alignment: wordAlign,
+				spacing: {
+					before: i === 0 ? ptToTwip(elem.margin.top) : 0,
+					after:
+						i === sortedLines.length - 1 ? ptToTwip(elem.margin.bottom) : 0,
+					line: lineHeight ? ptToTwip(lineHeight) : undefined,
+					lineRule: lineHeight ? LineRuleType.EXACTLY : undefined,
+				},
+				indent: leftIndent > 0 ? { left: ptToTwip(leftIndent) } : undefined,
+			}),
+		);
 	}
 
-	if (children.length === 0) return [];
+	return paragraphs;
+};
 
-	return [
-		new Paragraph({
-			children,
-			alignment: ALIGNMENT_MAP[elem.alignment],
-			spacing: {
-				before: ptToTwip(elem.margin.top),
-				after: ptToTwip(elem.margin.bottom),
-			},
-			indent: {
-				left: ptToTwip(elem.margin.left),
-				right: ptToTwip(elem.margin.right),
-			},
-		}),
-	];
+// Render a Row as a single-row table.
+// Cell widths are derived from bounding box positions to capture exact spacing.
+// The layout engine computes element positions including margins and alignment gaps,
+// so we derive cell boundaries from the actual bbox positions within the row.
+// Word's text metrics differ from fontkit's, so content cells need extra width.
+// We take padding from spacer cells (alignment gaps) to keep total row width exact.
+const CELL_PADDING_PT = 8;
+
+type CellEntry = {
+	tag: "spacer" | "content";
+	widthPt: number;
+	children?: BlockElement[];
 };
 
 const renderRow = (row: Layout.RenderedRow): BlockElement[] => {
-	const cells = row.elements.map((el) => {
-		const element = el as Layout.RenderedLayout;
-		const cellChildren = renderLayout(element);
-		const cellWidth = element.bounding_box
-			? Math.round(
-					element.bounding_box.bottom_right.x - element.bounding_box.top_left.x,
-				)
-			: Width.get_fixed_unchecked(element.width);
+	const rowLeft = row.bounding_box?.top_left.x ?? 0;
+	const rowRight =
+		row.bounding_box?.bottom_right.x ??
+		rowLeft + Width.get_fixed_unchecked(row.width);
+	const rowWidth = rowRight - rowLeft;
+	const elements = row.elements as Layout.RenderedLayout[];
 
-		return new TableCell({
-			children: cellChildren.length > 0 ? cellChildren : [new Paragraph({})],
-			width: { size: ptToTwip(cellWidth), type: WidthType.DXA },
-			borders: noBorders,
-			margins: {
-				top: ptToTwip(element.margin.top),
-				bottom: ptToTwip(element.margin.bottom),
-				left: ptToTwip(element.margin.left),
-				right: ptToTwip(element.margin.right),
-			},
+	// Phase 1: compute cell entries with raw widths
+	const entries: CellEntry[] = [];
+	let cursor = rowLeft;
+
+	for (let i = 0; i < elements.length; i++) {
+		const el = elements[i];
+		const elLeft = el.bounding_box?.top_left.x ?? cursor;
+		const elRight =
+			el.bounding_box?.bottom_right.x ??
+			elLeft + Width.get_fixed_unchecked(el.width);
+
+		const gap = elLeft - el.margin.left - cursor;
+		if (gap > 1) {
+			entries.push({ tag: "spacer", widthPt: gap });
+		}
+
+		const cellWidth = el.margin.left + (elRight - elLeft) + el.margin.right;
+		entries.push({
+			tag: "content",
+			widthPt: cellWidth,
+			children: renderLayout(el),
 		});
-	});
 
-	const tableWidth = row.bounding_box
-		? Math.round(row.bounding_box.bottom_right.x - row.bounding_box.top_left.x)
-		: Width.get_fixed_unchecked(row.width);
+		cursor = elLeft - el.margin.left + cellWidth;
+	}
+
+	const trailing = rowRight - cursor;
+	if (trailing > 1) {
+		entries.push({ tag: "spacer", widthPt: trailing });
+	}
+
+	// Phase 2: redistribute padding from spacers to content cells
+	const contentCount = entries.filter((e) => e.tag === "content").length;
+	const spacerTotal = entries
+		.filter((e) => e.tag === "spacer")
+		.reduce((s, e) => s + e.widthPt, 0);
+	const paddingPerCell = Math.min(
+		CELL_PADDING_PT,
+		spacerTotal / Math.max(contentCount, 1),
+	);
+
+	let spacerBudget = paddingPerCell * contentCount;
+	for (const entry of entries) {
+		if (entry.tag === "content") {
+			entry.widthPt += paddingPerCell;
+		}
+	}
+	for (const entry of entries) {
+		if (entry.tag === "spacer" && spacerBudget > 0) {
+			const take = Math.min(entry.widthPt - 1, spacerBudget);
+			entry.widthPt -= take;
+			spacerBudget -= take;
+		}
+	}
+
+	// Phase 3: build cells
+	const cells: TableCell[] = [];
+	const columnWidths: number[] = [];
+
+	for (const entry of entries) {
+		const twip = ptToTwip(entry.widthPt);
+		columnWidths.push(twip);
+		if (entry.tag === "spacer") {
+			cells.push(spacerCell(entry.widthPt));
+		} else {
+			const ch = entry.children!;
+			cells.push(
+				new TableCell({
+					children: ch.length > 0 ? ch : [new Paragraph({})],
+					width: { size: twip, type: WidthType.DXA },
+					borders: noBorders,
+					margins: zeroCellMargins,
+				}),
+			);
+		}
+	}
 
 	return [
 		new Table({
 			rows: [new TableRow({ children: cells })],
-			width: { size: ptToTwip(tableWidth), type: WidthType.DXA },
+			width: { size: ptToTwip(rowWidth), type: WidthType.DXA },
+			columnWidths,
 			layout: TableLayoutType.FIXED,
 			borders: tableBorders,
+			margins: zeroCellMargins,
 		}),
 	];
 };

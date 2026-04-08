@@ -11,7 +11,7 @@ const tscPath = path.resolve(
 	"bin",
 	"tsc",
 );
-const docxCliPath = path.resolve(cwd, "dist", "docx-cli.js");
+const pdfCliPath = path.resolve(cwd, "dist", "pdf-cli.js");
 
 const compile = spawnSync(
 	process.execPath,
@@ -22,19 +22,19 @@ const compile = spawnSync(
 	},
 );
 
-if (!fs.existsSync(docxCliPath)) {
+if (!fs.existsSync(pdfCliPath)) {
 	process.exit(compile.status ?? 1);
 }
 
 if (compile.status && compile.status !== 0) {
 	console.warn(
-		"TypeScript reported errors, but emitted JS is available. Running docx CLI anyway.",
+		"TypeScript reported errors, but emitted JS is available. Running pdf CLI anyway.",
 	);
 }
 
 const run = spawnSync(
 	process.execPath,
-	[docxCliPath, ...process.argv.slice(2)],
+	[pdfCliPath, ...process.argv.slice(2)],
 	{
 		cwd,
 		stdio: "inherit",

@@ -24,6 +24,7 @@
 		"build": "tsc",
 		"start": "ts-node src/index.ts",
 		"cli": "ts-node src/cli.ts",
+		"cli:pdf": "node scripts/run-pdf-cli.cjs",
 		"cli:docx": "node scripts/run-docx-cli.cjs",
 		"bench:incremental": "npm run build && node scripts/benchmark_incremental.cjs",
 		"bench:incremental:full": "npm run build && BENCH_PROFILE=full node scripts/benchmark_incremental.cjs"

@@ -1291,3 +1291,46 @@ export const DefaultResume = Resume.resume(
 	"SingleColumnSchema",
 	DefaultSections,
 );
+
+const cloneSection = (
+	section: ResumeSection.t,
+	itemCount?: number,
+): ResumeSection.t => ({
+	...section,
+	data: {
+		...section.data,
+		fields: { ...section.data.fields },
+	},
+	items:
+		itemCount === undefined
+			? section.items.map((item) => ({
+					...item,
+					fields: { ...item.fields },
+				}))
+			: section.items.slice(0, itemCount).map((item) => ({
+					...item,
+					fields: { ...item.fields },
+				})),
+});
+
+const findSection = (sectionName: string): ResumeSection.t => {
+	const section = DefaultSections.find(
+		(current) => current.section_name === sectionName,
+	);
+	if (!section) {
+		throw new Error(`Could not find default section ${sectionName}`);
+	}
+	return section;
+};
+
+export const ComparisonResume = Resume.resume(
+	"Comparison",
+	"SingleColumnSchema",
+	[
+		cloneSection(findSection("Basics"), 0),
+		cloneSection(findSection("Work Experience"), 2),
+		cloneSection(findSection("Education"), 1),
+		cloneSection(findSection("Skills"), 1),
+		cloneSection(findSection("Projects"), 1),
+	],
+);
