@@ -15,7 +15,9 @@ const cloneSchema = (schema: DataSchema.t): DataSchema.t => {
 	return JSON.parse(JSON.stringify(schema)) as DataSchema.t;
 };
 
-const defaultTypeForTag = (tag: DocumentDataType.t["tag"]): DocumentDataType.t => {
+const defaultTypeForTag = (
+	tag: DocumentDataType.t["tag"],
+): DocumentDataType.t => {
 	switch (tag) {
 		case "String":
 			return { tag: "String" };
@@ -63,7 +65,9 @@ const removeFieldRefsFromLayout = (
 		return layout;
 	}
 	const nextElements = layout.elements
-		.map((child) => removeFieldRefsFromLayout(child as Layout.PreBindingLayout, removed))
+		.map((child) =>
+			removeFieldRefsFromLayout(child as Layout.PreBindingLayout, removed),
+		)
 		.filter((child): child is Layout.PreBindingLayout => child !== null);
 	return {
 		...layout,
@@ -157,7 +161,10 @@ const TypeEditor = ({ type, onChange, depth = 0 }: TypeEditorProps) => {
 				<div style={{ marginTop: "6px" }}>
 					<div style={{ marginBottom: "6px" }}>Union Types</div>
 					{type.value.map((nestedType, index) => (
-						<div key={index} style={{ display: "flex", gap: "6px", marginBottom: "6px" }}>
+						<div
+							key={index}
+							style={{ display: "flex", gap: "6px", marginBottom: "6px" }}
+						>
 							<div style={{ flex: 1 }}>
 								<TypeEditor
 									type={nestedType}
@@ -175,7 +182,8 @@ const TypeEditor = ({ type, onChange, depth = 0 }: TypeEditorProps) => {
 									const nextTypes = type.value.filter((_, i) => i !== index);
 									onChange({
 										...type,
-										value: nextTypes.length === 0 ? [{ tag: "String" }] : nextTypes,
+										value:
+											nextTypes.length === 0 ? [{ tag: "String" }] : nextTypes,
 									});
 								}}
 							>
@@ -217,8 +225,16 @@ const FieldEditor = ({
 	onChange,
 }: FieldEditorProps) => {
 	return (
-		<div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "10px" }}>
-			<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+		<div
+			style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "10px" }}
+		>
+			<div
+				style={{
+					display: "flex",
+					justifyContent: "space-between",
+					alignItems: "center",
+				}}
+			>
 				<h3>{title}</h3>
 				<button
 					className="bordered"
@@ -235,24 +251,28 @@ const FieldEditor = ({
 				</button>
 			</div>
 
-			{fields.length === 0 && <div style={{ opacity: 0.6 }}>No fields yet.</div>}
+			{fields.length === 0 && (
+				<div style={{ opacity: 0.6 }}>No fields yet.</div>
+			)}
 
-				{fields.map((field, index) => (
-					<div
-						key={index}
-						id={`schema-field-${schemaName}-${group}-${field.name}`}
-						style={{
-							border:
-								focusedFieldName === field.name
-									? "2px solid #2563eb"
-									: "1px solid #eee",
-							backgroundColor:
-								focusedFieldName === field.name ? "rgba(219, 234, 254, 0.35)" : "transparent",
-							padding: "8px",
-							borderRadius: "8px",
-							marginBottom: "8px",
-						}}
-						onClick={() => onFocusField({ group, name: field.name })}
+			{fields.map((field, index) => (
+				<div
+					key={index}
+					id={`schema-field-${schemaName}-${group}-${field.name}`}
+					style={{
+						border:
+							focusedFieldName === field.name
+								? "2px solid #2563eb"
+								: "1px solid #eee",
+						backgroundColor:
+							focusedFieldName === field.name
+								? "rgba(219, 234, 254, 0.35)"
+								: "transparent",
+						padding: "8px",
+						borderRadius: "8px",
+						marginBottom: "8px",
+					}}
+					onClick={() => onFocusField({ group, name: field.name })}
 				>
 					<div
 						style={{
@@ -308,10 +328,14 @@ const DataSchemaEditor = () => {
 	const dispatch = useContext(DocumentDispatchContext);
 
 	const schemaNames = useMemo(
-		() => [...new Set(state?.dataSchemas.map((schema) => schema.schema_name) ?? [])],
+		() => [
+			...new Set(state?.dataSchemas.map((schema) => schema.schema_name) ?? []),
+		],
 		[state?.dataSchemas],
 	);
-	const [selectedSchemaName, setSelectedSchemaName] = useState<string | null>(null);
+	const [selectedSchemaName, setSelectedSchemaName] = useState<string | null>(
+		null,
+	);
 	const [draftSchema, setDraftSchema] = useState<DataSchema.t | null>(null);
 	const [selectedFieldFocus, setSelectedFieldFocus] = useState<{
 		group: FieldGroup;
@@ -332,7 +356,11 @@ const DataSchemaEditor = () => {
 	const resumeSections = state?.resume.sections;
 
 	useEffect(() => {
-		if (!state || initializedFromExistingFocus.current || !preserveExistingFocus.current) {
+		if (
+			!state ||
+			initializedFromExistingFocus.current ||
+			!preserveExistingFocus.current
+		) {
 			return;
 		}
 		const previewFocus = state.previewFocus;
@@ -347,7 +375,9 @@ const DataSchemaEditor = () => {
 			if (!fieldName) {
 				return null;
 			}
-			const schema = state.dataSchemas.find((item) => item.schema_name === schemaName);
+			const schema = state.dataSchemas.find(
+				(item) => item.schema_name === schemaName,
+			);
 			if (!schema) {
 				return null;
 			}
@@ -460,8 +490,9 @@ const DataSchemaEditor = () => {
 			return null;
 		}
 		return (
-			state.dataSchemas.find((schema) => schema.schema_name === selectedSchemaName) ??
-			null
+			state.dataSchemas.find(
+				(schema) => schema.schema_name === selectedSchemaName,
+			) ?? null
 		);
 	}, [selectedSchemaName, state?.dataSchemas]);
 
@@ -562,7 +593,9 @@ const DataSchemaEditor = () => {
 			(schema) => schema.schema_name === draftSchema.schema_name,
 		);
 		const nextSchemas = state.dataSchemas.map((schema) =>
-			schema.schema_name === draftSchema.schema_name ? cloneSchema(draftSchema) : schema,
+			schema.schema_name === draftSchema.schema_name
+				? cloneSchema(draftSchema)
+				: schema,
 		);
 		dispatch({ type: "load-data-schemas", value: nextSchemas });
 		if (!source) {
@@ -573,12 +606,17 @@ const DataSchemaEditor = () => {
 			source.header_schema,
 			draftSchema.header_schema,
 		);
-		const removedItem = removedFieldNames(source.item_schema, draftSchema.item_schema);
+		const removedItem = removedFieldNames(
+			source.item_schema,
+			draftSchema.item_schema,
+		);
 		if (removedHeader.size === 0 && removedItem.size === 0) {
 			return;
 		}
 
-		const nextResume = JSON.parse(JSON.stringify(state.resume)) as typeof state.resume;
+		const nextResume = JSON.parse(
+			JSON.stringify(state.resume),
+		) as typeof state.resume;
 		nextResume.sections = nextResume.sections.map((section) => {
 			if (section.data_schema !== draftSchema.schema_name) {
 				return section;
@@ -633,7 +671,8 @@ const DataSchemaEditor = () => {
 			if (!focus) {
 				return focus;
 			}
-			const removed = focus.group === "header_schema" ? removedHeader : removedItem;
+			const removed =
+				focus.group === "header_schema" ? removedHeader : removedItem;
 			return removed.has(focus.name) ? null : focus;
 		});
 		dispatch({ type: "load-layout-schemas", value: nextLayoutSchemas });
@@ -683,7 +722,8 @@ const DataSchemaEditor = () => {
 							}}
 							style={{
 								fontWeight: name === selectedSchemaName ? "bold" : "normal",
-								borderColor: name === selectedSchemaName ? "#2563eb" : undefined,
+								borderColor:
+									name === selectedSchemaName ? "#2563eb" : undefined,
 							}}
 						>
 							{name}
@@ -691,7 +731,14 @@ const DataSchemaEditor = () => {
 					))}
 				</div>
 
-				<div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "12px" }}>
+				<div
+					style={{
+						flex: 1,
+						display: "flex",
+						flexDirection: "column",
+						gap: "12px",
+					}}
+				>
 					{draftSchema ? (
 						<>
 							<div
@@ -703,11 +750,21 @@ const DataSchemaEditor = () => {
 							>
 								<h2>{draftSchema.schema_name}</h2>
 								<div style={{ display: "flex", gap: "8px" }}>
-									{isDirty && <span style={{ color: "#b45309" }}>Unsaved changes</span>}
-									<button className="bordered" onClick={resetDraft} disabled={!isDirty}>
+									{isDirty && (
+										<span style={{ color: "#b45309" }}>Unsaved changes</span>
+									)}
+									<button
+										className="bordered"
+										onClick={resetDraft}
+										disabled={!isDirty}
+									>
 										Reset
 									</button>
-									<button className="bordered" onClick={saveDraft} disabled={!isDirty}>
+									<button
+										className="bordered"
+										onClick={saveDraft}
+										disabled={!isDirty}
+									>
 										Save
 									</button>
 								</div>

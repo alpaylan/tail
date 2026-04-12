@@ -9,8 +9,11 @@ const resumePath: string = process.argv[2];
 // const dataSchemas: DataSchema.t[] = JSON.parse(readFileSync("projdir/data-schemas.json", "utf-8"));
 
 const bindings = new Map<string, object>();
-JSON.parse(readFileSync("projdir/bindings.json", "utf-8")).forEach((binding) =>
-	bindings.set(binding.key, binding.value),
+JSON.parse(readFileSync("projdir/bindings.json", "utf-8")).forEach(
+	(binding: {
+		key: string;
+		value: object;
+	}) => bindings.set(binding.key, binding.value),
 );
 
 // const layoutSchemas: LayoutSchema[] = (
@@ -45,7 +48,7 @@ fontDict.load_fonts(storage).then(() => {
 		debug: false,
 	}).then((result) => {
 		result.blob.arrayBuffer().then((buffer) => {
-			writeFileSync("output.pdf", Buffer.from(buffer));
+			writeFileSync("output.pdf", new Uint8Array(buffer));
 		});
 	});
 });

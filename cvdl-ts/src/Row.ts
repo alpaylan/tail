@@ -88,16 +88,17 @@ export function boundWidth(r: Row, width: number): Row {
 		(acc, next, index) =>
 			next === null
 				? acc
-				: acc + r.elements[index].margin.left + next + r.elements[index].margin.right,
+				: acc +
+					r.elements[index].margin.left +
+					next +
+					r.elements[index].margin.right,
 		0,
 	);
 	const fillElementCount = fixedWidths.filter((next) => next === null).length;
 	const totalFillMargins = fixedWidths.reduce(
 		(acc, next, index) =>
 			next === null
-				? acc +
-					r.elements[index].margin.left +
-					r.elements[index].margin.right
+				? acc + r.elements[index].margin.left + r.elements[index].margin.right
 				: acc,
 		0,
 	);

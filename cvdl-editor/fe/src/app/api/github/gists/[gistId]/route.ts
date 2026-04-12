@@ -4,10 +4,10 @@ import { readGithubSession } from "@/lib/githubSession";
 export const runtime = "nodejs";
 
 const githubHeaders = (token: string): HeadersInit => ({
-		Accept: "application/vnd.github+json",
-		"X-GitHub-Api-Version": "2022-11-28",
-		"Content-Type": "application/json",
-		Authorization: `Bearer ${token}`,
+	Accept: "application/vnd.github+json",
+	"X-GitHub-Api-Version": "2022-11-28",
+	"Content-Type": "application/json",
+	Authorization: `Bearer ${token}`,
 });
 
 type GithubGistFile = {
@@ -28,9 +28,7 @@ type UpdateGistBody = {
 	description?: string;
 };
 
-const selectGistFile = (
-	gist: GithubGistResponse,
-): GithubGistFile | null => {
+const selectGistFile = (gist: GithubGistResponse): GithubGistFile | null => {
 	const files = Object.values(gist.files ?? {});
 	if (files.length === 0) {
 		return null;
@@ -61,7 +59,11 @@ export async function PATCH(
 		return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
 	}
 
-	if (!body.content || typeof body.content !== "string" || !body.content.trim()) {
+	if (
+		!body.content ||
+		typeof body.content !== "string" ||
+		!body.content.trim()
+	) {
 		return NextResponse.json(
 			{ error: "Missing resume JSON content." },
 			{ status: 400 },
@@ -71,9 +73,12 @@ export async function PATCH(
 	const gistId = parseGistId(params.gistId);
 	let fileName = body.fileName?.trim();
 	if (!fileName) {
-		const existingResponse = await fetch(`https://api.github.com/gists/${gistId}`, {
-			headers: githubHeaders(session.accessToken),
-		});
+		const existingResponse = await fetch(
+			`https://api.github.com/gists/${gistId}`,
+			{
+				headers: githubHeaders(session.accessToken),
+			},
+		);
 		const existingData = (await existingResponse.json()) as GithubGistResponse;
 		if (!existingResponse.ok) {
 			return NextResponse.json(

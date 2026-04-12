@@ -3,7 +3,13 @@
 		"module": "commonjs",
 		"target": "es2019",
 		"declaration": true,
+		"rootDir": "./src",
 		"outDir": "./dist",
+		"strict": false,
+		"noImplicitAny": false,
+		"strictNullChecks": false,
+		"skipLibCheck": true,
+		"ignoreDeprecations": "6.0",
 		"resolveJsonModule": true,
 		"esModuleInterop": true
 	},

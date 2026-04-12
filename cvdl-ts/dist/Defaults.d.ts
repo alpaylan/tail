@@ -39,3 +39,4 @@ export declare const DefaultBindings: Map<string, unknown>;
 export declare const DefaultResumeLayout: ResumeLayout;
 export declare const DefaultSections: ResumeSection.t[];
 export declare const DefaultResume: Resume.t;
+export declare const ComparisonResume: Resume.t;

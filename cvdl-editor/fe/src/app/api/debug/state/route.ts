@@ -5,7 +5,10 @@ import {
 } from "@/lib/debugStateStore";
 
 const unavailableResponse = () =>
-	NextResponse.json({ error: "Debug state API is only available in development." }, { status: 404 });
+	NextResponse.json(
+		{ error: "Debug state API is only available in development." },
+		{ status: 404 },
+	);
 
 export async function GET() {
 	if (process.env.NODE_ENV === "production") {

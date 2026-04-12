@@ -78,115 +78,117 @@ export const ReactLayout = ({
 		renderSectionLayout(layout, { ...tracker, height: flowOffset });
 		if (layout.flow_offset_y === undefined) {
 			tracker.height +=
-				layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;
+				layout.bounding_box!.height() +
+				layout.margin.top +
+				layout.margin.bottom;
 		}
 	}
 
 	return (
-			<div style={{ display: "flex", flexDirection: "column" }}>
-				{tracker.pages.map((page, index) => (
-					<div
-						key={`page-${index}`}
-						id={`page-${index}`}
-						style={{
-							position: "relative",
-							width: `${tracker.layout.width}px`,
+		<div style={{ display: "flex", flexDirection: "column" }}>
+			{tracker.pages.map((page, index) => (
+				<div
+					key={`page-${index}`}
+					id={`page-${index}`}
+					style={{
+						position: "relative",
+						width: `${tracker.layout.width}px`,
 						height: `${tracker.layout.height}px`,
 						border: "1px solid black",
 					}}
 				>
-						{page.map((span, spanIndex) => (
-							<div
-								key={`${index}-${spanIndex}-${span.left}-${span.top}`}
-								style={{ display: "contents" }}
-							>
-								{span.is_emoji && span.emoji_url ? (
-									// eslint-disable-next-line @next/next/no-img-element
-									<img
-										onClick={(e) => {
-											e.stopPropagation();
-											if (span.path.tag === "section") {
-												tracker.dispatch({
-													type: "set-editor-path",
-													path: { ...span.path },
-												});
-												return;
-											} else if (span.path.tag === "item") {
-												tracker.dispatch({
-													type: "set-editor-path",
-													path: { ...span.path, tag: "field", field: span.item },
-												});
-											} else {
-												console.error(
-													"Cannot path to item",
-													tracker.path,
-													span.item,
-												);
-											}
-										}}
-										src={span.emoji_url}
-										alt=""
-										style={{
-											position: "absolute",
-											left: span.left + "px",
-											top: span.top - span.font.size * 0.2 + "px",
-											width: span.font.size * 1.6 + "px",
-											height: span.font.size * 1.6 + "px",
-										}}
-									/>
-								) : (
-									<span
-										onClick={(e) => {
-											e.stopPropagation();
-											if (span.path.tag === "section") {
-												tracker.dispatch({
-													type: "set-editor-path",
-													path: { ...span.path },
-												});
-												return;
-											} else if (span.path.tag === "item") {
-												tracker.dispatch({
-													type: "set-editor-path",
-													path: { ...span.path, tag: "field", field: span.item },
-												});
-											} else {
-												console.error(
-													"Cannot path to item",
-													tracker.path,
-													span.item,
-												);
-											}
-										}}
-										style={{
-											position: "absolute",
-											left: span.left + "px",
-											top: span.top + "px",
-											fontFamily: `"${Font.full_name(span.font!)}", sans-serif`,
-											fontSize: span.font.size + "px",
-											fontStyle: span.font.style,
-											fontWeight: span.font.weight,
-											backgroundColor: span.backgroundColor,
-										}}
-									>
-										{span.text}
-									</span>
-								)}
-								{span.is_code && (
-									<div
-										style={{
-											position: "absolute",
-											left: span.left - span.font.size / 5 + "px",
-											top: span.top + "px",
-											width: span.bbox.width() + (span.font.size / 5) * 2 + "px",
-											height: span.bbox.height() + "px",
-											borderRadius: "5px",
-											border: "1px solid black",
-											backgroundColor: "rgba(0, 0, 0, 0.05)",
-										}}
-									></div>
-								)}
-							</div>
-						))}
+					{page.map((span, spanIndex) => (
+						<div
+							key={`${index}-${spanIndex}-${span.left}-${span.top}`}
+							style={{ display: "contents" }}
+						>
+							{span.is_emoji && span.emoji_url ? (
+								// eslint-disable-next-line @next/next/no-img-element
+								<img
+									onClick={(e) => {
+										e.stopPropagation();
+										if (span.path.tag === "section") {
+											tracker.dispatch({
+												type: "set-editor-path",
+												path: { ...span.path },
+											});
+											return;
+										} else if (span.path.tag === "item") {
+											tracker.dispatch({
+												type: "set-editor-path",
+												path: { ...span.path, tag: "field", field: span.item },
+											});
+										} else {
+											console.error(
+												"Cannot path to item",
+												tracker.path,
+												span.item,
+											);
+										}
+									}}
+									src={span.emoji_url}
+									alt=""
+									style={{
+										position: "absolute",
+										left: span.left + "px",
+										top: span.top - span.font.size * 0.2 + "px",
+										width: span.font.size * 1.6 + "px",
+										height: span.font.size * 1.6 + "px",
+									}}
+								/>
+							) : (
+								<span
+									onClick={(e) => {
+										e.stopPropagation();
+										if (span.path.tag === "section") {
+											tracker.dispatch({
+												type: "set-editor-path",
+												path: { ...span.path },
+											});
+											return;
+										} else if (span.path.tag === "item") {
+											tracker.dispatch({
+												type: "set-editor-path",
+												path: { ...span.path, tag: "field", field: span.item },
+											});
+										} else {
+											console.error(
+												"Cannot path to item",
+												tracker.path,
+												span.item,
+											);
+										}
+									}}
+									style={{
+										position: "absolute",
+										left: span.left + "px",
+										top: span.top + "px",
+										fontFamily: `"${Font.full_name(span.font!)}", sans-serif`,
+										fontSize: span.font.size + "px",
+										fontStyle: span.font.style,
+										fontWeight: span.font.weight,
+										backgroundColor: span.backgroundColor,
+									}}
+								>
+									{span.text}
+								</span>
+							)}
+							{span.is_code && (
+								<div
+									style={{
+										position: "absolute",
+										left: span.left - span.font.size / 5 + "px",
+										top: span.top + "px",
+										width: span.bbox.width() + (span.font.size / 5) * 2 + "px",
+										height: span.bbox.height() + "px",
+										borderRadius: "5px",
+										border: "1px solid black",
+										backgroundColor: "rgba(0, 0, 0, 0.05)",
+									}}
+								></div>
+							)}
+						</div>
+					))}
 				</div>
 			))}
 		</div>
@@ -306,21 +308,21 @@ export const renderSectionLayout = (
 				return;
 			}
 
-				const spans =
-					element.alignment === "Justified"
-						? element.spans!
-						: mergeSpans(element.spans!);
-				spans.forEach((span) => {
-					if (
-						!span ||
-						(!span.is_emoji &&
-							(span.text === "" ||
-								span.text === " " ||
-								span.text === "\n" ||
-								span.text === "\n\n"))
-					) {
-						return;
-					}
+			const spans =
+				element.alignment === "Justified"
+					? element.spans!
+					: mergeSpans(element.spans!);
+			spans.forEach((span) => {
+				if (
+					!span ||
+					(!span.is_emoji &&
+						(span.text === "" ||
+							span.text === " " ||
+							span.text === "\n" ||
+							span.text === "\n\n"))
+				) {
+					return;
+				}
 
 				const absoluteY =
 					layout.bounding_box.top_left.y +
@@ -343,18 +345,18 @@ export const renderSectionLayout = (
 					tracker.layout.margin.left +
 					span.bbox!.top_left.x;
 				tracker.pageContainer = getPageContainer(page, tracker);
-					tracker.pageContainer.push({
-						text: span.text,
-						item: element.item,
-						path: layout.path ?? tracker.path ?? { tag: "none" },
-						is_code: span.is_code,
-						is_emoji: !!span.is_emoji,
-						emoji_url: span.emoji_url ?? null,
-						url: element.url,
-						left: x,
-						top: y,
-						font: span.font!,
-						bbox: span.bbox!,
+				tracker.pageContainer.push({
+					text: span.text,
+					item: element.item,
+					path: layout.path ?? tracker.path ?? { tag: "none" },
+					is_code: span.is_code,
+					is_emoji: !!span.is_emoji,
+					emoji_url: span.emoji_url ?? null,
+					url: element.url,
+					left: x,
+					top: y,
+					font: span.font!,
+					bbox: span.bbox!,
 					backgroundColor: `${ColorMap[element.background_color]}`,
 				});
 			});

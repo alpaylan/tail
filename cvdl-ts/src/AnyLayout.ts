@@ -39,6 +39,77 @@ export type RenderProps = {
 	incremental?: boolean;
 };
 
+export type BackendRenderProps = {
+	resume_name?: string;
+	resume?: Resume.t;
+	data_schemas?: DataSchema.t[];
+	layout_schemas?: LayoutSchema[];
+	resume_layout?: ResumeLayout;
+	bindings: Map<string, unknown>;
+	storage: Storage;
+	fontDict?: FontDict;
+};
+
+export type RenderResult = {
+	blob: Blob;
+	fontDict: FontDict;
+};
+
+export type ResolvedRenderInputs = {
+	resume: Resume.t;
+	data_schemas: DataSchema.t[];
+	layout_schemas: LayoutSchema[];
+	resume_layout: ResumeLayout;
+	bindings: Map<string, unknown>;
+	storage: Storage;
+	fontDict: FontDict;
+};
+
+export async function resolveRenderInputs(
+	props: BackendRenderProps,
+): Promise<ResolvedRenderInputs> {
+	let { resume, data_schemas, layout_schemas, resume_layout, fontDict } = props;
+	const { resume_name, bindings, storage } = props;
+
+	if (!resume) {
+		if (!resume_name) {
+			throw new Error("Rendering requires either resume_name or resume");
+		}
+		resume = await storage.load_resume(resume_name);
+	}
+
+	if (!fontDict) {
+		fontDict = new FontDict();
+	}
+
+	const [resolvedDataSchemas, resolvedLayoutSchemas, resolvedResumeLayout] =
+		await Promise.all([
+			data_schemas ??
+				Promise.all(
+					Resume.dataSchemas(resume).map((schema) =>
+						storage.load_data_schema(schema),
+					),
+				),
+			layout_schemas ??
+				Promise.all(
+					Resume.layoutSchemas(resume).map((schema) =>
+						storage.load_layout_schema(schema),
+					),
+				),
+			resume_layout ?? storage.load_resume_layout(resume.layout),
+		]);
+
+	return {
+		resume,
+		data_schemas: resolvedDataSchemas,
+		layout_schemas: resolvedLayoutSchemas,
+		resume_layout: resolvedResumeLayout,
+		bindings,
+		storage,
+		fontDict,
+	};
+}
+
 type CachedBlock = {
 	signature: string;
 	layout: Layout.RenderedLayout;
@@ -169,7 +240,9 @@ export function render({
 	const blockSignatures: string[] = [];
 	const blockHeights: number[] = [];
 	const bindingsSignature = stableBindingsSignature(bindings);
-	const fontSignature = stableSignature(Array.from(fontDict.fonts.keys()).sort());
+	const fontSignature = stableSignature(
+		Array.from(fontDict.fonts.keys()).sort(),
+	);
 	let firstDirtyBlock = incremental ? -1 : 0;
 	console.info("Rendering sections...");
 	for (const section of resume.sections) {
@@ -202,37 +275,108 @@ export function render({
 		start_time = Date.now();
 		// 3. Render the header
 		const headerKey = `${section.section_name}::header`;
-			const headerSignature = stableSignature({
+		const headerSignature = stableSignature({
 			column_width,
 			fontSignature,
 			bindingsSignature,
 			layout: layout_schema.header_layout_schema,
 			fields: data_schema.header_schema,
 			data: section.data,
+		});
+		usedKeys.add(headerKey);
+		const blockIndex = blockOrder.length;
+		blockOrder.push(headerKey);
+		blockSignatures.push(headerSignature);
+		if (
+			incremental &&
+			firstDirtyBlock === -1 &&
+			(flowPlacementCache.order[blockIndex] !== headerKey ||
+				flowPlacementCache.signatures[blockIndex] !== headerSignature)
+		) {
+			firstDirtyBlock = blockIndex;
+		}
+		const layout = incremental
+			? getOrComputeBlock(
+					headerKey,
+					headerSignature,
+					() =>
+						Layout.computeBoxes(
+							Layout.normalize(
+								Layout.instantiate(
+									layout_schema.header_layout_schema,
+									section.data,
+									data_schema.header_schema,
+									bindings,
+								),
+								column_width,
+								fontDict,
+							),
+							fontDict,
+						),
+					stats,
+				)
+			: (() => {
+					stats.misses += 1;
+					return Layout.computeBoxes(
+						Layout.normalize(
+							Layout.instantiate(
+								layout_schema.header_layout_schema,
+								section.data,
+								data_schema.header_schema,
+								bindings,
+							),
+							column_width,
+							fontDict,
+						),
+						fontDict,
+					);
+				})();
+		layout.path = { tag: "section", section: section.section_name };
+		blockHeights.push(
+			layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom,
+		);
+
+		console.info("Header is computed");
+		layouts.push(layout);
+		end_time = Date.now();
+		console.info(
+			`Header rendering time: ${end_time - start_time}ms for section ${section.section_name}`,
+		);
+		start_time = Date.now();
+		// Render Section Items
+		for (const [index, item] of section.items.entries()) {
+			const itemKey = `${section.section_name}::item::${item.id ?? index}`;
+			const itemSignature = stableSignature({
+				column_width,
+				fontSignature,
+				bindingsSignature,
+				layout: layout_schema.item_layout_schema,
+				fields: data_schema.item_schema,
+				data: item,
 			});
-			usedKeys.add(headerKey);
+			usedKeys.add(itemKey);
 			const blockIndex = blockOrder.length;
-			blockOrder.push(headerKey);
-			blockSignatures.push(headerSignature);
+			blockOrder.push(itemKey);
+			blockSignatures.push(itemSignature);
 			if (
 				incremental &&
 				firstDirtyBlock === -1 &&
-				(flowPlacementCache.order[blockIndex] !== headerKey ||
-					flowPlacementCache.signatures[blockIndex] !== headerSignature)
+				(flowPlacementCache.order[blockIndex] !== itemKey ||
+					flowPlacementCache.signatures[blockIndex] !== itemSignature)
 			) {
 				firstDirtyBlock = blockIndex;
 			}
 			const layout = incremental
 				? getOrComputeBlock(
-						headerKey,
-						headerSignature,
+						itemKey,
+						itemSignature,
 						() =>
 							Layout.computeBoxes(
 								Layout.normalize(
 									Layout.instantiate(
-										layout_schema.header_layout_schema,
-										section.data,
-										data_schema.header_schema,
+										layout_schema.item_layout_schema,
+										item,
+										data_schema.item_schema,
 										bindings,
 									),
 									column_width,
@@ -247,9 +391,9 @@ export function render({
 						return Layout.computeBoxes(
 							Layout.normalize(
 								Layout.instantiate(
-									layout_schema.header_layout_schema,
-									section.data,
-									data_schema.header_schema,
+									layout_schema.item_layout_schema,
+									item,
+									data_schema.item_schema,
 									bindings,
 								),
 								column_width,
@@ -258,83 +402,14 @@ export function render({
 							fontDict,
 						);
 					})();
-			layout.path = { tag: "section", section: section.section_name };
+			layout.path = { tag: "item", section: section.section_name, item: index };
 			blockHeights.push(
-				layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom,
+				layout.bounding_box!.height() +
+					layout.margin.top +
+					layout.margin.bottom,
 			);
-
-			console.info("Header is computed");
 			layouts.push(layout);
-		end_time = Date.now();
-		console.info(
-			`Header rendering time: ${end_time - start_time}ms for section ${section.section_name}`,
-		);
-		start_time = Date.now();
-		// Render Section Items
-		for (const [index, item] of section.items.entries()) {
-			const itemKey = `${section.section_name}::item::${item.id ?? index}`;
-				const itemSignature = stableSignature({
-				column_width,
-				fontSignature,
-				bindingsSignature,
-				layout: layout_schema.item_layout_schema,
-				fields: data_schema.item_schema,
-				data: item,
-				});
-				usedKeys.add(itemKey);
-				const blockIndex = blockOrder.length;
-				blockOrder.push(itemKey);
-				blockSignatures.push(itemSignature);
-				if (
-					incremental &&
-					firstDirtyBlock === -1 &&
-					(flowPlacementCache.order[blockIndex] !== itemKey ||
-						flowPlacementCache.signatures[blockIndex] !== itemSignature)
-				) {
-					firstDirtyBlock = blockIndex;
-				}
-				const layout = incremental
-					? getOrComputeBlock(
-							itemKey,
-							itemSignature,
-							() =>
-								Layout.computeBoxes(
-									Layout.normalize(
-										Layout.instantiate(
-											layout_schema.item_layout_schema,
-											item,
-											data_schema.item_schema,
-											bindings,
-										),
-										column_width,
-										fontDict,
-									),
-									fontDict,
-								),
-							stats,
-						)
-					: (() => {
-							stats.misses += 1;
-							return Layout.computeBoxes(
-								Layout.normalize(
-									Layout.instantiate(
-										layout_schema.item_layout_schema,
-										item,
-										data_schema.item_schema,
-										bindings,
-									),
-									column_width,
-									fontDict,
-								),
-								fontDict,
-							);
-						})();
-				layout.path = { tag: "item", section: section.section_name, item: index };
-				blockHeights.push(
-					layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom,
-				);
-				layouts.push(layout);
-			}
+		}
 		end_time = Date.now();
 		console.info(
 			`Item rendering time: ${end_time - start_time}ms for section ${section.section_name}`,
@@ -346,7 +421,10 @@ export function render({
 		firstDirtyBlock === -1;
 	if (!incremental || !hasSameBlockShape) {
 		if (firstDirtyBlock === -1) {
-			firstDirtyBlock = Math.min(blockOrder.length, flowPlacementCache.order.length);
+			firstDirtyBlock = Math.min(
+				blockOrder.length,
+				flowPlacementCache.order.length,
+			);
 		}
 	}
 
@@ -358,8 +436,7 @@ export function render({
 	}
 	if (!incremental || firstDirtyBlock !== -1) {
 		const start = !incremental ? 0 : Math.max(0, firstDirtyBlock);
-		let cursor =
-			start === 0 ? 0 : offsets[start - 1] + blockHeights[start - 1];
+		let cursor = start === 0 ? 0 : offsets[start - 1] + blockHeights[start - 1];
 		for (let i = start; i < blockOrder.length; i++) {
 			offsets[i] = cursor;
 			cursor += blockHeights[i];

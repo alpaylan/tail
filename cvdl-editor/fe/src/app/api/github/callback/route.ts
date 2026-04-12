@@ -45,12 +45,16 @@ export async function GET(request: NextRequest) {
 
 	const code = request.nextUrl.searchParams.get("code");
 	const providedState = request.nextUrl.searchParams.get("state");
-	const { state: expectedState, returnTo: rawReturnTo } = readGithubOauthState(
-		request,
-	);
+	const { state: expectedState, returnTo: rawReturnTo } =
+		readGithubOauthState(request);
 	const returnTo = normalizeReturnTo(rawReturnTo ?? "/");
 
-	if (!code || !providedState || !expectedState || providedState !== expectedState) {
+	if (
+		!code ||
+		!providedState ||
+		!expectedState ||
+		providedState !== expectedState
+	) {
 		const response = NextResponse.redirect(
 			redirectWithStatus(request, returnTo, "error", "invalid_state"),
 		);
@@ -58,18 +62,21 @@ export async function GET(request: NextRequest) {
 		return response;
 	}
 
-	const tokenResponse = await fetch("https://github.com/login/oauth/access_token", {
-		method: "POST",
-		headers: {
-			Accept: "application/json",
-			"Content-Type": "application/json",
+	const tokenResponse = await fetch(
+		"https://github.com/login/oauth/access_token",
+		{
+			method: "POST",
+			headers: {
+				Accept: "application/json",
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				client_id: clientId,
+				client_secret: clientSecret,
+				code,
+			}),
 		},
-		body: JSON.stringify({
-			client_id: clientId,
-			client_secret: clientSecret,
-			code,
-		}),
-	});
+	);
 	const tokenData = (await tokenResponse.json()) as {
 		access_token?: string;
 		scope?: string;
@@ -93,7 +100,7 @@ export async function GET(request: NextRequest) {
 				login?: string;
 				name?: string;
 				avatar_url?: string;
-		  })
+			})
 		: null;
 
 	const response = NextResponse.redirect(

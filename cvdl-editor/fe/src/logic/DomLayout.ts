@@ -73,7 +73,10 @@ type DebugSceneBuilder = {
 	nodes: Map<string, DebugNode>;
 	childrenByParent: Map<string, string[]>;
 	sectionOrder: string[];
-	sectionBounds: Map<string, { x1: number; y1: number; x2: number; y2: number }>;
+	sectionBounds: Map<
+		string,
+		{ x1: number; y1: number; x2: number; y2: number }
+	>;
 };
 
 const DEBUG_LABEL_WIDTH = 160;
@@ -237,10 +240,16 @@ const createDebugSceneBuilder = (): DebugSceneBuilder => ({
 	nodes: new Map<string, DebugNode>(),
 	childrenByParent: new Map<string, string[]>(),
 	sectionOrder: [],
-	sectionBounds: new Map<string, { x1: number; y1: number; x2: number; y2: number }>(),
+	sectionBounds: new Map<
+		string,
+		{ x1: number; y1: number; x2: number; y2: number }
+	>(),
 });
 
-const ensureUniqueNodeId = (builder: DebugSceneBuilder, baseId: string): string => {
+const ensureUniqueNodeId = (
+	builder: DebugSceneBuilder,
+	baseId: string,
+): string => {
 	if (!builder.nodes.has(baseId)) {
 		return baseId;
 	}
@@ -348,7 +357,11 @@ const collectTopLevelDebugNode = (
 		builder.sectionOrder.push(sectionNodeId);
 	}
 
-	const topNodeBaseId = getTopLevelNodeBaseId(sectionNodeId, layout, fallbackIndex);
+	const topNodeBaseId = getTopLevelNodeBaseId(
+		sectionNodeId,
+		layout,
+		fallbackIndex,
+	);
 	const topNode = collectLayoutDebugTree(
 		builder,
 		layout,
@@ -425,7 +438,10 @@ const reconcileDebugBranch = (scene: DebugScene) => {
 	}
 	debugInteraction.branch = nextBranch;
 
-	if (debugInteraction.hoverNodeId && !scene.nodes.has(debugInteraction.hoverNodeId)) {
+	if (
+		debugInteraction.hoverNodeId &&
+		!scene.nodes.has(debugInteraction.hoverNodeId)
+	) {
 		debugInteraction.hoverNodeId = null;
 	}
 };
@@ -481,8 +497,12 @@ const clearExistingDebugOverlays = (container: HTMLElement) => {
 		.forEach((element) => element.remove());
 };
 
-const contentAbsYToContainerY = (yAbs: number, layout: ResumeLayout): number => {
-	const contentHeight = layout.height - layout.margin.top - layout.margin.bottom;
+const contentAbsYToContainerY = (
+	yAbs: number,
+	layout: ResumeLayout,
+): number => {
+	const contentHeight =
+		layout.height - layout.margin.top - layout.margin.bottom;
 	if (contentHeight <= 0) {
 		return yAbs;
 	}
@@ -546,7 +566,8 @@ const applyFocusZoom = (
 		focusedSection.yAbs + focusedSection.height,
 		tracker.layout,
 	);
-	const centerX = tracker.layout.margin.left + focusedSection.x + focusedSection.width / 2;
+	const centerX =
+		tracker.layout.margin.left + focusedSection.x + focusedSection.width / 2;
 	const centerY = (top + bottom) / 2;
 
 	const cx = viewport.clientWidth / 2;
@@ -564,8 +585,15 @@ const splitNodeToPageSegments = (
 	scene: DebugScene,
 	node: DebugNode,
 	layout: ResumeLayout,
-): Array<{ page: number; left: number; top: number; width: number; height: number }> => {
-	const contentHeight = layout.height - layout.margin.top - layout.margin.bottom;
+): Array<{
+	page: number;
+	left: number;
+	top: number;
+	width: number;
+	height: number;
+}> => {
+	const contentHeight =
+		layout.height - layout.margin.top - layout.margin.bottom;
 	if (contentHeight <= 0) {
 		return [];
 	}
@@ -676,18 +704,18 @@ const renderDebugOverlays = (
 			background: transparent;
 			z-index: 60;
 		`;
-			overlay.addEventListener("click", (event) => {
-				// Click on empty overlay space steps one level up.
-				if (event.target !== overlay) {
-					return;
-				}
-				if (debugInteraction.branch.length === 0) {
-					return;
-				}
-				debugInteraction.branch = debugInteraction.branch.slice(0, -1);
-				renderDebugOverlays(container, tracker, scene);
-				applyFocusZoom(container, tracker, scene);
-			});
+		overlay.addEventListener("click", (event) => {
+			// Click on empty overlay space steps one level up.
+			if (event.target !== overlay) {
+				return;
+			}
+			if (debugInteraction.branch.length === 0) {
+				return;
+			}
+			debugInteraction.branch = debugInteraction.branch.slice(0, -1);
+			renderDebugOverlays(container, tracker, scene);
+			applyFocusZoom(container, tracker, scene);
+		});
 		pageContainer.appendChild(overlay);
 		pageLayers.set(page, overlay);
 		return overlay;
@@ -705,10 +733,10 @@ const renderDebugOverlays = (
 		if (path.length === 0) {
 			return;
 		}
-			debugInteraction.branch = path;
-			renderDebugOverlays(container, tracker, scene);
-			applyFocusZoom(container, tracker, scene);
-		};
+		debugInteraction.branch = path;
+		renderDebugOverlays(container, tracker, scene);
+		applyFocusZoom(container, tracker, scene);
+	};
 
 	const labelDrawn = new Set<string>();
 	for (const nodeId of visibleSet) {
@@ -716,20 +744,20 @@ const renderDebugOverlays = (
 		if (!node) {
 			continue;
 		}
-			const segments = splitNodeToPageSegments(scene, node, tracker.layout);
-			const isFocusNode = focusSet.has(nodeId);
-			const isAncestorNode = ancestors.has(nodeId);
-			const isOpenable = node.children.length > 0;
-			const colors = DEBUG_COLORS[node.tag];
-			const borderWidth = Math.max(1, 3 - Math.min(node.depth, 2));
+		const segments = splitNodeToPageSegments(scene, node, tracker.layout);
+		const isFocusNode = focusSet.has(nodeId);
+		const isAncestorNode = ancestors.has(nodeId);
+		const isOpenable = node.children.length > 0;
+		const colors = DEBUG_COLORS[node.tag];
+		const borderWidth = Math.max(1, 3 - Math.min(node.depth, 2));
 
-			for (const segment of segments) {
-				const overlay = getOverlayLayer(segment.page);
-				const box = document.createElement("div");
-				box.dataset.debugNodeId = nodeId;
-				const idleFill = isFocusNode ? colors.fill : "rgba(0, 0, 0, 0.01)";
-				const idleBorderColor = colors.border;
-				box.style.cssText = `
+		for (const segment of segments) {
+			const overlay = getOverlayLayer(segment.page);
+			const box = document.createElement("div");
+			box.dataset.debugNodeId = nodeId;
+			const idleFill = isFocusNode ? colors.fill : "rgba(0, 0, 0, 0.01)";
+			const idleBorderColor = colors.border;
+			box.style.cssText = `
 					position: absolute;
 					left: ${segment.left}px;
 					top: ${segment.top}px;
@@ -766,9 +794,10 @@ const renderDebugOverlays = (
 			});
 			overlay.appendChild(box);
 
-				if (!labelDrawn.has(nodeId)) {
-					let labelLeft = segment.left + segment.width + 6;
-				const maxLabelRight = tracker.layout.width - tracker.layout.margin.right;
+			if (!labelDrawn.has(nodeId)) {
+				let labelLeft = segment.left + segment.width + 6;
+				const maxLabelRight =
+					tracker.layout.width - tracker.layout.margin.right;
 				if (labelLeft + DEBUG_LABEL_WIDTH > maxLabelRight) {
 					labelLeft = Math.max(
 						tracker.layout.margin.left,
@@ -903,7 +932,9 @@ export const render = ({
 		renderSectionLayout(layout, { ...tracker, height: flowOffset });
 		if (layout.flow_offset_y === undefined) {
 			tracker.height +=
-				layout.bounding_box!.height() + layout.margin.top + layout.margin.bottom;
+				layout.bounding_box!.height() +
+				layout.margin.top +
+				layout.margin.bottom;
 		}
 	});
 

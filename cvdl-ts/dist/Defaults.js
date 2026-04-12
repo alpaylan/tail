@@ -15,15 +15,25 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DefaultResume = exports.DefaultSections = exports.DefaultResumeLayout = exports.DefaultBindings = exports.DefaultLayoutSchemas = exports.DefaultDataSchemas = exports.ProjectsLayout = exports.Projects = exports.ReferencesLayout = exports.References = exports.InterestsLayout = exports.Interests = exports.LanguagesLayout = exports.Languages = exports.SkillsLayout = exports.Skills = exports.PublicationsLayout = exports.Publications = exports.CertificatesLayout = exports.Certificates = exports.AwardsLayout = exports.Awards = exports.EducationLayout = exports.Education = exports.VolunteerLayout = exports.Volunteer = exports.WorkLayout = exports.Work = exports.BasicsLayout = exports.Basics = exports.SmallFont = exports.MediumFont = exports.LargeFont = exports.SectionTitleFont = exports.TitleFont = void 0;
+exports.ComparisonResume = exports.DefaultResume = exports.DefaultSections = exports.DefaultResumeLayout = exports.DefaultBindings = exports.DefaultLayoutSchemas = exports.DefaultDataSchemas = exports.ProjectsLayout = exports.Projects = exports.ReferencesLayout = exports.References = exports.InterestsLayout = exports.Interests = exports.LanguagesLayout = exports.Languages = exports.SkillsLayout = exports.Skills = exports.PublicationsLayout = exports.Publications = exports.CertificatesLayout = exports.Certificates = exports.AwardsLayout = exports.Awards = exports.EducationLayout = exports.Education = exports.VolunteerLayout = exports.Volunteer = exports.WorkLayout = exports.Work = exports.BasicsLayout = exports.Basics = exports.SmallFont = exports.MediumFont = exports.LargeFont = exports.SectionTitleFont = exports.TitleFont = void 0;
 const Stack = __importStar(require("./Stack"));
 const Margin = __importStar(require("./Margin"));
 const Font = __importStar(require("./Font"));
@@ -1104,3 +1114,33 @@ exports.DefaultSections = [
     ]),
 ];
 exports.DefaultResume = Resume.resume("Default", "SingleColumnSchema", exports.DefaultSections);
+const cloneSection = (section, itemCount) => ({
+    ...section,
+    data: {
+        ...section.data,
+        fields: { ...section.data.fields },
+    },
+    items: itemCount === undefined
+        ? section.items.map((item) => ({
+            ...item,
+            fields: { ...item.fields },
+        }))
+        : section.items.slice(0, itemCount).map((item) => ({
+            ...item,
+            fields: { ...item.fields },
+        })),
+});
+const findSection = (sectionName) => {
+    const section = exports.DefaultSections.find((current) => current.section_name === sectionName);
+    if (!section) {
+        throw new Error(`Could not find default section ${sectionName}`);
+    }
+    return section;
+};
+exports.ComparisonResume = Resume.resume("Comparison", "SingleColumnSchema", [
+    cloneSection(findSection("Basics"), 0),
+    cloneSection(findSection("Work Experience"), 2),
+    cloneSection(findSection("Education"), 1),
+    cloneSection(findSection("Skills"), 1),
+    cloneSection(findSection("Projects"), 1),
+]);

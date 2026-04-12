@@ -45,7 +45,11 @@ export async function POST(request: NextRequest) {
 		return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
 	}
 
-	if (!body.content || typeof body.content !== "string" || !body.content.trim()) {
+	if (
+		!body.content ||
+		typeof body.content !== "string" ||
+		!body.content.trim()
+	) {
 		return NextResponse.json(
 			{ error: "Missing resume JSON content." },
 			{ status: 400 },
