@@ -35,16 +35,14 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.render = exports.renderLayout = void 0;
 const docx_1 = require("docx");
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
 const AnyLayout_1 = require("./AnyLayout");
 const Width = __importStar(require("./Width"));
 const ptToHalfPt = (pt) => Math.round(pt * 2);
 const ptToTwip = (pt) => Math.round(pt * 20);
-const ALIGNMENT_MAP = {
-    Left: docx_1.AlignmentType.LEFT,
-    Center: docx_1.AlignmentType.CENTER,
-    Right: docx_1.AlignmentType.RIGHT,
-    Justified: docx_1.AlignmentType.JUSTIFIED,
-};
+const DOCX_CONTAINER_INDENT_MAX_PT = 18;
+const SPACER_LINE_TWIP = 1;
 const noBorder = { style: docx_1.BorderStyle.NONE, size: 0, color: "FFFFFF" };
 const noBorders = {
     top: noBorder,
@@ -60,10 +58,67 @@ const tableBorders = {
     insideHorizontal: noBorder,
     insideVertical: noBorder,
 };
-const spanToRunOptions = (span) => {
+const zeroCellMargins = {
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    marginUnitType: docx_1.WidthType.DXA,
+};
+const emojiAssetDirs = [
+    path.resolve(__dirname, "..", "..", "cvdl-editor", "fe", "public"),
+    path.resolve(__dirname, "..", "assets"),
+    path.resolve(__dirname, "..", "..", "node_modules", "fe2", "public"),
+];
+const defaultRenderContext = {
+    containerIndentPt: 0,
+    beforePt: 0,
+    afterPt: 0,
+};
+const emojiAssetCache = new Map();
+const semanticContainerIndentPt = (leftPt) => Math.min(Math.max(leftPt, 0), DOCX_CONTAINER_INDENT_MAX_PT);
+const resolveEmojiAsset = (emojiUrl) => {
+    var _a;
+    if (!emojiUrl)
+        return null;
+    if (emojiAssetCache.has(emojiUrl)) {
+        return (_a = emojiAssetCache.get(emojiUrl)) !== null && _a !== void 0 ? _a : null;
+    }
+    const normalized = emojiUrl.replace(/^[/\\]+/, "");
+    const candidates = path.isAbsolute(normalized)
+        ? [normalized]
+        : emojiAssetDirs.map((dir) => path.join(dir, normalized));
+    for (const candidate of candidates) {
+        if (!fs.existsSync(candidate))
+            continue;
+        const ext = path.extname(candidate).toLowerCase();
+        const type = ext === ".jpg" || ext === ".jpeg"
+            ? "jpg"
+            : ext === ".png"
+                ? "png"
+                : ext === ".gif"
+                    ? "gif"
+                    : ext === ".bmp"
+                        ? "bmp"
+                        : null;
+        if (!type)
+            continue;
+        const asset = { data: fs.readFileSync(candidate), type };
+        emojiAssetCache.set(emojiUrl, asset);
+        return asset;
+    }
+    emojiAssetCache.set(emojiUrl, null);
+    return null;
+};
+const emojiFallbackText = (emojiUrl) => {
+    if (!emojiUrl)
+        return "";
+    return `:${path.parse(emojiUrl).name}:`;
+};
+const spanToRunOptions = (span, text = span.text) => {
     const font = span.font;
     return {
-        text: span.text,
+        text,
         bold: span.is_bold || (font === null || font === void 0 ? void 0 : font.weight) === "Bold",
         italics: span.is_italic || (font === null || font === void 0 ? void 0 : font.style) === "Italic",
         font: font === null || font === void 0 ? void 0 : font.name,
@@ -73,96 +128,223 @@ const spanToRunOptions = (span) => {
             : undefined,
     };
 };
-const spanToRun = (span) => span.link
-    ? new docx_1.ExternalHyperlink({
-        link: span.link,
-        children: [
-            new docx_1.TextRun({ ...spanToRunOptions(span), style: "Hyperlink" }),
-        ],
-    })
-    : new docx_1.TextRun(spanToRunOptions(span));
-const renderElem = (elem) => {
+const spanToRun = (span) => {
     var _a, _b;
+    if (span.is_emoji && span.emoji_url) {
+        const asset = resolveEmojiAsset(span.emoji_url);
+        if (asset) {
+            const size = Math.max(1, Math.round(((_b = (_a = span.font) === null || _a === void 0 ? void 0 : _a.size) !== null && _b !== void 0 ? _b : 12) * 1.2));
+            return new docx_1.ImageRun({
+                type: asset.type,
+                data: asset.data,
+                transformation: { width: size, height: size },
+            });
+        }
+        return new docx_1.TextRun(spanToRunOptions(span, emojiFallbackText(span.emoji_url)));
+    }
+    return span.link
+        ? new docx_1.ExternalHyperlink({
+            link: span.link,
+            children: [
+                new docx_1.TextRun({ ...spanToRunOptions(span), style: "Hyperlink" }),
+            ],
+        })
+        : new docx_1.TextRun(spanToRunOptions(span));
+};
+const spacerCell = (widthPt) => new docx_1.TableCell({
+    children: [new docx_1.Paragraph({})],
+    width: { size: ptToTwip(widthPt), type: docx_1.WidthType.DXA },
+    borders: noBorders,
+    margins: zeroCellMargins,
+});
+const alignmentMap = {
+    Left: docx_1.AlignmentType.LEFT,
+    Center: docx_1.AlignmentType.CENTER,
+    Right: docx_1.AlignmentType.RIGHT,
+    Justified: docx_1.AlignmentType.JUSTIFIED,
+};
+// Render an Elem as one paragraph per line.
+// Use Word's native alignment (Center/Right/Justified) instead of indent so that
+// text gets the full cell width. Only use indent for Left-aligned text when the
+// layout engine placed it at a non-zero x offset.
+const renderElem = (elem, context = defaultRenderContext) => {
+    var _a, _b, _c, _d, _e, _f, _g;
     if (!((_a = elem.spans) === null || _a === void 0 ? void 0 : _a.length) || elem.text === "")
         return [];
-    const spans = elem.spans.filter((s) => s.text !== "\n" && s.text !== "\n\n");
+    const spans = elem.spans.filter((s) => s.text !== "" && s.text !== "\n" && s.text !== "\n\n");
     if (spans.length === 0)
         return [];
-    // Group spans by line number
+    const wordAlign = (_b = alignmentMap[elem.alignment]) !== null && _b !== void 0 ? _b : docx_1.AlignmentType.LEFT;
+    const useNativeAlign = elem.alignment !== "Left";
+    // Group spans by line
     const lineMap = new Map();
     for (const span of spans) {
-        const line = (_b = span.line) !== null && _b !== void 0 ? _b : 1;
+        const line = (_c = span.line) !== null && _c !== void 0 ? _c : 1;
         if (!lineMap.has(line))
             lineMap.set(line, []);
         lineMap.get(line).push(span);
     }
-    const children = [];
+    const paragraphs = [];
     const sortedLines = Array.from(lineMap.keys()).sort((a, b) => a - b);
     for (let i = 0; i < sortedLines.length; i++) {
-        if (i > 0)
-            children.push(new docx_1.TextRun({ break: 1 }));
-        for (const span of lineMap.get(sortedLines[i])) {
-            if (span.text !== "")
-                children.push(spanToRun(span));
+        const lineSpans = lineMap.get(sortedLines[i]);
+        const runs = lineSpans.map(spanToRun);
+        if (runs.length === 0)
+            continue;
+        // For non-Left alignment, let Word handle positioning (full cell width available).
+        // For Left alignment, use span bbox offset as indent.
+        const leftIndent = useNativeAlign
+            ? 0
+            : ((_f = (_e = (_d = lineSpans[0]) === null || _d === void 0 ? void 0 : _d.bbox) === null || _e === void 0 ? void 0 : _e.top_left.x) !== null && _f !== void 0 ? _f : 0) + context.containerIndentPt;
+        // Compute line height from span bbox (matches layout engine's Font.get_height)
+        const lineHeight = ((_g = lineSpans[0]) === null || _g === void 0 ? void 0 : _g.bbox)
+            ? lineSpans[0].bbox.bottom_right.y - lineSpans[0].bbox.top_left.y
+            : undefined;
+        paragraphs.push(new docx_1.Paragraph({
+            children: runs,
+            alignment: wordAlign,
+            spacing: {
+                before: i === 0 ? ptToTwip(elem.margin.top + context.beforePt) : 0,
+                after: i === sortedLines.length - 1
+                    ? ptToTwip(elem.margin.bottom + context.afterPt)
+                    : 0,
+                line: lineHeight ? ptToTwip(lineHeight) : undefined,
+                lineRule: lineHeight ? docx_1.LineRuleType.EXACTLY : undefined,
+            },
+            indent: leftIndent > 0 ? { left: ptToTwip(leftIndent) } : undefined,
+        }));
+    }
+    return paragraphs;
+};
+const spacerParagraph = (heightPt) => new docx_1.Paragraph({
+    children: [],
+    spacing: {
+        line: SPACER_LINE_TWIP,
+        lineRule: docx_1.LineRuleType.EXACTLY,
+        after: ptToTwip(heightPt),
+    },
+});
+const withVerticalSpacing = (blocks, beforePt, afterPt) => {
+    const spaced = [];
+    if (beforePt > 0)
+        spaced.push(spacerParagraph(beforePt));
+    spaced.push(...blocks);
+    if (afterPt > 0)
+        spaced.push(spacerParagraph(afterPt));
+    return spaced;
+};
+// Render a Row as a single-row table.
+// Cell widths are derived from bounding box positions to capture exact spacing.
+// The layout engine computes element positions including margins and alignment gaps,
+// so we derive cell boundaries from the actual bbox positions within the row.
+// Word's text metrics differ from fontkit's, so content cells need extra width.
+// We take padding from spacer cells (alignment gaps) to keep total row width exact.
+const CELL_PADDING_PT = 8;
+const renderRow = (row, context = defaultRenderContext) => {
+    var _a, _b, _c, _d, _e, _f, _g, _h;
+    const rowLeft = (_b = (_a = row.bounding_box) === null || _a === void 0 ? void 0 : _a.top_left.x) !== null && _b !== void 0 ? _b : 0;
+    const rowRight = (_d = (_c = row.bounding_box) === null || _c === void 0 ? void 0 : _c.bottom_right.x) !== null && _d !== void 0 ? _d : rowLeft + Width.get_fixed_unchecked(row.width);
+    const rowWidth = rowRight - rowLeft;
+    const elements = row.elements;
+    // Phase 1: compute cell entries with raw widths
+    const entries = [];
+    let cursor = rowLeft;
+    for (let i = 0; i < elements.length; i++) {
+        const el = elements[i];
+        const elLeft = (_f = (_e = el.bounding_box) === null || _e === void 0 ? void 0 : _e.top_left.x) !== null && _f !== void 0 ? _f : cursor;
+        const elRight = (_h = (_g = el.bounding_box) === null || _g === void 0 ? void 0 : _g.bottom_right.x) !== null && _h !== void 0 ? _h : elLeft + Width.get_fixed_unchecked(el.width);
+        const gap = elLeft - el.margin.left - cursor;
+        if (gap > 1) {
+            entries.push({ tag: "spacer", widthPt: gap });
+        }
+        const cellWidth = el.margin.left + (elRight - elLeft) + el.margin.right;
+        entries.push({
+            tag: "content",
+            widthPt: cellWidth,
+            children: (0, exports.renderLayout)(el, defaultRenderContext),
+        });
+        cursor = elLeft - el.margin.left + cellWidth;
+    }
+    const trailing = rowRight - cursor;
+    if (trailing > 1) {
+        entries.push({ tag: "spacer", widthPt: trailing });
+    }
+    // Phase 2: redistribute padding from spacers to content cells
+    const contentCount = entries.filter((e) => e.tag === "content").length;
+    const spacerTotal = entries
+        .filter((e) => e.tag === "spacer")
+        .reduce((s, e) => s + e.widthPt, 0);
+    const paddingPerCell = Math.min(CELL_PADDING_PT, spacerTotal / Math.max(contentCount, 1));
+    let spacerBudget = paddingPerCell * contentCount;
+    for (const entry of entries) {
+        if (entry.tag === "content") {
+            entry.widthPt += paddingPerCell;
         }
     }
-    if (children.length === 0)
-        return [];
-    return [
-        new docx_1.Paragraph({
-            children,
-            alignment: ALIGNMENT_MAP[elem.alignment],
-            spacing: {
-                before: ptToTwip(elem.margin.top),
-                after: ptToTwip(elem.margin.bottom),
-            },
-            indent: {
-                left: ptToTwip(elem.margin.left),
-                right: ptToTwip(elem.margin.right),
-            },
-        }),
-    ];
-};
-const renderRow = (row) => {
-    const cells = row.elements.map((el) => {
-        const element = el;
-        const cellChildren = (0, exports.renderLayout)(element);
-        const cellWidth = element.bounding_box
-            ? Math.round(element.bounding_box.bottom_right.x - element.bounding_box.top_left.x)
-            : Width.get_fixed_unchecked(element.width);
-        return new docx_1.TableCell({
-            children: cellChildren.length > 0 ? cellChildren : [new docx_1.Paragraph({})],
-            width: { size: ptToTwip(cellWidth), type: docx_1.WidthType.DXA },
-            borders: noBorders,
-            margins: {
-                top: ptToTwip(element.margin.top),
-                bottom: ptToTwip(element.margin.bottom),
-                left: ptToTwip(element.margin.left),
-                right: ptToTwip(element.margin.right),
-            },
-        });
-    });
-    const tableWidth = row.bounding_box
-        ? Math.round(row.bounding_box.bottom_right.x - row.bounding_box.top_left.x)
-        : Width.get_fixed_unchecked(row.width);
-    return [
+    for (const entry of entries) {
+        if (entry.tag === "spacer" && spacerBudget > 0) {
+            const take = Math.min(entry.widthPt - 1, spacerBudget);
+            entry.widthPt -= take;
+            spacerBudget -= take;
+        }
+    }
+    // Phase 3: build cells
+    const cells = [];
+    const columnWidths = [];
+    for (const entry of entries) {
+        const twip = ptToTwip(entry.widthPt);
+        columnWidths.push(twip);
+        if (entry.tag === "spacer") {
+            cells.push(spacerCell(entry.widthPt));
+        }
+        else {
+            const ch = entry.children;
+            cells.push(new docx_1.TableCell({
+                children: ch.length > 0 ? ch : [new docx_1.Paragraph({})],
+                width: { size: twip, type: docx_1.WidthType.DXA },
+                borders: noBorders,
+                margins: zeroCellMargins,
+            }));
+        }
+    }
+    const rowBlocks = [
         new docx_1.Table({
             rows: [new docx_1.TableRow({ children: cells })],
-            width: { size: ptToTwip(tableWidth), type: docx_1.WidthType.DXA },
+            width: { size: ptToTwip(rowWidth), type: docx_1.WidthType.DXA },
+            columnWidths,
             layout: docx_1.TableLayoutType.FIXED,
             borders: tableBorders,
+            margins: zeroCellMargins,
+            indent: context.containerIndentPt > 0
+                ? { size: ptToTwip(context.containerIndentPt), type: docx_1.WidthType.DXA }
+                : undefined,
         }),
     ];
+    return withVerticalSpacing(rowBlocks, row.margin.top + context.beforePt, row.margin.bottom + context.afterPt);
 };
-const renderStack = (stack) => stack.elements.flatMap((el) => (0, exports.renderLayout)(el));
-const renderLayout = (layout) => {
+const renderStack = (stack, context = defaultRenderContext) => {
+    const inheritedIndentPt = context.containerIndentPt + semanticContainerIndentPt(stack.margin.left);
+    return stack.elements.flatMap((el, index, elements) => (0, exports.renderLayout)(el, {
+        containerIndentPt: inheritedIndentPt,
+        beforePt: index === 0 ? context.beforePt + stack.margin.top : 0,
+        afterPt: index === elements.length - 1
+            ? context.afterPt + stack.margin.bottom
+            : 0,
+    }));
+};
+const renderLayout = (layout, context = defaultRenderContext) => {
     switch (layout.tag) {
         case "Elem":
-            return renderElem(layout);
+            return renderElem(layout, context);
         case "Row":
-            return renderRow(layout);
+            return renderRow(layout, {
+                containerIndentPt: context.containerIndentPt +
+                    semanticContainerIndentPt(layout.margin.left),
+                beforePt: context.beforePt,
+                afterPt: context.afterPt,
+            });
         case "Stack":
-            return renderStack(layout);
+            return renderStack(layout, context);
         default: {
             const _exhaustive = layout;
             return _exhaustive;

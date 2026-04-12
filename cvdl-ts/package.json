@@ -22,6 +22,7 @@
 	},
 	"scripts": {
 		"build": "tsc",
+		"test:docx": "npm run build && node scripts/test-docx-harness.cjs",
 		"start": "ts-node src/index.ts",
 		"cli": "ts-node src/cli.ts",
 		"cli:pdf": "node scripts/run-pdf-cli.cjs",

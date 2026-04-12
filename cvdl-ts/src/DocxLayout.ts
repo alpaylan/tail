@@ -3,6 +3,7 @@ import {
 	Packer,
 	Paragraph,
 	TextRun,
+	ImageRun,
 	Table,
 	TableRow,
 	TableCell,
@@ -16,6 +17,8 @@ import {
 	ITableCellBorders,
 	IRunOptions,
 } from "docx";
+import * as fs from "fs";
+import * as path from "path";
 import {
 	render as anyRender,
 	resolveRenderInputs,
@@ -30,6 +33,8 @@ export type { RenderResult, BackendRenderProps as RenderProps };
 
 const ptToHalfPt = (pt: number) => Math.round(pt * 2);
 const ptToTwip = (pt: number) => Math.round(pt * 20);
+const DOCX_CONTAINER_INDENT_MAX_PT = 18;
+const SPACER_LINE_TWIP = 1;
 
 const noBorder = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
 const noBorders: ITableCellBorders = {
@@ -55,10 +60,83 @@ const zeroCellMargins = {
 	marginUnitType: WidthType.DXA,
 };
 
-const spanToRunOptions = (span: Elem.Span): IRunOptions => {
+const emojiAssetDirs = [
+	path.resolve(__dirname, "..", "..", "cvdl-editor", "fe", "public"),
+	path.resolve(__dirname, "..", "assets"),
+	path.resolve(__dirname, "..", "..", "node_modules", "fe2", "public"),
+];
+
+type EmojiAsset = {
+	data: Buffer;
+	type: "jpg" | "png" | "gif" | "bmp";
+};
+
+type RenderContext = {
+	containerIndentPt: number;
+	beforePt: number;
+	afterPt: number;
+};
+
+const defaultRenderContext: RenderContext = {
+	containerIndentPt: 0,
+	beforePt: 0,
+	afterPt: 0,
+};
+
+const emojiAssetCache = new Map<string, EmojiAsset | null>();
+
+const semanticContainerIndentPt = (leftPt: number): number =>
+	Math.min(Math.max(leftPt, 0), DOCX_CONTAINER_INDENT_MAX_PT);
+
+const resolveEmojiAsset = (emojiUrl?: string): EmojiAsset | null => {
+	if (!emojiUrl) return null;
+	if (emojiAssetCache.has(emojiUrl)) {
+		return emojiAssetCache.get(emojiUrl) ?? null;
+	}
+
+	const normalized = emojiUrl.replace(/^[/\\]+/, "");
+	const candidates = path.isAbsolute(normalized)
+		? [normalized]
+		: emojiAssetDirs.map((dir) => path.join(dir, normalized));
+
+	for (const candidate of candidates) {
+		if (!fs.existsSync(candidate)) continue;
+
+		const ext = path.extname(candidate).toLowerCase();
+		const type =
+			ext === ".jpg" || ext === ".jpeg"
+				? "jpg"
+				: ext === ".png"
+					? "png"
+					: ext === ".gif"
+						? "gif"
+						: ext === ".bmp"
+							? "bmp"
+							: null;
+
+		if (!type) continue;
+
+		const asset: EmojiAsset = { data: fs.readFileSync(candidate), type };
+		emojiAssetCache.set(emojiUrl, asset);
+		return asset;
+	}
+
+	emojiAssetCache.set(emojiUrl, null);
+	return null;
+};
+
+const emojiFallbackText = (emojiUrl?: string): string => {
+	if (!emojiUrl) return "";
+	return `:${path.parse(emojiUrl).name}:`;
+};
+
+const spanToRunOptions = (
+	span: Elem.Span,
+	text = span.text,
+): IRunOptions => {
 	const font = span.font;
 	return {
-		text: span.text,
+		text,
 		bold: span.is_bold || font?.weight === "Bold",
 		italics: span.is_italic || font?.style === "Italic",
 		font: font?.name,
@@ -69,8 +147,24 @@ const spanToRunOptions = (span: Elem.Span): IRunOptions => {
 	};
 };
 
-const spanToRun = (span: Elem.Span): TextRun | ExternalHyperlink =>
-	span.link
+type InlineElement = TextRun | ExternalHyperlink | ImageRun;
+
+const spanToRun = (span: Elem.Span): InlineElement => {
+	if (span.is_emoji && span.emoji_url) {
+		const asset = resolveEmojiAsset(span.emoji_url);
+		if (asset) {
+			const size = Math.max(1, Math.round((span.font?.size ?? 12) * 1.2));
+			return new ImageRun({
+				type: asset.type,
+				data: asset.data,
+				transformation: { width: size, height: size },
+			});
+		}
+
+		return new TextRun(spanToRunOptions(span, emojiFallbackText(span.emoji_url)));
+	}
+
+	return span.link
 		? new ExternalHyperlink({
 				link: span.link,
 				children: [
@@ -78,6 +172,7 @@ const spanToRun = (span: Elem.Span): TextRun | ExternalHyperlink =>
 				],
 			})
 		: new TextRun(spanToRunOptions(span));
+};
 
 type BlockElement = Paragraph | Table;
 
@@ -100,7 +195,10 @@ const alignmentMap: Record<string, (typeof AlignmentType)[keyof typeof Alignment
 // Use Word's native alignment (Center/Right/Justified) instead of indent so that
 // text gets the full cell width. Only use indent for Left-aligned text when the
 // layout engine placed it at a non-zero x offset.
-const renderElem = (elem: Elem.t): BlockElement[] => {
+const renderElem = (
+	elem: Elem.t,
+	context: RenderContext = defaultRenderContext,
+): BlockElement[] => {
 	if (!elem.spans?.length || elem.text === "") return [];
 
 	const spans = elem.spans.filter(
@@ -131,7 +229,7 @@ const renderElem = (elem: Elem.t): BlockElement[] => {
 		// For Left alignment, use span bbox offset as indent.
 		const leftIndent = useNativeAlign
 			? 0
-			: (lineSpans[0]?.bbox?.top_left.x ?? 0);
+			: (lineSpans[0]?.bbox?.top_left.x ?? 0) + context.containerIndentPt;
 
 		// Compute line height from span bbox (matches layout engine's Font.get_height)
 		const lineHeight = lineSpans[0]?.bbox
@@ -143,9 +241,12 @@ const renderElem = (elem: Elem.t): BlockElement[] => {
 				children: runs,
 				alignment: wordAlign,
 				spacing: {
-					before: i === 0 ? ptToTwip(elem.margin.top) : 0,
+					before:
+						i === 0 ? ptToTwip(elem.margin.top + context.beforePt) : 0,
 					after:
-						i === sortedLines.length - 1 ? ptToTwip(elem.margin.bottom) : 0,
+						i === sortedLines.length - 1
+							? ptToTwip(elem.margin.bottom + context.afterPt)
+							: 0,
 					line: lineHeight ? ptToTwip(lineHeight) : undefined,
 					lineRule: lineHeight ? LineRuleType.EXACTLY : undefined,
 				},
@@ -155,6 +256,28 @@ const renderElem = (elem: Elem.t): BlockElement[] => {
 	}
 
 	return paragraphs;
+};
+
+const spacerParagraph = (heightPt: number): Paragraph =>
+	new Paragraph({
+		children: [],
+		spacing: {
+			line: SPACER_LINE_TWIP,
+			lineRule: LineRuleType.EXACTLY,
+			after: ptToTwip(heightPt),
+		},
+	});
+
+const withVerticalSpacing = (
+	blocks: BlockElement[],
+	beforePt: number,
+	afterPt: number,
+): BlockElement[] => {
+	const spaced: BlockElement[] = [];
+	if (beforePt > 0) spaced.push(spacerParagraph(beforePt));
+	spaced.push(...blocks);
+	if (afterPt > 0) spaced.push(spacerParagraph(afterPt));
+	return spaced;
 };
 
 // Render a Row as a single-row table.
@@ -171,7 +294,10 @@ type CellEntry = {
 	children?: BlockElement[];
 };
 
-const renderRow = (row: Layout.RenderedRow): BlockElement[] => {
+const renderRow = (
+	row: Layout.RenderedRow,
+	context: RenderContext = defaultRenderContext,
+): BlockElement[] => {
 	const rowLeft = row.bounding_box?.top_left.x ?? 0;
 	const rowRight =
 		row.bounding_box?.bottom_right.x ??
@@ -199,7 +325,7 @@ const renderRow = (row: Layout.RenderedRow): BlockElement[] => {
 		entries.push({
 			tag: "content",
 			widthPt: cellWidth,
-			children: renderLayout(el),
+			children: renderLayout(el, defaultRenderContext),
 		});
 
 		cursor = elLeft - el.margin.left + cellWidth;
@@ -256,7 +382,7 @@ const renderRow = (row: Layout.RenderedRow): BlockElement[] => {
 		}
 	}
 
-	return [
+	const rowBlocks = [
 		new Table({
 			rows: [new TableRow({ children: cells })],
 			width: { size: ptToTwip(rowWidth), type: WidthType.DXA },
@@ -264,21 +390,56 @@ const renderRow = (row: Layout.RenderedRow): BlockElement[] => {
 			layout: TableLayoutType.FIXED,
 			borders: tableBorders,
 			margins: zeroCellMargins,
+			indent:
+				context.containerIndentPt > 0
+					? { size: ptToTwip(context.containerIndentPt), type: WidthType.DXA }
+					: undefined,
 		}),
 	];
+
+	return withVerticalSpacing(
+		rowBlocks,
+		row.margin.top + context.beforePt,
+		row.margin.bottom + context.afterPt,
+	);
 };
 
-const renderStack = (stack: Layout.RenderedStack): BlockElement[] =>
-	stack.elements.flatMap((el) => renderLayout(el as Layout.RenderedLayout));
+const renderStack = (
+	stack: Layout.RenderedStack,
+	context: RenderContext = defaultRenderContext,
+): BlockElement[] => {
+	const inheritedIndentPt =
+		context.containerIndentPt + semanticContainerIndentPt(stack.margin.left);
 
-export const renderLayout = (layout: Layout.RenderedLayout): BlockElement[] => {
+	return stack.elements.flatMap((el, index, elements) =>
+		renderLayout(el as Layout.RenderedLayout, {
+			containerIndentPt: inheritedIndentPt,
+			beforePt: index === 0 ? context.beforePt + stack.margin.top : 0,
+			afterPt:
+				index === elements.length - 1
+					? context.afterPt + stack.margin.bottom
+					: 0,
+		}),
+	);
+};
+
+export const renderLayout = (
+	layout: Layout.RenderedLayout,
+	context: RenderContext = defaultRenderContext,
+): BlockElement[] => {
 	switch (layout.tag) {
 		case "Elem":
-			return renderElem(layout as Elem.t);
+			return renderElem(layout as Elem.t, context);
 		case "Row":
-			return renderRow(layout as Layout.RenderedRow);
+			return renderRow(layout as Layout.RenderedRow, {
+				containerIndentPt:
+					context.containerIndentPt +
+					semanticContainerIndentPt((layout as Layout.RenderedRow).margin.left),
+				beforePt: context.beforePt,
+				afterPt: context.afterPt,
+			});
 		case "Stack":
-			return renderStack(layout as Layout.RenderedStack);
+			return renderStack(layout as Layout.RenderedStack, context);
 		default: {
 			const _exhaustive: never = layout;
 			return _exhaustive;
