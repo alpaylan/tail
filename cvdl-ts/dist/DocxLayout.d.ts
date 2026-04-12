@@ -8,5 +8,5 @@ type RenderContext = {
     afterPt: number;
 };
 type BlockElement = Paragraph | Table;
-export declare const renderLayout: (layout: Layout.RenderedLayout, context?: RenderContext) => BlockElement[];
+export declare const renderLayout: (layout: Layout.RenderedLayout, context?: RenderContext) => Promise<BlockElement[]>;
 export declare const render: (props: BackendRenderProps) => Promise<RenderResult>;

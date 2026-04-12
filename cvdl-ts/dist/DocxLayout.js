@@ -65,11 +65,6 @@ const zeroCellMargins = {
     right: 0,
     marginUnitType: docx_1.WidthType.DXA,
 };
-const emojiAssetDirs = [
-    path.resolve(__dirname, "..", "..", "cvdl-editor", "fe", "public"),
-    path.resolve(__dirname, "..", "assets"),
-    path.resolve(__dirname, "..", "..", "node_modules", "fe2", "public"),
-];
 const defaultRenderContext = {
     containerIndentPt: 0,
     beforePt: 0,
@@ -77,43 +72,80 @@ const defaultRenderContext = {
 };
 const emojiAssetCache = new Map();
 const semanticContainerIndentPt = (leftPt) => Math.min(Math.max(leftPt, 0), DOCX_CONTAINER_INDENT_MAX_PT);
-const resolveEmojiAsset = (emojiUrl) => {
+const isNodeFsAvailable = () => typeof fs.existsSync === "function" && typeof fs.readFileSync === "function";
+const getEmojiAssetType = (emojiUrl) => {
+    const lowered = emojiUrl.toLowerCase();
+    if (lowered.endsWith(".jpg") || lowered.endsWith(".jpeg"))
+        return "jpg";
+    if (lowered.endsWith(".png"))
+        return "png";
+    if (lowered.endsWith(".gif"))
+        return "gif";
+    if (lowered.endsWith(".bmp"))
+        return "bmp";
+    return null;
+};
+const getEmojiAssetDirs = () => [
+    path.resolve(__dirname, "..", "..", "cvdl-editor", "fe", "public"),
+    path.resolve(__dirname, "..", "assets"),
+    path.resolve(__dirname, "..", "..", "node_modules", "fe2", "public"),
+];
+const loadEmojiAssetFromNodeFs = (emojiUrl) => {
+    if (!isNodeFsAvailable())
+        return null;
+    const normalized = emojiUrl.replace(/^[/\\]+/, "");
+    const candidates = path.isAbsolute(normalized)
+        ? [normalized]
+        : getEmojiAssetDirs().map((dir) => path.join(dir, normalized));
+    for (const candidate of candidates) {
+        if (!fs.existsSync(candidate))
+            continue;
+        const type = getEmojiAssetType(candidate);
+        if (!type)
+            continue;
+        return { data: new Uint8Array(fs.readFileSync(candidate)), type };
+    }
+    return null;
+};
+const loadEmojiAssetFromBrowser = async (emojiUrl) => {
+    if (typeof fetch !== "function")
+        return null;
+    const type = getEmojiAssetType(emojiUrl);
+    if (!type)
+        return null;
+    const resolvedUrl = typeof window !== "undefined"
+        ? new URL(emojiUrl, window.location.href).toString()
+        : emojiUrl;
+    const response = await fetch(resolvedUrl);
+    if (!response.ok)
+        return null;
+    return {
+        data: new Uint8Array(await response.arrayBuffer()),
+        type,
+    };
+};
+const resolveEmojiAsset = async (emojiUrl) => {
     var _a;
     if (!emojiUrl)
         return null;
     if (emojiAssetCache.has(emojiUrl)) {
         return (_a = emojiAssetCache.get(emojiUrl)) !== null && _a !== void 0 ? _a : null;
     }
-    const normalized = emojiUrl.replace(/^[/\\]+/, "");
-    const candidates = path.isAbsolute(normalized)
-        ? [normalized]
-        : emojiAssetDirs.map((dir) => path.join(dir, normalized));
-    for (const candidate of candidates) {
-        if (!fs.existsSync(candidate))
-            continue;
-        const ext = path.extname(candidate).toLowerCase();
-        const type = ext === ".jpg" || ext === ".jpeg"
-            ? "jpg"
-            : ext === ".png"
-                ? "png"
-                : ext === ".gif"
-                    ? "gif"
-                    : ext === ".bmp"
-                        ? "bmp"
-                        : null;
-        if (!type)
-            continue;
-        const asset = { data: fs.readFileSync(candidate), type };
-        emojiAssetCache.set(emojiUrl, asset);
-        return asset;
-    }
-    emojiAssetCache.set(emojiUrl, null);
-    return null;
+    const assetPromise = (async () => {
+        const nodeAsset = loadEmojiAssetFromNodeFs(emojiUrl);
+        if (nodeAsset)
+            return nodeAsset;
+        return loadEmojiAssetFromBrowser(emojiUrl);
+    })();
+    emojiAssetCache.set(emojiUrl, assetPromise);
+    return assetPromise;
 };
 const emojiFallbackText = (emojiUrl) => {
     if (!emojiUrl)
         return "";
-    return `:${path.parse(emojiUrl).name}:`;
+    const normalized = emojiUrl.replace(/^.*[\\/]/, "");
+    const basename = normalized.replace(/\.[^.]+$/, "");
+    return `:${basename}:`;
 };
 const spanToRunOptions = (span, text = span.text) => {
     const font = span.font;
@@ -128,10 +160,10 @@ const spanToRunOptions = (span, text = span.text) => {
             : undefined,
     };
 };
-const spanToRun = (span) => {
+const spanToRun = async (span) => {
     var _a, _b;
     if (span.is_emoji && span.emoji_url) {
-        const asset = resolveEmojiAsset(span.emoji_url);
+        const asset = await resolveEmojiAsset(span.emoji_url);
         if (asset) {
             const size = Math.max(1, Math.round(((_b = (_a = span.font) === null || _a === void 0 ? void 0 : _a.size) !== null && _b !== void 0 ? _b : 12) * 1.2));
             return new docx_1.ImageRun({
@@ -167,7 +199,7 @@ const alignmentMap = {
 // Use Word's native alignment (Center/Right/Justified) instead of indent so that
 // text gets the full cell width. Only use indent for Left-aligned text when the
 // layout engine placed it at a non-zero x offset.
-const renderElem = (elem, context = defaultRenderContext) => {
+const renderElem = async (elem, context = defaultRenderContext) => {
     var _a, _b, _c, _d, _e, _f, _g;
     if (!((_a = elem.spans) === null || _a === void 0 ? void 0 : _a.length) || elem.text === "")
         return [];
@@ -188,7 +220,7 @@ const renderElem = (elem, context = defaultRenderContext) => {
     const sortedLines = Array.from(lineMap.keys()).sort((a, b) => a - b);
     for (let i = 0; i < sortedLines.length; i++) {
         const lineSpans = lineMap.get(sortedLines[i]);
-        const runs = lineSpans.map(spanToRun);
+        const runs = await Promise.all(lineSpans.map(spanToRun));
         if (runs.length === 0)
             continue;
         // For non-Left alignment, let Word handle positioning (full cell width available).
@@ -240,7 +272,7 @@ const withVerticalSpacing = (blocks, beforePt, afterPt) => {
 // Word's text metrics differ from fontkit's, so content cells need extra width.
 // We take padding from spacer cells (alignment gaps) to keep total row width exact.
 const CELL_PADDING_PT = 8;
-const renderRow = (row, context = defaultRenderContext) => {
+const renderRow = async (row, context = defaultRenderContext) => {
     var _a, _b, _c, _d, _e, _f, _g, _h;
     const rowLeft = (_b = (_a = row.bounding_box) === null || _a === void 0 ? void 0 : _a.top_left.x) !== null && _b !== void 0 ? _b : 0;
     const rowRight = (_d = (_c = row.bounding_box) === null || _c === void 0 ? void 0 : _c.bottom_right.x) !== null && _d !== void 0 ? _d : rowLeft + Width.get_fixed_unchecked(row.width);
@@ -261,7 +293,7 @@ const renderRow = (row, context = defaultRenderContext) => {
         entries.push({
             tag: "content",
             widthPt: cellWidth,
-            children: (0, exports.renderLayout)(el, defaultRenderContext),
+            children: await (0, exports.renderLayout)(el, defaultRenderContext),
         });
         cursor = elLeft - el.margin.left + cellWidth;
     }
@@ -322,17 +354,18 @@ const renderRow = (row, context = defaultRenderContext) => {
     ];
     return withVerticalSpacing(rowBlocks, row.margin.top + context.beforePt, row.margin.bottom + context.afterPt);
 };
-const renderStack = (stack, context = defaultRenderContext) => {
+const renderStack = async (stack, context = defaultRenderContext) => {
     const inheritedIndentPt = context.containerIndentPt + semanticContainerIndentPt(stack.margin.left);
-    return stack.elements.flatMap((el, index, elements) => (0, exports.renderLayout)(el, {
+    const rendered = await Promise.all(stack.elements.map((el, index, elements) => (0, exports.renderLayout)(el, {
         containerIndentPt: inheritedIndentPt,
         beforePt: index === 0 ? context.beforePt + stack.margin.top : 0,
         afterPt: index === elements.length - 1
             ? context.afterPt + stack.margin.bottom
             : 0,
-    }));
+    })));
+    return rendered.flat();
 };
-const renderLayout = (layout, context = defaultRenderContext) => {
+const renderLayout = async (layout, context = defaultRenderContext) => {
     switch (layout.tag) {
         case "Elem":
             return renderElem(layout, context);
@@ -363,7 +396,7 @@ const render = async (props) => {
         storage,
         fontDict,
     });
-    const children = layouts.flatMap((layout) => (0, exports.renderLayout)(layout));
+    const children = (await Promise.all(layouts.map((layout) => (0, exports.renderLayout)(layout)))).flat();
     const doc = new docx_1.Document({
         sections: [
             {
